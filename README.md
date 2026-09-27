@@ -2,7 +2,7 @@
 
 Reverse proxy HTTP viết bằng **Java 21, chỉ dùng thư viện JDK**. Thuật toán mặc định `ADAPTIVE` ước lượng backend có thể hoàn thành công việc mới nhanh hơn từ độ trễ thực tế, công việc đang xử lý, năng lực phục vụ, CPU, bộ nhớ và lỗi. `ROUND_ROBIN` và `LEAST_CONNECTIONS` được giữ làm đối chứng khi đo đạc.
 
-Đây là thuật toán heuristic: không biết trước độ nặng của một request và không bảo đảm luôn chọn được server nhanh nhất. Kết luận phải dựa trên latency, throughput và tỷ lệ lỗi của cùng một workload; xem [kết quả benchmark](docs/BENCHMARK_RESULTS.md).
+Đây là thuật toán heuristic: học chi phí gần đây theo nhóm route, không biết chính xác chi phí request mới và không bảo đảm luôn chọn được server nhanh nhất. Thiết kế, giả thuyết và kết quả Mixed trước/sau được ghi trong [Estimated Completion Time](docs/ADAPTIVE_COMPLETION.md).
 
 ## Chạy nhanh
 
@@ -50,7 +50,7 @@ java -jar target/reverse-proxy-demo.jar config/application.properties
 
 `CAPACITY` là số công việc có thể phục vụ đồng thời, không phải trọng số chia request. `DELAY_MS` mô phỏng thời gian công việc; `CPU_WORKERS` tạo các luồng tính toán thật để gây tải CPU.
 
-Maven là lựa chọn bổ sung: `mvn clean package` tạo cùng JAR. Maven có thể cần mạng để tải plugin lần đầu. Các bài test dùng Java `main`, hãy chạy script test bên dưới; `mvn package` không thay thế bước này.
+Maven là lựa chọn bổ sung: `mvn clean verify` chạy các test Java `main` rồi tạo cùng JAR. Maven dùng plugin AntRun để fork từng chương trình test với assertions bật; test lỗi hoặc quá 60 giây làm build thất bại. Surefire được bỏ qua vì đây không phải test JUnit. Maven có thể cần mạng để tải build plugin lần đầu; ứng dụng và test vẫn không có dependency ngoài JDK. Các script test bên dưới dùng được khi không có Maven.
 
 ## Quan sát và tạo tình huống demo
 
@@ -84,15 +84,19 @@ curl.exe "http://127.0.0.1:9002/control?healthy=true"
 Điểm càng thấp càng được ưu tiên:
 
 ```text
-scoreMs = latencyEWMA × (1 + (outstanding + 1) / effectiveCapacity) × resourcePenalty
-effectiveCapacity = configuredCapacity × warmup
+serviceEstimate = routeServiceEWMA × requestCostUnits
+ECT = estimatedNextSlotWait + serviceEstimate
+ranking = ECT × resourcePenalty
+admissionBudget = min(readTimeout, requestTimeout)
 ```
 
-- `latencyEWMA`: độ trễ request đo ở proxy, làm mượt để thích nghi mà giảm nhiễu.
-- `outstanding`: công việc proxy đã giữ chỗ cộng ước lượng công việc ngoài proxy từ telemetry; tránh cộng hai lần cùng một request.
-- `effectiveCapacity`: khả năng phục vụ song song, giảm trong giai đoạn hồi phục.
+- `routeServiceEWMA`: học riêng `/work`, `/slow`, `/compute` và nhóm OTHER; chỉ học từ response thành công được cấp khi chưa phải chờ slot. `cost` có sẵn của demo được dùng cho `/work` và `/compute`.
+- `estimatedNextSlotWait`: mô phỏng các slot và công việc đã giữ chỗ, có tính phần việc còn lại và tải ngoài proxy từ telemetry mới.
+- Capacity phục vụ song song giảm trong giai đoạn hồi phục. Adaptive chỉ cấp lease nếu ECT và tổng work/capacity còn trong ngân sách timeout hiện tại; quá tải trả 503 sớm.
 - `resourcePenalty`: tăng khi CPU gần bão hòa, bộ nhớ có áp lực hoặc lỗi tăng. Telemetry quá cũ không được coi là số liệu hiện tại.
-- Thăm dò có giới hạn giúp học lại backend từng chậm. Giới hạn request và health check áp dụng cho cả ba thuật toán để so sánh công bằng.
+- Thăm dò có giới hạn giúp học lại backend từng chậm. Health/count admission áp dụng cho cả ba thuật toán; admission theo estimated work chỉ thuộc Adaptive. Vì vậy benchmark mới so sánh cả chính sách admission cùng routing, phải báo cả lỗi và tỷ lệ phục vụ từng loại request.
+
+`scoreMs` trong monitoring giữ score tổng hợp cũ để đối chiếu; quyết định mới dùng ECT theo request. Các cột `estimated*WorkMs` cho biết work dự kiến còn lại; xem [công thức, concurrency và hạn chế](docs/ADAPTIVE_COMPLETION.md).
 
 CPU của tiến trình, CPU của host, heap JVM và RAM host là các đại lượng khác nhau. Nhiều backend chạy cùng máy dùng chung tài nguyên host; không diễn giải telemetry đó như ba máy vật lý độc lập. Bộ nhớ dùng nhiều cũng không tự động có nghĩa server xử lý chậm. Xem chi tiết công thức, đồng bộ và giới hạn trong [kiến trúc](docs/ARCHITECTURE.md).
 
@@ -126,16 +130,21 @@ Nếu backend thật chưa cung cấp telemetry theo contract, proxy vẫn có q
 # Build và chạy toàn bộ *Test.java (plain Java main, assertions bật)
 powershell -ExecutionPolicy Bypass -File scripts/test.ps1
 
-# HTTP thực: forwarding, lỗi, health, telemetry và các giới hạn
-python scripts/integration.py
+# Kiểm tra lịch gửi và cách tính thống kê benchmark
+python -m unittest discover -s scripts -p test_benchmark.py
 
 # So sánh ba thuật toán; mỗi lần chạy tự quản lý các tiến trình của nó
 python scripts/benchmark.py --quick
+
+# Phép đo có lặp: A homogeneous, B heterogeneous, C mixed
+python scripts/benchmark.py --requests 1200 --warmup-requests 300 --rate 60 --repeats 3
 ```
 
-Trên Linux thay dòng đầu bằng `bash scripts/test.sh`. Xem `python scripts/benchmark.py --help` để chọn phép đo đầy đủ. Không so kết quả giữa hai lượt có concurrency, số request, tải nền hoặc cấu hình máy khác nhau. Báo cáo cả p95/p99, throughput, lỗi và tỷ lệ request mỗi backend; trường hợp adaptive thua cũng cần giữ lại.
+Trên Linux thay dòng đầu bằng `bash scripts/test.sh`. Benchmark tự biên dịch source snapshot bằng `javac` cạnh executable `java`; dùng `--java "C:/path/to/jdk-21/bin/java.exe"` nếu PATH chưa trỏ tới JDK 21. Không dùng class do IDE tự tạo trong `target/classes`. Output nằm ngoài `target`, mặc định `benchmarks/results/<timestamp>`, gồm `summary.csv`, `aggregate.csv`, `backends.csv`, `request_types.csv`, raw request và telemetry CSV. `--quick` chỉ kiểm tra pipeline, không dùng kết luận thắng/thua.
 
-Build dùng `javac --release 21 -encoding UTF-8`, tạo `target/reverse-proxy-demo.jar`. Môi trường phát triển hiện có JDK 26; biên dịch cho Java 21 không tự thay thế việc chạy kiểm tra trên đúng runtime JDK 21. Kết quả kiểm tra thực tế và thông tin môi trường được ghi ở [báo cáo benchmark](docs/BENCHMARK_RESULTS.md).
+Xem [phương pháp và ý nghĩa từng cột](docs/BENCHMARK.md) và [kết quả thực tế](docs/BENCHMARK_RESULTS.md). Cả ba chiến lược dùng cùng lịch gửi, cùng timeout/giới hạn và warm-up; thứ tự chạy cân bằng qua ba lần lặp. Báo cáo cả lỗi, client lag và p95/p99. Các test Java hiện có đã chứa kiểm thử HTTP thực; chưa có script `integration.py` riêng.
+
+Build dùng `javac --release 21 -encoding UTF-8`, tạo `target/reverse-proxy-demo.jar`. Lượt audit ngày 27/09/2026 đã chạy thành công `mvn clean verify` trên Microsoft JDK 21.0.12.1, gồm cả test HTTP/socket thực. Xem [báo cáo audit và lệnh kiểm chứng](docs/AUDIT.md); đây là kiểm tra correctness, chưa phải kết luận hiệu năng từ benchmark.
 
 ## Phạm vi và tổ chức mã
 
@@ -152,7 +161,7 @@ src/main/java/com/example/
   proxy/server/          Lifecycle và monitoring
   backend/              Backend mô phỏng để thí nghiệm
 src/test/java/           Test không cần dependency
-scripts/                 Build, chạy, integration, benchmark
+scripts/                 Build, chạy, test, benchmark
 docs/                    Khảo sát, thiết kế, kết quả đo
 ```
 

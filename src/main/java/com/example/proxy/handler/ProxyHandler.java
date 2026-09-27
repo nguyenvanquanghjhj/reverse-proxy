@@ -26,17 +26,25 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
         deadlines.setRemoveOnCancelPolicy(true);
     }
     @Override public void handle(HttpExchange exchange) throws IOException {
-        if (!admission.tryAcquire()) {
-            try { sendFailure(exchange, 503, "Proxy capacity exhausted"); } finally { exchange.close(); }
-            return;
-        }
-        ScheduledFuture<?> deadline = clientDeadline(exchange);
+        boolean admitted = admission.tryAcquire();
+        ClientDeadline deadline = null;
         try (exchange) {
+            deadline = clientDeadline();
+            if (!admitted) {
+                sendError(exchange, 503, "Proxy capacity exhausted");
+                return;
+            }
             if (exchange.getRequestMethod().equalsIgnoreCase("CONNECT") || exchange.getRequestHeaders().containsKey("Upgrade")) {
                 sendFailure(exchange, 501, "CONNECT and protocol upgrades are not supported");
                 return;
             }
             String path = exchange.getRequestURI().getPath();
+            if (!exchange.getRequestMethod().matches("[!#$%&'*+.^_`|~0-9A-Za-z-]+")
+                    || path == null || !path.startsWith("/")
+                    || exchange.getRequestURI().getRawFragment() != null) {
+                sendFailure(exchange, 400, "Invalid request method or target");
+                return;
+            }
             if (path.equals("/control") || path.startsWith("/control/") || path.equals("/down") || path.equals("/up")) {
                 sendFailure(exchange, 403, "Backend control endpoints must be accessed directly");
                 return;
@@ -51,12 +59,12 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
             try { body = readBody(exchange.getRequestBody(), config.getMaxBodyBytes()); }
             catch (UpstreamTransport.BodyLimitException e) { sendFailure(exchange, 413, e.getMessage()); return; }
             catch (IOException e) { sendFailure(exchange, 400, "Incomplete request body"); return; }
-            deadline.cancel(false); // Upstream has its own deadline; retain time to send a 504 response.
+            deadline.close(); // Upstream has its own deadline; retain time to send a 504 response.
             Map<String, List<String>> headers = new LinkedHashMap<>(exchange.getRequestHeaders());
             headers.keySet().removeIf(name -> name.equalsIgnoreCase("forwarded") || name.toLowerCase(Locale.ROOT).startsWith("x-forwarded-"));
             headers.put("X-Forwarded-For", List.of(exchange.getRemoteAddress().getAddress().getHostAddress()));
             headers.put("X-Forwarded-Proto", List.of("http"));
-            Dispatcher.Lease lease = dispatcher.acquire();
+            Dispatcher.Lease lease = dispatcher.acquire(exchange.getRequestURI());
             if (lease == null) { sendFailure(exchange, 503, "No healthy backend has free capacity"); return; }
             UpstreamTransport.Response response;
             long start = System.nanoTime();
@@ -79,7 +87,7 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
                 }
             }
             // The backend has finished. Downstream failures cannot change its health or count twice.
-            deadline = clientDeadline(exchange);
+            deadline = clientDeadline();
             response.headers().forEach((name, values) -> {
                 if (!name.equalsIgnoreCase("content-length")) exchange.getResponseHeaders().put(name, new ArrayList<>(values));
             });
@@ -97,7 +105,10 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
                 exchange.sendResponseHeaders(response.status(), response.body().length);
                 exchange.getResponseBody().write(response.body());
             }
-        } finally { deadline.cancel(false); admission.release(); }
+        } finally {
+            if (deadline != null) deadline.close();
+            if (admitted) admission.release();
+        }
     }
     private boolean validRequestFraming(HttpExchange exchange) throws IOException {
         List<String> lengths = exchange.getRequestHeaders().get("Content-Length");
@@ -145,12 +156,34 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
     }
     private static double elapsedMs(long start) { return (System.nanoTime() - start) / 1_000_000.0; }
     private void sendFailure(HttpExchange exchange, int status, String message) throws IOException {
-        ScheduledFuture<?> deadline = clientDeadline(exchange);
-        try { sendError(exchange, status, message); } finally { deadline.cancel(false); }
+        try (ClientDeadline ignored = clientDeadline()) { sendError(exchange, status, message); }
     }
-    private ScheduledFuture<?> clientDeadline(HttpExchange exchange) {
-        // Closing a partially read JDK exchange may drain input: never block the shared timer thread.
-        return deadlines.schedule(() -> Thread.startVirtualThread(exchange::close), config.getRequestTimeoutMs(), TimeUnit.MILLISECONDS);
+    private ClientDeadline clientDeadline() throws IOException {
+        try { return new ClientDeadline(Thread.currentThread()); }
+        catch (RejectedExecutionException closed) { throw new IOException("Proxy handler is closed", closed); }
+    }
+    private final class ClientDeadline implements AutoCloseable {
+        private final Thread owner;
+        private final ScheduledFuture<?> task;
+        private boolean cancelled, fired;
+        ClientDeadline(Thread owner) {
+            this.owner = owner;
+            task = deadlines.schedule(this::expire, config.getRequestTimeoutMs(), TimeUnit.MILLISECONDS);
+        }
+        private synchronized void expire() {
+            if (!cancelled) {
+                fired = true;
+                // JDK HttpServer uses interruptible SocketChannel I/O. Interrupt the reader/writer
+                // itself: exchange.close() from another thread can wait for a blocked drain.
+                owner.interrupt();
+            }
+        }
+        @Override public synchronized void close() {
+            cancelled = true;
+            task.cancel(false);
+            // Do not leak our deadline interrupt into later work on this executor thread.
+            if (fired && Thread.currentThread() == owner) Thread.interrupted();
+        }
     }
     @Override public void close() { deadlines.shutdownNow(); transport.close(); }
 }

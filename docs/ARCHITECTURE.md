@@ -1,5 +1,7 @@
 # Kiến trúc và thuật toán để trình bày PBL4
 
+**Cập nhật Adaptive:** phần score theo latency/count dưới đây mô tả baseline và các metric tổng hợp vẫn xuất để đối chiếu. Quyết định Adaptive hiện dùng EWMA service theo route, estimated outstanding work và admission theo deadline, trong cùng Dispatcher/Lease; xem [thiết kế và benchmark Mixed trước/sau](ADAPTIVE_COMPLETION.md). RR/LC, transport, backend demo và công thức resource penalty không đổi.
+
 ## Luồng xử lý
 
 ```mermaid

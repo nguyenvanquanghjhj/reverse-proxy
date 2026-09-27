@@ -7,6 +7,7 @@ import com.example.proxy.healthcheck.HealthChecker;
 import com.example.proxy.loadbalancer.Dispatcher;
 import com.example.proxy.metrics.BackendMetrics;
 import java.nio.charset.StandardCharsets;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -35,6 +36,10 @@ public final class DispatcherTest {
         run("bounded exploration relearns an idle slow backend", DispatcherTest::exploration);
         run("configuration rejects ambiguous or nonfinite settings", DispatcherTest::invalidConfiguration);
         run("telemetry parser validates ratios and counters", DispatcherTest::telemetryValidation);
+        run("route EWMA, virtual slots, queue learning and recovery", com.example.proxy.loadbalancer.EstimatedWorkTest::runAll);
+        run("estimated work distinguishes equal connection counts", DispatcherTest::routeWork);
+        run("work admission rejects deadlines without changing RR or LC", DispatcherTest::workAdmission);
+        run("concurrent virtual threads cannot overbook estimated work", () -> reservationBurst("ADAPTIVE", 128, 64, 24, 50));
         System.out.println("DispatcherTest: " + passed + " scenarios passed.");
     }
 
@@ -48,6 +53,44 @@ public final class DispatcherTest {
             equal(f.backend(1), next.backend(), "CPU-idle backend wins despite having more local work");
             check(f.snapshot(0).inFlight() == 0 && f.snapshot(1).inFlight() == 2,
                     "decision must differ from least-connections");
+        }
+    }
+
+    private static void routeWork() {
+        Fixture f = new Fixture("backend.servers", "127.0.0.1:9001:1,127.0.0.1:9002:1");
+        // Train both backends with the same service classes, independently of route order.
+        for (String route : List.of("/slow", "/work")) {
+            var a = required(f.dispatcher.acquire(URI.create(route)));
+            var b = required(f.dispatcher.acquire(URI.create(route)));
+            a.complete(route.equals("/slow") ? 2000 : 20, false, false);
+            b.complete(route.equals("/slow") ? 2000 : 20, false, false);
+        }
+        try (var slow = required(f.dispatcher.acquire(URI.create("/slow")));
+             var light = required(f.dispatcher.acquire(URI.create("/work")));
+             var next = required(f.dispatcher.acquire(URI.create("/work")))) {
+            equal(light.backend(), next.backend(), "equal connections: choose backend holding 20ms work, not 2000ms");
+            check(!slow.backend().equals(next.backend()), "outstanding service cost affects selection");
+        }
+        check(f.dispatcher.snapshotJson().contains("\"estimatedOutstandingWorkMs\":0.0"), "closed leases release work");
+    }
+
+    private static void workAdmission() {
+        for (String strategy : List.of("ADAPTIVE", "ROUND_ROBIN", "LEAST_CONNECTIONS")) {
+            Fixture f = new Fixture("backend.servers", "127.0.0.1:9001:1", "loadbalancer.strategy", strategy);
+            var sample = required(f.dispatcher.acquire(URI.create("/slow")));
+            sample.complete(2000, false, false);
+            try (var held = required(f.dispatcher.acquire(URI.create("/slow")))) {
+                var next = f.dispatcher.acquire(URI.create("/slow"));
+                if (strategy.equals("ADAPTIVE")) {
+                    check(next == null, "predicted 4000ms must not enter a backend with 3000ms deadline");
+                    check(f.dispatcher.snapshotJson().contains("\"estimatedWorkRejected\":1"), "work rejection is observable");
+                    try (var light = required(f.dispatcher.acquire(URI.create("/work")))) {
+                        check(light.backend() != null, "short request still fits the same completion budget");
+                    }
+                } else {
+                    required(next).close();
+                }
+            }
         }
     }
 
@@ -121,8 +164,13 @@ public final class DispatcherTest {
 
     private static void reservationBurst(String strategy, int globalLimit, int backendLimit, int expected)
             throws Exception {
+        reservationBurst(strategy, globalLimit, backendLimit, expected, 3000);
+    }
+    private static void reservationBurst(String strategy, int globalLimit, int backendLimit, int expected, int readTimeout)
+            throws Exception {
         Fixture f = new Fixture("backend.servers", "127.0.0.1:9001:8,127.0.0.1:9002:8,127.0.0.1:9003:8",
                 "loadbalancer.strategy", strategy, "proxy.max.inflight", "" + globalLimit,
+                "proxy.read.timeout.ms", "" + readTimeout,
                 "backend.max.inflight", "" + backendLimit);
         int clients = 64;
         CountDownLatch ready = new CountDownLatch(clients);

@@ -9,11 +9,46 @@
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-    <!-- No application or test dependencies. Maven may download build plugins.
-         Tests use Java main methods: run scripts/test.ps1 or scripts/test.sh. -->
+    <!-- No application or test dependencies. AntRun forks the plain Java test mains.
+         The standalone test scripts remain usable without Maven. -->
     <build>
         <finalName>reverse-proxy-demo</finalName>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.4</version>
+                <!-- Main-method tests run below; avoid misleading "Tests run: 0" reports. -->
+                <configuration><skipTests>true</skipTests></configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <id>plain-java-tests</id>
+                        <phase>test</phase>
+                        <goals><goal>run</goal></goals>
+                        <configuration>
+                            <target>
+                                <java classname="com.example.proxy.DispatcherTest" fork="true" failonerror="true" timeout="60000" jvm="${java.home}/bin/java">
+                                    <classpath refid="maven.test.classpath"/>
+                                    <jvmarg value="-ea"/>
+                                </java>
+                                <java classname="com.example.proxy.HealthCheckerTest" fork="true" failonerror="true" timeout="60000" jvm="${java.home}/bin/java">
+                                    <classpath refid="maven.test.classpath"/>
+                                    <jvmarg value="-ea"/>
+                                </java>
+                                <java classname="com.example.proxy.HttpTransportTest" fork="true" failonerror="true" timeout="60000" jvm="${java.home}/bin/java">
+                                    <classpath refid="maven.test.classpath"/>
+                                    <jvmarg value="-ea"/>
+                                </java>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>

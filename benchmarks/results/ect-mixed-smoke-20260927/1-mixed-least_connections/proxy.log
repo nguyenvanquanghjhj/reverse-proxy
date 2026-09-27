@@ -1,0 +1,2 @@
+[2026-09-27 23:00:14.240] [INFO ] [Main] ?ang n?p c?u hình t?: D:\PBL4\reverse-proxy-demo\benchmarks\results\ect-mixed-smoke-20260927\1-mixed-least_connections\proxy.properties
+[2026-09-27 23:00:14.761] [INFO ] [ReverseProxyServer] Reverse proxy listening at http://127.0.0.1:50177 using LEAST_CONNECTIONS

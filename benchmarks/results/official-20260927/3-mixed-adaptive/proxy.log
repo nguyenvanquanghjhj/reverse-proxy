@@ -1,0 +1,2 @@
+[2026-09-27 22:33:26.757] [INFO ] [Main] ?ang n?p c?u hình t?: D:\PBL4\reverse-proxy-demo\benchmarks\results\official-20260927\3-mixed-adaptive\proxy.properties
+[2026-09-27 22:33:27.140] [INFO ] [ReverseProxyServer] Reverse proxy listening at http://127.0.0.1:54788 using ADAPTIVE

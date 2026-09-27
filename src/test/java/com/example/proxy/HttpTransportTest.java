@@ -20,6 +20,7 @@ public final class HttpTransportTest {
     public static void main(String[] args) throws Exception {
         framing();
         deadline();
+        transportShutdown();
         proxyIntegration();
         System.out.println("HttpTransportTest: " + checks + " checks passed");
     }
@@ -118,6 +119,18 @@ public final class HttpTransportTest {
             while (!proxy.getDispatcher().hasAvailableBackend() && System.nanoTime() < readyDeadline) Thread.sleep(10);
             check(proxy.getDispatcher().hasAvailableBackend(), "health enables backend");
             String base = "http://127.0.0.1:" + proxy.getPort();
+            long beforeRejected = proxy.getDispatcher().snapshots().getFirst().dispatched();
+            for (String requestLine : List.of("GET /echo#fragment HTTP/1.1", "G(ET /echo HTTP/1.1")) {
+                try (Socket clientSocket = new Socket("127.0.0.1", proxy.getPort())) {
+                    clientSocket.setSoTimeout(2000);
+                    clientSocket.getOutputStream().write(bytes(requestLine + "\r\nHost: localhost\r\nConnection: close\r\n\r\n"));
+                    String statusLine = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), StandardCharsets.ISO_8859_1)).readLine();
+                    check(statusLine != null && statusLine.contains(" 400 "), "malformed client input is a 400: " + statusLine);
+                }
+            }
+            var afterRejected = proxy.getDispatcher().snapshots().getFirst();
+            check(afterRejected.dispatched() == beforeRejected && afterRejected.errors() == 0 && afterRejected.alive(),
+                    "invalid client input never reserves or poisons a backend");
             for (String method : List.of("PATCH", "DELETE", "GET")) {
                 var request = HttpRequest.newBuilder(URI.create(base + "/echo")).header("X-Forwarded-For", "spoofed")
                         .method(method, HttpRequest.BodyPublishers.ofString("hello")).build();
@@ -136,6 +149,19 @@ public final class HttpTransportTest {
             check(get(client, base + "/__proxy/metrics/extra").statusCode() == 404, "monitor endpoint exact path");
             var tooLarge = client.send(HttpRequest.newBuilder(URI.create(base + "/echo")).POST(HttpRequest.BodyPublishers.ofByteArray(new byte[1025])).build(), HttpResponse.BodyHandlers.ofString());
             check(tooLarge.statusCode() == 413, "upload limit");
+            long dispatchedBeforeUpload = proxy.getDispatcher().snapshots().getFirst().dispatched();
+            try (Socket stalledUpload = rejectedUploadAfterPermitReturns(proxy.getPort())) {
+                long recoveryDeadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(3);
+                int nextStatus;
+                do {
+                    nextStatus = get(client, base + "/echo").statusCode();
+                    if (nextStatus == 200) break;
+                    Thread.sleep(30);
+                } while (System.nanoTime() < recoveryDeadline);
+                check(nextStatus == 200, "rejected client holding its socket open cannot retain the admission permit");
+                check(proxy.getDispatcher().snapshots().getFirst().dispatched() == dispatchedBeforeUpload + 1,
+                        "oversized upload never dispatches; only the recovery GET reaches backend");
+            }
             check(get(client, base + "/big").statusCode() == 502, "upstream response limit");
             check(proxy.getDispatcher().hasAvailableBackend(), "body limit does not mark backend DOWN");
             CompletableFuture<HttpResponse<String>> pending = client.sendAsync(HttpRequest.newBuilder(URI.create(base + "/hold")).build(), HttpResponse.BodyHandlers.ofString());
@@ -147,8 +173,62 @@ public final class HttpTransportTest {
             check(proxy.getDispatcher().snapshots().stream().allMatch(s -> s.inFlight() == 0), "all leases released");
         } finally { release.countDown(); backend.stop(0); backendWorkers.shutdownNow(); }
     }
+    private static void transportShutdown() throws Exception {
+        CountDownLatch connected = new CountDownLatch(1), release = new CountDownLatch(1);
+        try (ServerSocket listener = new ServerSocket(0, 1, InetAddress.getLoopbackAddress());
+             UpstreamTransport transport = new UpstreamTransport(500, 30000, 30000, 1024, 1024);
+             ExecutorService workers = Executors.newVirtualThreadPerTaskExecutor()) {
+            Future<?> backend = workers.submit(() -> {
+                try (Socket socket = listener.accept()) {
+                    readRequest(socket);
+                    connected.countDown();
+                    release.await(3, TimeUnit.SECONDS);
+                } catch (IOException | InterruptedException ignored) { }
+            });
+            Future<Boolean> pending = workers.submit(() -> {
+                try {
+                    transport.exchange("127.0.0.1", listener.getLocalPort(), "GET", URI.create("/"), Map.of(), new byte[0]);
+                    return false;
+                } catch (IOException closed) { return true; }
+            });
+            try {
+                check(connected.await(2, TimeUnit.SECONDS), "upstream read entered before shutdown");
+                transport.close();
+                check(pending.get(2, TimeUnit.SECONDS), "shutdown closes outstanding upstream socket without waiting for timeout");
+                try {
+                    transport.exchange("127.0.0.1", listener.getLocalPort(), "GET", URI.create("/"), Map.of(), new byte[0]);
+                    throw new AssertionError("closed transport accepted another request");
+                } catch (IOException expected) { checks++; }
+            } finally { release.countDown(); backend.get(2, TimeUnit.SECONDS); }
+        }
+    }
     private static HttpResponse<String> get(HttpClient client, String url) throws Exception {
         return client.send(HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofSeconds(3)).build(), HttpResponse.BodyHandlers.ofString());
+    }
+    private static Socket rejectedUploadAfterPermitReturns(int port) throws Exception {
+        // Receiving the previous response does not imply that its handler has left finally/released
+        // the single admission permit. Retry ONLY that explicit 503; never send the oversized body.
+        long until = System.nanoTime() + TimeUnit.SECONDS.toNanos(3);
+        while (true) {
+            Socket socket = new Socket("127.0.0.1", port);
+            boolean retained = false;
+            try {
+                socket.setSoTimeout(2000);
+                socket.getOutputStream().write(bytes("POST /echo HTTP/1.1\r\nHost: localhost\r\nContent-Length: 1025\r\n\r\n"));
+                BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.ISO_8859_1));
+                String status = reader.readLine();
+                if (status != null && status.contains(" 503 ")) {
+                    String remaining = reader.lines().collect(java.util.stream.Collectors.joining("\n"));
+                    check(remaining.contains("Proxy capacity exhausted"), "retry only a previous handler holding admission");
+                    check(System.nanoTime() < until, "previous handler must return its admission permit");
+                } else {
+                    check(status != null && status.contains(" 413 "), "oversized body rejected before upload: " + status);
+                    retained = true;
+                    return socket;
+                }
+            } finally { if (!retained) socket.close(); }
+            Thread.sleep(10);
+        }
     }
     private static UpstreamTransport.Response request(UpstreamTransport transport, String method, String response) throws Exception {
         try (Fixture fixture = new Fixture(response, new AtomicReference<>())) {

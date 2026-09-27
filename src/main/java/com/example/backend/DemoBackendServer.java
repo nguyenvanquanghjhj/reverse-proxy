@@ -22,6 +22,8 @@ public final class DemoBackendServer implements AutoCloseable {
     private final double cpuBudget;
     private final AtomicInteger active = new AtomicInteger(), queued = new AtomicInteger();
     private final AtomicLong completed = new AtomicLong();
+    private final AtomicLong received = new AtomicLong();
+    private volatile long cpuSamples;
     private final List<CpuWorker> background = new ArrayList<>();
     private final OperatingSystemMXBean os = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
     private volatile boolean healthy = true;
@@ -54,6 +56,7 @@ public final class DemoBackendServer implements AutoCloseable {
             // CPU seconds / wall seconds = occupied cores. Explicit CPU budget is measured in cores.
             processCpuCores = Math.max(0, (double) (current - previousCpuNanos) / (now - previousSampleNanos));
             cpuLoad = clamp(processCpuCores / cpuBudget);
+            cpuSamples++;
         }
         previousSampleNanos = now; previousCpuNanos = current;
     }
@@ -85,6 +88,7 @@ public final class DemoBackendServer implements AutoCloseable {
         } catch (IllegalArgumentException e) { respond(exchange, 400, e.getMessage(), "text/plain"); }
     }
     private void workload(HttpExchange exchange, String path) throws IOException {
+        received.incrementAndGet(); // Excludes health, telemetry and control; includes rejected work.
         final int cost;
         try { cost = integer(query(exchange), "cost", 1, 1, 20); }
         catch (IllegalArgumentException e) { respond(exchange, 400, e.getMessage(), "text/plain"); return; }
@@ -135,11 +139,11 @@ public final class DemoBackendServer implements AutoCloseable {
                 + "memoryLoad=%.6f%nheapUsedBytes=%d%nheapMaxBytes=%d%n"
                 + "hostCpuLoad=%.6f%nhostMemoryLoad=%.6f%nhostMemoryTotalBytes=%d%n"
                 + "activeRequests=%d%nqueuedRequests=%d%ncapacity=%d%nserviceTimeMs=%.3f%n"
-                + "healthy=%s%ndelayMs=%d%ncpuWorkers=%d%ncompletedRequests=%d%n",
+                + "healthy=%s%ndelayMs=%d%ncpuWorkers=%d%ncompletedRequests=%d%nreceivedRequests=%d%ncpuSamples=%d%n",
                 cpuLoad, processCpuCores, cpuBudget, runtime.availableProcessors(),
                 clamp((double) heapUsed / runtime.maxMemory()), heapUsed, runtime.maxMemory(),
                 clamp(os.getCpuLoad()), hostTotal <= 0 ? 0 : clamp(1.0 - (double) hostFree / hostTotal), hostTotal,
-                active.get(), queued.get(), capacity, serviceTimeMs, healthy, delayMs, backgroundSize(), completed.get());
+                active.get(), queued.get(), capacity, serviceTimeMs, healthy, delayMs, backgroundSize(), completed.get(), received.get(), cpuSamples);
     }
     private synchronized int backgroundSize() { return background.size(); }
     private synchronized void setCpuWorkers(int count) {

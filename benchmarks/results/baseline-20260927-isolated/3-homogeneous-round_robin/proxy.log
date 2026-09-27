@@ -1,0 +1,2 @@
+[2026-09-27 16:48:02.027] [INFO ] [Main] ?ang n?p c?u hình t?: D:\PBL4\reverse-proxy-demo\benchmarks\results\baseline-20260927-isolated\3-homogeneous-round_robin\proxy.properties
+[2026-09-27 16:48:02.570] [INFO ] [ReverseProxyServer] Reverse proxy listening at http://127.0.0.1:49393 using ROUND_ROBIN

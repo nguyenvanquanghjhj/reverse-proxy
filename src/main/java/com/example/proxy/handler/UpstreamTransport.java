@@ -67,7 +67,9 @@ public final class UpstreamTransport implements AutoCloseable {
         try (socket) {
             activeSockets.add(socket);
             if (closed.get()) throw new IOException("Transport is closed");
-            ScheduledFuture<?> deadline = deadlines.schedule(() -> closeQuietly(socket), requestTimeoutMs, TimeUnit.MILLISECONDS);
+            ScheduledFuture<?> deadline;
+            try { deadline = deadlines.schedule(() -> closeQuietly(socket), requestTimeoutMs, TimeUnit.MILLISECONDS); }
+            catch (RejectedExecutionException shutdown) { throw new IOException("Transport is closed", shutdown); }
             try {
                 socket.connect(new InetSocketAddress(host, port), Math.min(connectTimeoutMs, requestTimeoutMs));
                 socket.setSoTimeout(Math.min(readTimeoutMs, requestTimeoutMs));

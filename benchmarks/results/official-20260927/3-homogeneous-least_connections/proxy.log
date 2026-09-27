@@ -1,0 +1,2 @@
+[2026-09-27 22:30:12.262] [INFO ] [Main] ?ang n?p c?u hình t?: D:\PBL4\reverse-proxy-demo\benchmarks\results\official-20260927\3-homogeneous-least_connections\proxy.properties
+[2026-09-27 22:30:12.695] [INFO ] [ReverseProxyServer] Reverse proxy listening at http://127.0.0.1:64887 using LEAST_CONNECTIONS
