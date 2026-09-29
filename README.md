@@ -6,6 +6,8 @@ Reverse proxy HTTP viết bằng **Java 21, chỉ dùng thư viện JDK**. Thu�
 
 ## Chạy nhanh
 
+Demo trực tiếp Windows PowerShell: xem [hướng dẫn bốn demo A/B/C/D](docs/DEMO.md). Sau khi đặt JDK 21, chạy `scripts/demo.ps1 start`, rồi `basic`, `rr`, `adaptive`, `health`; kết thúc bằng `stop` để dừng đúng các process đã tạo.
+
 Cần JDK **21 trở lên**, có `java`, `javac`, `jar` trong `PATH`. Python 3 chỉ cần khi chạy integration/benchmark. Không cần Maven hoặc thư viện Java/Python bên ngoài.
 
 ### Windows PowerShell

@@ -1,4 +1,5 @@
 /target/
+/.demo/
 *.class
 /sources.txt
 __pycache__/
