@@ -4,6 +4,7 @@ import com.example.proxy.backend.BackendServer;
 import com.example.proxy.config.ProxyConfig;
 import com.example.proxy.handler.UpstreamTransport;
 import com.example.proxy.server.ReverseProxyServer;
+import com.example.backend.DemoBackendServer;
 import com.sun.net.httpserver.HttpServer;
 import java.io.*;
 import java.net.*;
@@ -22,6 +23,7 @@ public final class HttpTransportTest {
         deadline();
         transportShutdown();
         proxyIntegration();
+        backendDemoPage();
         System.out.println("HttpTransportTest: " + checks + " checks passed");
     }
     private static void framing() throws Exception {
@@ -56,6 +58,69 @@ public final class HttpTransportTest {
             reject(transport, "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n41\r\n", "chunk body limit");
             reject(transport, "HTTP/1.1 200 OK\r\n\r\n" + "x".repeat(65), "EOF body limit");
             reject(transport, "HTTP/1.1 200 OK\r\nX-Huge: " + "x".repeat(1100) + "\r\n\r\n", "header limit");
+        }
+    }
+    private static void backendDemoPage() throws Exception {
+        try (DemoBackendServer backend = new DemoBackendServer(0, 4, 1, 0, 4);
+             HttpClient client = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build()) {
+            backend.start();
+            String direct = "http://127.0.0.1:" + backend.getPort();
+            var page = get(client, direct + "/demo");
+            check(page.statusCode() == 200 && page.headers().firstValue("Content-Type").orElse("").contains("text/html"), "demo returns HTML");
+            check(page.headers().firstValue("Cache-Control").orElse("").equals("no-store"), "demo bypasses browser cache");
+            check(page.body().contains("data-backend=\"" + backend.getPort() + "\"") && page.body().contains(Long.toString(ProcessHandle.current().pid())), "HTML contains real port and PID");
+            check(page.body().contains("data-via-proxy=\"false\"") && !page.body().contains("@@"), "direct page renders all placeholders");
+            check(page.body().contains("data:image/svg+xml") && !page.body().contains("src=\"") && !page.body().contains("setInterval("), "page embeds assets and has no polling timer");
+            check(get(client, direct + "/work?cost=1").headers().firstValue("Content-Type").orElse("").contains("application/json"), "existing workload remains JSON");
+            Properties properties = new Properties();
+            properties.setProperty("proxy.port", "0");
+            properties.setProperty("healthcheck.interval.ms", "20");
+            properties.setProperty("healthcheck.recovery.successes", "1");
+            properties.setProperty("adaptive.warmup.ms", "0");
+            ProxyConfig config = new ProxyConfig(properties, List.of(new BackendServer("127.0.0.1", backend.getPort(), 4)));
+            try (ReverseProxyServer proxy = new ReverseProxyServer(config)) {
+                proxy.start();
+                long until = System.nanoTime() + TimeUnit.SECONDS.toNanos(4);
+                while (!proxy.getDispatcher().hasAvailableBackend() && System.nanoTime() < until) Thread.sleep(10);
+                check(proxy.getDispatcher().hasAvailableBackend(), "demo backend ready through health checks");
+                long before = proxy.getDispatcher().snapshots().getFirst().dispatched();
+                String address = "http://127.0.0.1:" + proxy.getPort() + "/demo";
+                var forwarded = get(client, address);
+                check(forwarded.statusCode() == 200 && forwarded.body().contains("data-via-proxy=\"true\""), "HTML forwarded through real proxy");
+                check(forwarded.headers().firstValue("X-Proxy-Backend").orElse("").equals("127.0.0.1:" + backend.getPort()), "page identity matches proxy header");
+                check(forwarded.headers().firstValue("Cache-Control").orElse("").equals("no-store"), "proxy preserves page cache policy");
+                check(proxy.getDispatcher().snapshots().getFirst().dispatched() == before + 1, "one page equals one routed request");
+                var head = client.send(HttpRequest.newBuilder(URI.create(address)).method("HEAD", HttpRequest.BodyPublishers.noBody()).build(), HttpResponse.BodyHandlers.ofByteArray());
+                check(head.statusCode() == 200 && head.body().length == 0, "HEAD demo page has no response body");
+                check(forwarded.headers().firstValue("X-Proxy-Strategy").orElse("").equals("ADAPTIVE"), "response reports actual strategy");
+                String base = "http://127.0.0.1:" + proxy.getPort();
+                var products = get(client, base + "/products");
+                check(products.statusCode() == 200 && products.body().contains("\"products\":[") && products.body().contains("Sổ tay PBL"), "product data forwarded through proxy");
+                var orderRequest = HttpRequest.newBuilder(URI.create(base + "/orders"))
+                        .header("Content-Type", "application/x-www-form-urlencoded")
+                        .POST(HttpRequest.BodyPublishers.ofString("productId=notebook&quantity=2")).build();
+                var order = client.send(orderRequest, HttpResponse.BodyHandlers.ofString());
+                check(order.statusCode() == 201 && order.body().contains("\"total\":98000") && order.body().contains("\"demo\":true"), "POST creates correct demo receipt");
+                var secondOrder = client.send(orderRequest, HttpResponse.BodyHandlers.ofString());
+                String firstId = order.body().split("\"orderId\":\"")[1].split("\"")[0];
+                check(!secondOrder.body().contains(firstId), "explicit second POST produces a different demo order ID");
+                check(get(client, base + "/orders").statusCode() == 405, "GET cannot create an order");
+                var invalidOrder = client.send(HttpRequest.newBuilder(URI.create(base + "/orders"))
+                        .header("Content-Type", "application/x-www-form-urlencoded")
+                        .POST(HttpRequest.BodyPublishers.ofString("productId=notebook&quantity=11")).build(), HttpResponse.BodyHandlers.ofString());
+                check(invalidOrder.statusCode() == 400, "order quantity is validated on backend");
+                for (int size : new int[]{64, 256, 768}) {
+                    var file = client.send(HttpRequest.newBuilder(URI.create(base + "/download?sizeKiB=" + size)).GET().build(), HttpResponse.BodyHandlers.ofByteArray());
+                    check(file.statusCode() == 200 && file.body().length == size * 1024
+                            && file.headers().firstValue("Content-Disposition").orElse("").contains(size + "KiB.bin"), "download size and filename " + size);
+                    boolean intact = true;
+                    for (int i = 0; i < file.body().length; i++) if (file.body()[i] != (byte) (i % 251)) { intact = false; break; }
+                    check(intact, "download bytes forwarded intact " + size);
+                }
+                check(get(client, base + "/download?sizeKiB=769").statusCode() == 400, "oversized demo download rejected");
+            }
+            get(client, direct + "/control?healthy=false");
+            check(get(client, direct + "/demo").statusCode() == 503, "demo respects actual backend health and admission path");
         }
     }
     private static void deadline() throws Exception {

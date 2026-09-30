@@ -2,7 +2,8 @@ param(
     [Parameter(Position=0)][ValidateSet('start','basic','rr','adaptive','health','status','strategy','backend2-stop','backend2-start','stop')]
     [string]$Action = 'status',
     [ValidateSet('ROUND_ROBIN','LEAST_CONNECTIONS','ADAPTIVE')][string]$Strategy = 'ADAPTIVE',
-    [string]$JavaHome = $env:JAVA_HOME
+    [string]$JavaHome = $env:JAVA_HOME,
+    [ValidateSet('0.0.0.0','127.0.0.1')][string]$BindHost = '0.0.0.0'
 )
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
@@ -100,7 +101,7 @@ function Set-Delays([int[]]$delays) {
 function Switch-Strategy([string]$chosen) {
     Stop-Owned 'proxy'
     $config = [IO.File]::ReadAllText((Join-Path $repo 'config/application.properties'))
-    foreach ($pair in @(@('proxy.bind.host','127.0.0.1'), @('proxy.port','8080'), @('backend.servers','127.0.0.1:9001:8,127.0.0.1:9002:8,127.0.0.1:9003:8'), @('loadbalancer.strategy',$chosen))) {
+    foreach ($pair in @(@('proxy.bind.host',$script:state.bindHost), @('proxy.port','8080'), @('backend.servers','127.0.0.1:9001:8,127.0.0.1:9002:8,127.0.0.1:9003:8'), @('loadbalancer.strategy',$chosen))) {
         $pattern = '(?m)^' + [regex]::Escape($pair[0]) + '=.*$'
         if (-not [regex]::IsMatch($config,$pattern)) { throw "Missing config key $($pair[0])" }
         $config = [regex]::Replace($config, $pattern, ($pair[0] + '=' + $pair[1]))
@@ -116,6 +117,15 @@ function Switch-Strategy([string]$chosen) {
 function Show-Status {
     $m = Metrics
     Write-Host "Proxy http://127.0.0.1:8080 | $($m.strategy)"
+    Write-Host "Listen: $($script:state.bindHost):8080"
+    if ($script:state.bindHost -eq '0.0.0.0') {
+        try {
+            $addresses = @(Get-NetIPConfiguration -ErrorAction Stop | Where-Object { $_.NetAdapter.Status -eq 'Up' -and $null -ne $_.IPv4DefaultGateway } | ForEach-Object { $_.IPv4Address.IPAddress } | Sort-Object -Unique)
+            foreach ($address in $addresses) { Write-Host "LAN client (same network): http://${address}:8080/demo" -ForegroundColor Cyan }
+            if ($addresses.Count -eq 0) { Write-Host 'Find the LAN IPv4 address with ipconfig, then open http://<IPv4>:8080/demo.' }
+        } catch { Write-Host 'Find the LAN IPv4 address with ipconfig, then open http://<IPv4>:8080/demo.' }
+        Write-Host 'If a remote client times out: allow inbound TCP 8080 from LocalSubnet in Windows Firewall (docs/DEMO.md).'
+    }
     foreach ($b in $m.backends) {
         Write-Host ('backend-{0} port={1}: {2,-7} inflight={3} latencyEWMA={4:N1}ms warmup={5:P0}' -f ($b.port-9000),$b.port,$b.state,$b.inFlight,$b.latencyEwmaMs,$b.warmup)
     }
@@ -191,10 +201,15 @@ $lock = $null
 try {
     try { $lock = [IO.File]::Open((Join-Path $runtime 'command.lock'), 'OpenOrCreate', 'ReadWrite', 'None') }
     catch { throw 'Another demo command is running. Wait for it to finish.' }
-    if (Test-Path -LiteralPath $stateFile) { $script:state = Get-Content -LiteralPath $stateFile -Raw | ConvertFrom-Json }
+    if (Test-Path -LiteralPath $stateFile) {
+        $script:state = Get-Content -LiteralPath $stateFile -Raw | ConvertFrom-Json
+        # Sessions made before LAN support were loopback-only. Do not silently change a live session.
+        if ($null -eq $script:state.PSObject.Properties['bindHost']) { $script:state | Add-Member -NotePropertyName bindHost -NotePropertyValue '127.0.0.1' }
+    }
     switch ($Action) {
         'start' {
             if ($null -ne $script:state -and @($script:state.processes).Count -gt 0) {
+                if ($PSBoundParameters.ContainsKey('BindHost') -and $BindHost -ne $script:state.bindHost) { throw 'To change BindHost, run stop then start -BindHost <address>.' }
                 Assert-Running; Wait-Up; Show-Status; break
             }
             foreach ($port in 8080,9001,9002,9003) { Assert-Free $port }
@@ -214,7 +229,7 @@ try {
             New-Item -ItemType Directory -Path $directory | Out-Null
             $jar = Join-Path $directory 'demo.jar'
             Copy-Item -LiteralPath (Join-Path $repo 'target/reverse-proxy-demo.jar') -Destination $jar
-            $script:state = [pscustomobject]@{ session=$session; java=[IO.Path]::GetFullPath($java); directory=$directory; jar=$jar; strategy=$Strategy; processes=@() }
+            $script:state = [pscustomobject]@{ session=$session; java=[IO.Path]::GetFullPath($java); directory=$directory; jar=$jar; strategy=$Strategy; bindHost=$BindHost; processes=@() }
             Save-State
             try {
                 Start-Owned 'backend-1' @('com.example.backend.DemoBackendServer','9001','8','20','0') 9001

@@ -6,7 +6,7 @@
 Client (curl / demo.ps1)
        |
        v
-127.0.0.1:8080  Reverse Proxy Java 21
+<IP máy chủ>:8080  Reverse Proxy Java 21 (demo script: 0.0.0.0)
        |       Dispatcher: chọn backend + giữ chỗ đồng bộ
        +-----> backend-1 :9001
        +-----> backend-2 :9002
@@ -46,6 +46,70 @@ Nên giữ JDK 21 trong vị trí ổn định trên máy trước buổi kiểm
 Đảm bảo port **8080, 9001, 9002, 9003** còn trống, không chạy benchmark hay script backend/proxy khác đồng thời. Không gửi request từ terminal/trình duyệt khác trong demo RR; chúng cũng làm bộ đếm vòng tiến lên. Tắt tải CPU nặng không liên quan.
 
 ## Chuỗi lệnh chính cho buổi kiểm tra: đúng bốn demo
+
+### Giao diện web của ba backend
+
+Sau khi `demo.ps1 start`, mở bốn tab:
+
+- `http://127.0.0.1:9001/demo`: Backend 01 **Aurora**, xanh ngọc.
+- `http://127.0.0.1:9002/demo`: Backend 02 **Ember**, cam.
+- `http://127.0.0.1:9003/demo`: Backend 03 **Orbit**, tím.
+- `http://127.0.0.1:8080/demo`: vào qua proxy, giao diện là của backend được chọn.
+
+Trang có hình server SVG, port/PID thật, số lượt phản hồi của backend, active/queue, delay cấu hình và heap. Những số này là snapshot lúc request được xử lý, không phải giám sát liên tục. Backend tắt sau đó thì trang cũ không tự biết; tải lại để kiểm tra. `/demo` vẫn qua admission, worker và health như workload khác; `/work`, `/slow`, `/compute` vẫn giữ API JSON cũ.
+
+Nút **Gửi request tiếp** gọi lại `/demo` trên host/cổng hiện tại: đang ở 9001 thì tiếp tục tới B1; đang ở 8080 thì tiếp tục qua Proxy và được chọn backend theo strategy. Nút **Đi qua Proxy** chuyển từ backend trực tiếp sang cổng 8080 trên cùng host; nếu đã qua Proxy thì hai nút cùng gửi request mới qua Proxy. Các tab Aurora/Ember/Orbit mở **backend trực tiếp trên máy chủ** khi dùng localhost/127.0.0.1; từ máy khác, tab chỉ hiển thị danh tính, không có liên kết vì backend lắng nghe nội bộ. Lịch sử dưới trang lưu tối đa sáu response đã nhận trong tab/origin bằng sessionStorage, không sinh request nền. Số lượt là counter riêng của backend, có thể nhảy số nếu có client khác hoặc reset khi restart JVM.
+
+Muốn thấy web đổi màu theo vòng:
+
+```powershell
+.\scripts\demo.ps1 strategy -Strategy ROUND_ROBIN
+# Mở http://127.0.0.1:8080/demo rồi bấm Gửi request tiếp.
+# Giữ nguyên URL 8080, quan sát B1 -> B2 -> B3 và lịch sử trong tab.
+```
+
+Không có ảnh/font/CSS ngoài: favicon cũng nhúng bằng data URI, cache tắt. Mỗi lần tải trang tạo một request ứng dụng; không có polling hoặc background fetch. SVG chỉ minh họa server; các số trên thẻ mới là dữ liệu đo thật. Đường đi trên trang lấy từ metadata forwarding và URL trình duyệt; có thể đối chiếu response header `X-Proxy-Backend` trong DevTools Network.
+
+Nếu sửa giao diện khi cụm đang chạy, phải `demo.ps1 stop` rồi `demo.ps1 start` để dùng JAR mới; chỉ refresh trình duyệt không thay được code của JVM cũ.
+
+### Cho máy khác truy cập qua Wi-Fi/LAN
+
+Máy chủ chạy Proxy và cả ba backend. Máy khách chỉ cần trình duyệt, không cần Java hay repository. Hai máy kết nối cùng mạng Wi-Fi/LAN (không dùng guest network có client isolation).
+
+```powershell
+# Trên máy chủ, sau bước chuẩn bị JAVA_HOME ở trên:
+.\scripts\demo.ps1 stop
+.\scripts\demo.ps1 start -BindHost 0.0.0.0
+.\scripts\demo.ps1 status
+```
+
+Script mặc định bind `0.0.0.0:8080`, in URL LAN theo IPv4 của card mạng có gateway. Ví dụ IP Wi-Fi lúc kiểm tra là `172.20.10.2`, máy khách mở **http://172.20.10.2:8080/demo**. Xem `ipconfig` hoặc chạy `status` nếu đổi Wi-Fi/hotspot. `0.0.0.0` là địa chỉ lắng nghe, không phải địa chỉ nhập trên trình duyệt. Không dùng `localhost`/`127.0.0.1` trên máy khách để gọi máy chủ.
+
+Đổi strategy giữ nguyên bind host của phiên. Muốn chỉ demo trên máy chủ: `stop` rồi `start -BindHost 127.0.0.1`. Các phiên cũ không có bind host được xem là loopback-only; cần stop/start để bật LAN. Nếu chạy Java thủ công bằng `config/application.properties`, sửa `proxy.bind.host=0.0.0.0` trong cấu hình đó trước khi start; file mặc định vẫn là loopback.
+
+Nếu Windows Firewall chặn, mở **PowerShell Run as administrator trên máy chủ**, chạy một lần (chỉ TCP 8080, chỉ nguồn trong subnet nội bộ):
+
+```powershell
+if (-not (Get-NetFirewallRule -Name 'PBL4-Demo-LAN-8080' -ErrorAction SilentlyContinue)) {
+    New-NetFirewallRule -Name 'PBL4-Demo-LAN-8080' -DisplayName 'PBL4 Demo LAN TCP 8080' -Direction Inbound -Action Allow -Protocol TCP -LocalPort 8080 -RemoteAddress LocalSubnet -Profile Any
+}
+```
+
+Rule áp dụng cả khi Wi-Fi/hotspot được Windows đánh dấu Public. Không cần tắt firewall hoặc mở 9001–9003. Xóa rule sau buổi demo nếu không dùng nữa:
+
+```powershell
+Remove-NetFirewallRule -Name 'PBL4-Demo-LAN-8080'
+```
+
+Nếu vẫn không vào được, trên **máy khách Windows** chạy:
+
+```powershell
+Test-NetConnection 172.20.10.2 -Port 8080
+```
+
+`TcpTestSucceeded: True` nghĩa là đã kết nối được cổng Proxy. Nếu False: kiểm tra URL/IP mới, Proxy đã start, firewall, VPN và chế độ cách ly thiết bị của Wi-Fi/hotspot. Mở từ chính máy chủ bằng IP LAN chỉ kiểm tra được listener; vẫn cần máy thứ hai để xác nhận đường mạng/firewall thực tế.
+
+Chỉ đưa máy khách URL cổng 8080. Các backend và `/control` vẫn nội bộ; `/__proxy/metrics` vẫn chỉ cho loopback. Số `127.0.0.1:900x` trên sơ đồ là địa chỉ nội bộ **máy chủ** mà Proxy kết nối tới. Demo LAN không thay đổi thuật toán cân bằng tải.
 
 ```powershell
 .\scripts\demo.ps1 start

@@ -6,7 +6,7 @@ import java.util.Locale;
 import java.util.Properties;
 
 /** Validated immutable settings; telemetry values are ratios, not percentages. */
-public final class ProxyConfig {
+public final class ProxyConfig { 
     private final Properties values = new Properties();
     private final List<BackendServer> backends;
     public ProxyConfig(Properties properties, List<BackendServer> backends) {

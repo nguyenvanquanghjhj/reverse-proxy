@@ -10,7 +10,7 @@ import java.util.PriorityQueue;
 
 /** Bounded route learning and a virtual FIFO server. Access only under Dispatcher's lock. */
 final class EstimatedWork {
-    enum Route { LIGHT, SLOW, CPU, OTHER }
+    enum Route { LIGHT, SLOW, CPU, PRODUCTS, ORDERS, FILE_SMALL, FILE_MEDIUM, FILE_LARGE, OTHER }
     record Request(Route route, int units) {
         static Request of(URI uri) {
             String path = uri.getPath();
@@ -18,6 +18,9 @@ final class EstimatedWork {
                 case "/work" -> Route.LIGHT;
                 case "/slow" -> Route.SLOW;
                 case "/compute" -> Route.CPU;
+                case "/products" -> Route.PRODUCTS;
+                case "/orders" -> Route.ORDERS;
+                case "/download" -> downloadRoute(uri);
                 default -> Route.OTHER;
             };
             int units = 1;
@@ -32,6 +35,18 @@ final class EstimatedWork {
                 } catch (IllegalArgumentException invalid) { units = 1; }
             }
             return new Request(route, units >= 1 && units <= 20 ? units : 1);
+        }
+        private static Route downloadRoute(URI uri) {
+            int size = 256;
+            try {
+                if (uri.getRawQuery() != null) for (String part : uri.getRawQuery().split("&")) {
+                    String[] pair = part.split("=", 2);
+                    if (URLDecoder.decode(pair[0], StandardCharsets.UTF_8).equals("sizeKiB"))
+                        size = Integer.parseInt(URLDecoder.decode(pair.length == 2 ? pair[1] : "", StandardCharsets.UTF_8));
+                }
+            } catch (IllegalArgumentException invalid) { size = 256; }
+            // Bounded demo sizes; learn each size separately instead of assuming latency scales linearly with bytes.
+            return size == 64 ? Route.FILE_SMALL : size == 768 ? Route.FILE_LARGE : Route.FILE_MEDIUM;
         }
     }
     record Forecast(double serviceMs, double waitMs, double completionMs, double outstandingMs, double queuedMs) { }

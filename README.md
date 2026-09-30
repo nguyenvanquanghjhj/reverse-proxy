@@ -8,6 +8,10 @@ Reverse proxy HTTP viết bằng **Java 21, chỉ dùng thư viện JDK**. Thu�
 
 Demo trực tiếp Windows PowerShell: xem [hướng dẫn bốn demo A/B/C/D](docs/DEMO.md). Sau khi đặt JDK 21, chạy `scripts/demo.ps1 start`, rồi `basic`, `rr`, `adaptive`, `health`; kết thúc bằng `stop` để dừng đúng các process đã tạo.
 
+Giao diện backend: mở `http://127.0.0.1:9001/demo`, `:9002/demo`, `:9003/demo` để thấy ba server với màu sắc, PID và port riêng; mở `http://127.0.0.1:8080/demo` để xem server được proxy chọn. Nút **Gửi request tiếp** tạo một HTTP request mới, không tải ảnh hoặc tài nguyên ngoài.
+
+Demo từ máy khác cùng Wi-Fi/LAN: `scripts/demo.ps1 start` mặc định mở Proxy trên `0.0.0.0:8080` và in URL `http://<IPv4 máy chủ>:8080/demo`. Backend vẫn nội bộ. Xem [cách mở firewall và kết nối LAN](docs/DEMO.md#cho-máy-khác-truy-cập-qua-wi-filan). Muốn chỉ chạy local, dùng `start -BindHost 127.0.0.1`. Đổi bind host cần stop/start; đổi strategy giữ nguyên bind host.
+
 Cần JDK **21 trở lên**, có `java`, `javac`, `jar` trong `PATH`. Python 3 chỉ cần khi chạy integration/benchmark. Không cần Maven hoặc thư viện Java/Python bên ngoài.
 
 ### Windows PowerShell

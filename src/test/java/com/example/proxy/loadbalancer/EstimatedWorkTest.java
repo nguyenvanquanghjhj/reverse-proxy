@@ -22,6 +22,15 @@ public final class EstimatedWorkTest {
         check(request("/work?cost=999999").units() == 1, "untrusted metadata bounded");
         check(request("/work?cost=%38").units() == 8, "existing decoded cost semantics");
 
+        var business = new EstimatedWork(50);
+        String[] routes = {"/products", "/orders", "/download?sizeKiB=64", "/download?sizeKiB=256", "/download?sizeKiB=768"};
+        double[] times = {15, 120, 25, 60, 110};
+        for (int i = 0; i < routes.length; i++) learn(business, request(routes[i]), times[i], 1);
+        for (int i = 0; i < routes.length; i++) near(times[i], cost(business, request(routes[i])), "business request classes learn independently: " + routes[i]);
+        near(60, cost(business, request("/download")), "default file size shares 256 KiB estimate");
+        near(110, cost(business, request("/download?sizeKiB=%37%36%38")), "decoded file size matches backend semantics");
+        near(50, cost(business, light), "business traffic does not train benchmark routes");
+
         var a = work.reserve(slow, NOW, work.forecast(slow, NOW, 1, 0), 1, 0);
         near(2000, work.forecast(light, NOW, 1, 0).waitMs(), "slow reservation consumes work immediately");
         var b = work.reserve(light, NOW, work.forecast(light, NOW, 1, 0), 1, 0);
