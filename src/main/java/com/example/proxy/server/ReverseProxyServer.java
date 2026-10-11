@@ -21,27 +21,43 @@ public final class ReverseProxyServer implements AutoCloseable {
     private final ProxyHandler handler;
     private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
     private HttpServer httpServer;
-    private boolean stopped;
+    private boolean stopped, starting;
     public ReverseProxyServer(ProxyConfig config) {
         this.config = config;
         this.dispatcher = new Dispatcher(config);
         this.healthChecker = new HealthChecker(config, dispatcher);
         this.handler = new ProxyHandler(config, dispatcher);
     }
-    public synchronized void start() throws IOException {
-        if (stopped || httpServer != null) throw new IllegalStateException("Proxy is already started or closed");
+    public void start() throws IOException {
+        synchronized (this) {
+            if (stopped || starting || httpServer != null) throw new IllegalStateException("Proxy is already started or closed");
+            starting = true;
+        }
+        HttpServer created = null;
         try {
-            httpServer = HttpServer.create(new InetSocketAddress(config.getBindHost(), config.getProxyPort()), config.getMaxInflight());
-            httpServer.createContext("/", handler);
-            httpServer.createContext("/__proxy/", this::monitor);
-            httpServer.setExecutor(executor);
-            healthChecker.start();
-            httpServer.start();
+            // DNS and bind are outside the lifecycle lock. close() may win while they run.
+            created = HttpServer.create(new InetSocketAddress(config.getBindHost(), config.getProxyPort()), config.getMaxInflight());
+            created.createContext("/", handler);
+            created.createContext("/__proxy/", e -> handler.handleManagement(e, this::monitor));
+            created.setExecutor(executor);
+            synchronized (this) {
+                if (stopped) throw new IllegalStateException("Proxy closed during startup");
+                httpServer = created;
+                healthChecker.start();
+                httpServer.start();
+            }
             log.info("Reverse proxy listening at http://" + config.getBindHost() + ":" + getPort() + " using " + config.getLoadBalancerStrategy());
-        } catch (IOException | RuntimeException e) { close(); throw e; }
+        } catch (IOException | RuntimeException e) {
+            if (created != null) created.stop(0);
+            close();
+            throw e;
+        }
     }
     private void monitor(HttpExchange exchange) throws IOException {
         try (exchange) {
+            if (!exchange.getRemoteAddress().getAddress().isLoopbackAddress()) {
+                ProxyHandler.sendError(exchange, 403, "Monitoring is loopback-only"); return;
+            }
             String path = exchange.getRequestURI().getPath();
             if (!exchange.getRequestMethod().equals("GET") && !exchange.getRequestMethod().equals("HEAD")) {
                 exchange.getResponseHeaders().set("Allow", "GET, HEAD");
@@ -50,17 +66,19 @@ public final class ReverseProxyServer implements AutoCloseable {
             String body;
             int status = 200;
             if (path.equals("/__proxy/metrics")) {
-                if (!exchange.getRemoteAddress().getAddress().isLoopbackAddress()) {
-                    ProxyHandler.sendError(exchange, 403, "Monitoring is loopback-only"); return;
-                }
-                body = dispatcher.snapshotJson();
+                String snapshot = dispatcher.snapshotJson();
+                body = snapshot.substring(0, snapshot.length() - 1) + "," + handler.countersJson()
+                        + ",\"health_probe_failures\":" + healthChecker.healthFailures()
+                        + ",\"telemetry_probe_failures\":" + healthChecker.telemetryFailures() + "}";
+            } else if (path.equals("/__proxy/prometheus")) {
+                body = handler.prometheus() + dispatcher.prometheus();
             } else if (path.equals("/__proxy/health")) {
-                boolean ready = dispatcher.hasAvailableBackend();
+                boolean ready = dispatcher.hasAvailableBackend() && handler.diagnostics().admissionAvailable() > 0;
                 status = ready ? 200 : 503;
                 body = "{\"ready\":" + ready + "}";
             } else { ProxyHandler.sendError(exchange, 404, "Unknown proxy endpoint"); return; }
             byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
-            exchange.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
+            exchange.getResponseHeaders().set("Content-Type", path.equals("/__proxy/prometheus") ? "text/plain; version=0.0.4; charset=utf-8" : "application/json; charset=utf-8");
             exchange.getResponseHeaders().set("Cache-Control", "no-store");
             if (exchange.getRequestMethod().equals("HEAD")) {
                 exchange.getResponseHeaders().set("Content-Length", Integer.toString(bytes.length));
@@ -68,17 +86,23 @@ public final class ReverseProxyServer implements AutoCloseable {
             } else { exchange.sendResponseHeaders(status, bytes.length); exchange.getResponseBody().write(bytes); }
         }
     }
+    public ProxyHandler.Diagnostics diagnostics() { return handler.diagnostics(); }
     public Dispatcher getDispatcher() { return dispatcher; }
     public synchronized int getPort() { return httpServer == null ? config.getProxyPort() : httpServer.getAddress().getPort(); }
     public void stop() { close(); }
-    @Override public synchronized void close() {
-        if (stopped) return;
-        stopped = true;
-        if (httpServer != null) httpServer.stop(1);
-        healthChecker.stop();
+    @Override public void close() {
+        HttpServer server;
+        synchronized (this) {
+            if (stopped) return;
+            stopped = true;
+            server = httpServer;
+        }
+        // HttpServer closes its listener first, then waits at most this grace for existing exchanges.
+        if (server != null) server.stop(config.getShutdownGraceSeconds());
         handler.close();
+        healthChecker.stop();
         executor.shutdownNow();
-        try { executor.awaitTermination(2, TimeUnit.SECONDS); }
+        try { if (!executor.awaitTermination(2, TimeUnit.SECONDS)) log.warn("handler_executor_shutdown_timeout"); }
         catch (InterruptedException e) { Thread.currentThread().interrupt(); }
     }
 }

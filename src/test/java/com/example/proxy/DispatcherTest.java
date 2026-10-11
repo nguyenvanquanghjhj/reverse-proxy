@@ -36,7 +36,7 @@ public final class DispatcherTest {
         run("bounded exploration relearns an idle slow backend", DispatcherTest::exploration);
         run("configuration rejects ambiguous or nonfinite settings", DispatcherTest::invalidConfiguration);
         run("telemetry parser validates ratios and counters", DispatcherTest::telemetryValidation);
-        run("route EWMA, virtual slots, queue learning and recovery", com.example.proxy.loadbalancer.EstimatedWorkTest::runAll);
+        run("invalid latency cannot poison EWMA and idle slow routes can relearn", DispatcherTest::learningGuards);
         run("estimated work distinguishes equal connection counts", DispatcherTest::routeWork);
         run("work admission rejects deadlines without changing RR or LC", DispatcherTest::workAdmission);
         run("concurrent virtual threads cannot overbook estimated work", () -> reservationBurst("ADAPTIVE", 128, 64, 24, 50));
@@ -53,6 +53,25 @@ public final class DispatcherTest {
             equal(f.backend(1), next.backend(), "CPU-idle backend wins despite having more local work");
             check(f.snapshot(0).inFlight() == 0 && f.snapshot(1).inFlight() == 2,
                     "decision must differ from least-connections");
+        }
+    }
+
+    private static void learningGuards() {
+        Fixture f = new Fixture("backend.servers", "127.0.0.1:9001:1");
+        for (double invalid : new double[]{-1, Double.NaN, Double.POSITIVE_INFINITY}) {
+            required(f.acquire()).complete(invalid, false, false);
+            near(50, f.snapshot(0).latencyEwmaMs(), "invalid sample leaves prior intact");
+            check(f.snapshot(0).inFlight() == 0, "invalid sample still releases lease");
+        }
+        required(f.dispatcher.acquire(URI.create("/slow"))).complete(4000, false, false);
+        check(f.dispatcher.acquire(URI.create("/slow")) == null, "over-budget route initially rejected");
+        f.advanceMs(5001);
+        try (var probe = required(f.dispatcher.acquire(URI.create("/slow")))) {
+            check(f.dispatcher.acquire(URI.create("/slow")) == null, "only one relearning probe live");
+            probe.complete(20, false, false);
+        }
+        try (var recovered = required(f.dispatcher.acquire(URI.create("/slow")))) {
+            check(recovered.backend() != null, "route recovers without a process restart");
         }
     }
 
@@ -343,6 +362,11 @@ public final class DispatcherTest {
         expectInvalid(() -> ConfigLoader.load(properties("loadbalancer.strategy", "MAGIC")), "unknown strategy");
         expectInvalid(() -> ConfigLoader.load(properties("backend.servers", "127.0.0.1:9001:0")), "zero capacity");
         expectInvalid(() -> ConfigLoader.load(properties("backend.servers", "")), "empty backend list");
+        for (String host : List.of("bad..host", "bad_host", "-host", "256.0.0.1", "127.1", "host/path", "host\r\nInjected")) {
+            expectInvalid(() -> ConfigLoader.load(properties("proxy.bind.host", host)), "invalid bind host");
+            expectInvalid(() -> new BackendServer(host, 9001, 1), "invalid backend host");
+        }
+        check(ConfigLoader.load(properties("proxy.bind.host", "::1")).getBindHost().equals("::1"), "IPv6 bind literal allowed");
         expectInvalid(() -> ConfigLoader.load(properties("healthcheck.interval.seconds", "1")), "obsolete unit must not be silently ignored");
         Properties input = properties();
         ProxyConfig config = ConfigLoader.load(input);

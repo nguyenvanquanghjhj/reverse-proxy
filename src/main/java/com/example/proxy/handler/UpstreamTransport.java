@@ -2,6 +2,7 @@ package com.example.proxy.handler;
 
 import com.example.proxy.backend.BackendServer;
 import com.example.proxy.config.ProxyConfig;
+import com.example.proxy.util.AppLogger;
 import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
@@ -11,9 +12,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /** A bounded HTTP/1.1 exchange over an explicit TCP socket. One connection per request. */
 public final class UpstreamTransport implements AutoCloseable {
+    private static final AppLogger log = AppLogger.of(UpstreamTransport.class);
     private static final Set<String> HOP_HEADERS = Set.of("connection", "keep-alive", "proxy-connection",
             "proxy-authenticate", "proxy-authorization", "te", "trailer", "transfer-encoding", "upgrade");
     private final int connectTimeoutMs, readTimeoutMs, requestTimeoutMs, maxBodyBytes, maxHeaderBytes;
+    private final int maxHeaderCount;
     private final Set<Socket> activeSockets = ConcurrentHashMap.newKeySet();
     private final AtomicBoolean closed = new AtomicBoolean();
     private final ScheduledThreadPoolExecutor deadlines = new ScheduledThreadPoolExecutor(1,
@@ -21,18 +24,25 @@ public final class UpstreamTransport implements AutoCloseable {
 
     public UpstreamTransport(ProxyConfig config) {
         this(config.getConnectTimeoutMs(), config.getReadTimeoutMs(), config.getRequestTimeoutMs(),
-                config.getMaxBodyBytes(), config.getMaxHeaderBytes());
+                config.getMaxBodyBytes(), config.getMaxHeaderBytes(), config.getMaxHeaderCount());
     }
     public UpstreamTransport(int connectTimeoutMs, int readTimeoutMs, int requestTimeoutMs,
                              int maxBodyBytes, int maxHeaderBytes) {
+        this(connectTimeoutMs, readTimeoutMs, requestTimeoutMs, maxBodyBytes, maxHeaderBytes, 100);
+    }
+    private UpstreamTransport(int connectTimeoutMs, int readTimeoutMs, int requestTimeoutMs,
+                              int maxBodyBytes, int maxHeaderBytes, int maxHeaderCount) {
         this.connectTimeoutMs = connectTimeoutMs;
         this.readTimeoutMs = readTimeoutMs;
         this.requestTimeoutMs = requestTimeoutMs;
         this.maxBodyBytes = maxBodyBytes;
         this.maxHeaderBytes = maxHeaderBytes;
+        this.maxHeaderCount = maxHeaderCount;
         deadlines.setRemoveOnCancelPolicy(true);
     }
     public record Response(int status, Map<String, List<String>> headers, byte[] body) { }
+    public int activeSocketCount() { return activeSockets.size(); }
+    public int deadlineTaskCount() { return deadlines.getQueue().size(); }
     public Response exchange(BackendServer backend, String method, URI uri,
                              Map<String, List<String>> headers, byte[] body) throws IOException {
         return exchange(backend.getHost(), backend.getPort(), method, uri, headers, body);
@@ -40,6 +50,8 @@ public final class UpstreamTransport implements AutoCloseable {
     public Response exchange(String host, int port, String method, URI uri,
                              Map<String, List<String>> headers, byte[] body) throws IOException {
         if (body.length > maxBodyBytes) throw new BodyLimitException("Request body exceeds limit");
+        if (host == null || !host.matches("[A-Za-z0-9._:-]+") || port < 1 || port > 65535)
+            throw new ProtocolException("Invalid upstream address");
         if (!method.matches("[!#$%&'*+.^_`|~0-9A-Za-z-]+") || method.equalsIgnoreCase("CONNECT"))
             throw new ProtocolException("Unsupported request method");
         if (uri.isAbsolute() || uri.getRawAuthority() != null || uri.getRawFragment() != null)
@@ -47,6 +59,16 @@ public final class UpstreamTransport implements AutoCloseable {
         String path = uri.getRawPath();
         if (path == null || !path.startsWith("/")) throw new ProtocolException("Invalid request target");
         String target = path + (uri.getRawQuery() == null ? "" : "?" + uri.getRawQuery());
+        if (target.chars().anyMatch(c -> c <= 32 || c >= 127)) throw new ProtocolException("Request target must be ASCII encoded");
+        for (var entry : headers.entrySet()) {
+            if (!validHeaderName(entry.getKey()) || entry.getValue().stream().anyMatch(v -> !validHeaderValue(v)))
+                throw new ProtocolException("Invalid request header");
+        }
+        Map<String, List<String>> normalized = new LinkedHashMap<>();
+        headers.forEach((name, values) -> normalized.computeIfAbsent(name.toLowerCase(Locale.ROOT), ignored -> new ArrayList<>()).addAll(values));
+        Framing requestFraming = framing(normalized);
+        if (requestFraming.length >= 0 && requestFraming.length != body.length)
+            throw new ProtocolException("Request Content-Length differs from buffered body");
         String authority = (host.contains(":") && !host.startsWith("[") ? "[" + host + "]" : host) + ":" + port;
         StringBuilder head = new StringBuilder(method).append(' ').append(target).append(" HTTP/1.1\r\n")
                 .append("Host: ").append(authority).append("\r\nConnection: close\r\n")
@@ -90,14 +112,16 @@ public final class UpstreamTransport implements AutoCloseable {
         } finally { activeSockets.remove(socket); }
     }
     private Response readResponse(InputStream in, String method) throws IOException {
-        HeaderBudget budget = new HeaderBudget(maxHeaderBytes);
+        HeaderBudget budget = new HeaderBudget(maxHeaderBytes, maxHeaderCount);
         for (int interim = 0; interim < 16; interim++) {
             String statusLine = readLine(in, maxHeaderBytes, budget);
-            if (!statusLine.matches("HTTP/1\\.[01] [1-5][0-9]{2}( .*)?")) throw new ProtocolException("Invalid upstream status line");
+            if (!validHeaderValue(statusLine) || !statusLine.matches("HTTP/1\\.[01] [1-5][0-9]{2}( .*)?")) throw new ProtocolException("Invalid upstream status line");
             int status = Integer.parseInt(statusLine.substring(9, 12));
             Map<String, List<String>> headers = readHeaders(in, budget);
             Framing framing = framing(headers);
             if (status == 101) throw new ProtocolException("Protocol upgrades are not supported");
+            if ((status < 200 || status == 204) && (framing.length >= 0 || framing.chunked))
+                throw new ProtocolException("Framing forbidden for this response status");
             if (status < 200) continue;
             boolean noBody = method.equalsIgnoreCase("HEAD") || status == 204 || status == 304;
             byte[] body;
@@ -116,10 +140,12 @@ public final class UpstreamTransport implements AutoCloseable {
         while (true) {
             String line = readLine(in, maxHeaderBytes, budget);
             if (line.isEmpty()) return headers;
+            budget.header();
             int colon = line.indexOf(':');
             if (colon <= 0 || !validHeaderName(line.substring(0, colon))) throw new ProtocolException("Invalid upstream header");
-            String value = line.substring(colon + 1).trim();
-            if (!validHeaderValue(value)) throw new ProtocolException("Invalid upstream header value");
+            String rawValue = line.substring(colon + 1);
+            if (!validHeaderValue(rawValue)) throw new ProtocolException("Invalid upstream header value");
+            String value = rawValue.strip();
             headers.computeIfAbsent(line.substring(0, colon).toLowerCase(Locale.ROOT), ignored -> new ArrayList<>()).add(value);
         }
     }
@@ -143,7 +169,8 @@ public final class UpstreamTransport implements AutoCloseable {
         ByteArrayOutputStream body = new ByteArrayOutputStream();
         while (true) {
             String line = readLine(in, Math.min(maxHeaderBytes, 4096), null);
-            String sizeText = line.split(";", 2)[0].trim();
+            if (!validHeaderValue(line)) throw new ProtocolException("Invalid chunk extension");
+            String sizeText = line.split(";", 2)[0];
             if (!sizeText.matches("[0-9a-fA-F]+")) throw new ProtocolException("Invalid chunk size");
             long size;
             try { size = Long.parseLong(sizeText, 16); }
@@ -210,18 +237,22 @@ public final class UpstreamTransport implements AutoCloseable {
         headers.forEach((name, values) -> { if (!excluded.contains(name.toLowerCase(Locale.ROOT))) clean.put(name, List.copyOf(values)); });
         return clean;
     }
-    private static boolean validHeaderName(String name) { return name.matches("[!#$%&'*+.^_`|~0-9A-Za-z-]+"); }
-    private static boolean validHeaderValue(String value) {
+    public static boolean validHeaderName(String name) { return name.matches("[!#$%&'*+.^_`|~0-9A-Za-z-]+"); }
+    public static boolean validHeaderValue(String value) {
         for (int i = 0; i < value.length(); i++) {
             char c = value.charAt(i);
             if ((c < 32 && c != '\t') || c == 127 || c > 255) return false;
         }
         return true;
     }
-    private static void closeQuietly(Socket socket) { try { socket.close(); } catch (IOException ignored) { } }
+    private static void closeQuietly(Socket socket) {
+        try { socket.close(); }
+        catch (IOException failure) { log.warn("socket_close_failed error_type=" + failure.getClass().getSimpleName()); }
+    }
     private static final class HeaderBudget {
-        private int remaining;
-        HeaderBudget(int remaining) { this.remaining = remaining; }
+        private int remaining, headers;
+        HeaderBudget(int remaining, int headers) { this.remaining = remaining; this.headers = headers; }
+        void header() throws HeaderLimitException { if (--headers < 0) throw new HeaderLimitException("Too many upstream headers"); }
         void consume() throws HeaderLimitException { if (--remaining < 0) throw new HeaderLimitException("Upstream headers exceed limit"); }
     }
     public static final class BodyLimitException extends IOException { public BodyLimitException(String message) { super(message); } }

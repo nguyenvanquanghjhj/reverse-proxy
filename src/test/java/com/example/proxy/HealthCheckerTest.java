@@ -58,6 +58,10 @@ public final class HealthCheckerTest {
             check(dispatcher.acquire() == null, "all DOWN rejects dispatch");
             reachable.set(true); valid.set(true);
             await(() -> dispatcher.snapshots().get(1).alive() && dispatcher.snapshots().get(1).telemetryFresh(), 3000, "health and telemetry recover");
+            check(checker.telemetryFailures() > 0 && checker.healthFailures() > 0, "poll failures are observable");
+            checker.close();
+            try { checker.start(); throw new AssertionError("closed checker restarted"); }
+            catch (IllegalStateException expected) { }
         } finally { healthy.stop(0); stalled.stop(0); executor.shutdownNow(); }
         System.out.println("HealthCheckerTest passed (independent polling, stale/invalid metrics, failure/recovery)");
     }

@@ -9,3 +9,5 @@ __pycache__/
 *.iml
 /benchmarks/results/**/classes/
 /benchmarks/results/**/source/
+/benchmarks/results/
+*.log

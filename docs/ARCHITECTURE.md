@@ -1,6 +1,6 @@
 # Kiến trúc và thuật toán để trình bày PBL4
 
-**Cập nhật Adaptive:** phần score theo latency/count dưới đây mô tả baseline và các metric tổng hợp vẫn xuất để đối chiếu. Quyết định Adaptive hiện dùng EWMA service theo route, estimated outstanding work và admission theo deadline, trong cùng Dispatcher/Lease; xem [thiết kế và benchmark Mixed trước/sau](ADAPTIVE_COMPLETION.md). RR/LC, transport, backend demo và công thức resource penalty không đổi.
+**Cập nhật Adaptive:** phần score theo latency/count dưới đây mô tả baseline và các metric tổng hợp vẫn xuất để đối chiếu. Quyết định Adaptive hiện dùng EWMA service theo route, estimated outstanding work và admission theo deadline, trong cùng Dispatcher/Lease; xem [thiết kế và benchmark Mixed trước/sau](ADAPTIVE_COMPLETION.md). Hệ số resource penalty và RR/LC giữ nguyên; lifecycle, transport và guard hardening được mô tả ở cuối tài liệu.
 
 ## Luồng xử lý
 
@@ -101,7 +101,7 @@ Polling từng backend chạy độc lập trên virtual thread, nên một back
 
 RR phù hợp backend đồng đều và request có chi phí tương tự, không cần học metric. LC phản ứng nhanh với lượng việc outstanding, nhưng một request trên backend đang bị tải CPU ngoài proxy có thể nặng hơn nhiều request trên backend khác. Adaptive có thêm tín hiệu từ latency thực, capacity và telemetry nên có cơ sở tránh backend ít kết nối nhưng xử lý chậm hoặc thiếu tài nguyên.
 
-Adaptive có thể thua khi backend đồng đều, metric nhiễu, workload đổi nhanh hơn chu kỳ poll/EWMA, capacity khai báo sai, hoặc CPU/RAM không phải nút thắt (ví dụ database dùng chung). Khởi động/học lại và thăm dò cũng có chi phí. Không nhận diện trước request nặng/nhẹ theo URL; `/compute` và `/work?cost=...` chỉ tạo workload thí nghiệm. Cost-aware scheduling theo loại request là phần mở rộng riêng, cần học theo nhóm route và tránh cardinality vô hạn.
+Adaptive có thể thua khi backend đồng đều, metric nhiễu, workload đổi nhanh hơn chu kỳ poll/EWMA, capacity khai báo sai, hoặc CPU/RAM không phải nút thắt (ví dụ database dùng chung). Khởi động/học lại và thăm dò cũng có chi phí. EstimatedWork hiện học theo nhóm route cố định và cost giới hạn của demo, không suy ra chi phí tùy ý cho mọi URL/ứng dụng thực.
 
 ## Liên hệ hai học phần và tài liệu
 
@@ -110,4 +110,22 @@ Adaptive có thể thua khi backend đồng đều, metric nhiễu, workload đ�
 - [JDK 21 OperatingSystemMXBean](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.management/com/sun/management/OperatingSystemMXBean.html) định nghĩa metric hệ điều hành/tiến trình và khả năng unavailable.
 - [Envoy slow start](https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/load_balancing/slow_start) là tài liệu đối chiếu ý tưởng tăng tải theo thời gian hồi phục. Mã ở đây tự triển khai, không dùng Envoy.
 
-Giới hạn HTTP và hướng dẫn chạy nằm trong README; phương pháp và kết quả đo thực tế nằm trong `BENCHMARK_RESULTS.md`.
+Giới hạn HTTP và hướng dẫn chạy nằm trong README; phương pháp đo và cách xác minh artifact nằm trong `BENCHMARK.md`.
+
+## Lifecycle và guard sau hardening 11/10/2026
+
+Phần công thức score ở trên là baseline để đối chiếu. Quyết định hiện tại dùng EstimatedWork/ECT theo route nhân resource penalty, như `ADAPTIVE_COMPLETION.md`; không phải chọn trực tiếp score baseline. Nhóm route/cost được giới hạn, không dùng URL tùy ý làm khóa. Các hệ số vẫn là heuristic, không phải ML hoặc bảo đảm tối ưu.
+
+Admission data-plane được giữ từ trước đọc body đến khi đóng exchange. `finally` trả permit; lease try-with-resources bảo đảm release một lần kể cả ngoại lệ chưa dự đoán. Lease kết thúc trước khi tải response xuống client. Socket đăng ký trước kiểm tra closed; schedule bị reject được chuyển thành IOException. Handler cũng đăng ký thread trước kiểm tra closed; shutdown interrupt thread còn chạy và đóng transport. Không xóa interrupt flag. Mỗi handler dùng virtual thread riêng.
+
+Deadline upload/download interrupt thread sở hữu I/O; deadline upstream đóng socket. Scheduler remove-on-cancel tránh tích lũy task. Mỗi pha có thể dùng đủ `proxy.request.timeout.ms`; connect/read còn chịu timeout nhỏ hơn. Tổng request có thể dài hơn một deadline pha. `HttpServer.stop(grace)` ngừng listener và đợi request hiện tại, sau đó handler/health/executor đóng; không giữ khóa Dispatcher trong I/O. Management có admission riêng 8 request và deadline để không thay đổi budget data-plane dùng trong benchmark.
+
+Validation client diễn ra trước acquire lease: method/target/header/framing sai không làm backend DOWN. Upstream từ chối CL+TE, CL trùng/overflow, TE khác chunked, CL trên 1xx/204, header injection, EOF/truncated body, chunk terminator sai. Header byte/count budget gồm informational headers và trailers. JDK parser ingress có behavior/giới hạn riêng trước handler. Socket luôn đóng nên không có reuse sau framing không chắc chắn.
+
+Health checker không restart sau stop; chỉ bắt lỗi HTTP/timeout/parse cụ thể và công bố failure counters. Lỗi telemetry để mẫu cũ hết hạn, không coi là CPU=0 và không đánh DOWN ứng dụng. Recovery tăng health generation để probe bắt đầu trước recovery không ghi đè state mới. Latency âm/nonfinite không được học nhưng lease vẫn được trả.
+
+Một estimate vượt admission budget trước đây có thể ngăn mọi lần học lại của route đó. Nay backend hoàn toàn rảnh được thử lại tối đa một request sau cooldown `proxy.request.timeout.ms`; request thử vẫn có timeout thật. Guard tránh loại backend/route vĩnh viễn. Atomic reservation, EWMA, warm-up và bounded exploration hạn chế dao động; chưa thêm score hysteresis vì chưa có thí nghiệm cho ngưỡng mới. Không thay hệ số theo benchmark cũ.
+
+JSON dùng helper escape tập trung, số không hữu hạn thành null. Giữ field benchmark cũ, thêm counters handler/probe ở root. `/__proxy/prometheus` xuất request/error/timeout counters, handler in-flight và backend selection/in-flight. Admission không có hàng đợi nên không xuất queue_wait giả. `requests_total` gồm management; backend counters chỉ gồm lease. Snapshot các nhóm counter không nguyên tử cùng nhau. Log không chứa raw query/body/path động.
+
+Giới hạn giữ có chủ ý: không pooling để giữ parser/benchmark một socket/request kiểm chứng được; chưa RSS/GC pause/trace phân tán. JDK không cung cấp callback client disconnect trong lúc backend đang chạy; socket upstream đóng khi hoàn thành, lỗi hoặc timeout. Incomplete ingress header chưa vào handler không thuộc admission/deadline này; cần gateway TLS/auth/rate-limit ở biên khi deploy. Các endpoint quản lý đều loopback-only; không có backend discovery/config động.

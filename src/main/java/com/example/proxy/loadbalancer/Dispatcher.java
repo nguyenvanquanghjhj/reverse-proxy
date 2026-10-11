@@ -3,6 +3,7 @@ package com.example.proxy.loadbalancer;
 import com.example.proxy.backend.BackendServer;
 import com.example.proxy.config.ProxyConfig;
 import com.example.proxy.metrics.BackendMetrics;
+import com.example.proxy.util.Json;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -51,8 +52,13 @@ public final class Dispatcher {
                     var forecast = estimate.forecast(request, now, snapshot.effectiveCapacity(), external(snapshot));
                     forecasts.put(snapshot.backend(), forecast);
                     double budget = completionBudgetMs();
-                    if (forecast.completionMs() > budget || forecast.outstandingMs() + forecast.serviceMs()
-                            > Math.max(1, Math.floor(snapshot.effectiveCapacity())) * budget) {
+                    boolean overBudget = forecast.completionMs() > budget || forecast.outstandingMs() + forecast.serviceMs()
+                            > Math.max(1, Math.floor(snapshot.effectiveCapacity())) * budget;
+                    // An old service estimate above budget must not exclude a recovered idle backend forever.
+                    // At most one live relearning probe per backend, with a full request-timeout cooldown.
+                    boolean relearn = snapshot.inFlight() == 0 && external(snapshot) == 0
+                            && now - snapshot.lastSelectedNanos() >= config.getRequestTimeoutMs() * 1_000_000L;
+                    if (overBudget && !relearn) {
                         workLimited = true;
                         continue;
                     }
@@ -110,19 +116,23 @@ public final class Dispatcher {
             return metrics.values().stream().map(m -> m.snapshot(now, config)).toList();
         } finally { lock.unlock(); }
     }
-    public boolean hasAvailableBackend() { return snapshots().stream().anyMatch(BackendMetrics.Snapshot::eligible); }
+    public boolean hasAvailableBackend() {
+        var current = snapshots();
+        return current.stream().mapToLong(BackendMetrics.Snapshot::inFlight).sum() < config.getMaxInflight()
+                && current.stream().anyMatch(BackendMetrics.Snapshot::eligible);
+    }
     public String snapshotJson() {
         lock.lock();
         try {
-        StringBuilder json = new StringBuilder("{\"strategy\":\"").append(algorithm.getName())
-                .append("\",\"estimatedWorkRejected\":").append(workRejected).append(",\"backends\":[");
+        StringBuilder json = new StringBuilder("{\"strategy\":").append(Json.quote(algorithm.getName()))
+                .append(",\"estimatedWorkRejected\":").append(workRejected).append(",\"backends\":[");
         boolean first = true;
         for (var s : snapshots()) {
             if (!first) json.append(',');
             first = false;
-            json.append("{\"id\":\"").append(s.backend().getId()).append("\",\"host\":\"").append(s.backend().host())
-                .append("\",\"port\":").append(s.backend().port()).append(",\"state\":\"").append(s.state())
-                .append("\",\"alive\":").append(s.alive()).append(",\"inFlight\":").append(s.inFlight())
+            json.append("{\"id\":").append(Json.quote(s.backend().getId())).append(",\"host\":").append(Json.quote(s.backend().host()))
+                .append(",\"port\":").append(s.backend().port()).append(",\"state\":").append(Json.quote(s.state()))
+                .append(",\"alive\":").append(s.alive()).append(",\"inFlight\":").append(s.inFlight())
                 .append(",\"dispatched\":").append(s.dispatched()).append(",\"completed\":").append(s.completed())
                 .append(",\"errors\":").append(s.errors()).append(",\"latencyEwmaMs\":").append(number(s.latencyEwmaMs()))
                 .append(",\"errorEwma\":").append(number(s.errorEwma())).append(",\"cpuLoad\":").append(number(s.cpuLoad()))
@@ -149,7 +159,17 @@ public final class Dispatcher {
         return json.append("]}").toString();
         } finally { lock.unlock(); }
     }
-    private static String number(double value) { return Double.isFinite(value) ? Double.toString(value) : "null"; }
+    public String prometheus() {
+        StringBuilder out = new StringBuilder("# TYPE proxy_backend_selection_total counter\n# TYPE proxy_backend_in_flight gauge\n");
+        for (var s : snapshots()) {
+            // Backend identifiers are constrained by BackendServer's host validation.
+            String label = "{backend=\"" + s.backend().getId() + "\"} ";
+            out.append("proxy_backend_selection_total").append(label).append(s.dispatched()).append('\n');
+            out.append("proxy_backend_in_flight").append(label).append(s.inFlight()).append('\n');
+        }
+        return out.toString();
+    }
+    private static String number(double value) { return Json.number(value); }
     public record Probe(long generation, int inFlight) { }
 
     public final class Lease implements AutoCloseable {

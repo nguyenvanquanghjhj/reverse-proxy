@@ -10,13 +10,4 @@ find src/test/java -name '*Test.java' -type f -print | LC_ALL=C sort > target/te
 javac --release 21 -encoding UTF-8 -cp target/classes -d target/test-classes @target/test-sources.txt
 classpath='target/classes:target/test-classes'
 case "$(uname -s)" in MINGW*|MSYS*|CYGWIN*) classpath='target/classes;target/test-classes';; esac
-count=0
-while IFS= read -r source; do
-  test_class="${source#src/test/java/}"
-  test_class="${test_class%.java}"
-  test_class="${test_class//\//.}"
-  echo "Running $test_class"
-  java -ea -cp "$classpath" "$test_class"
-  count=$((count + 1))
-done < target/test-mains.txt
-echo "Passed $count test mains."
+java -ea -cp "$classpath" com.example.proxy.TestSuite

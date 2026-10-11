@@ -60,6 +60,7 @@ public final class BackendMetrics {
         if (alive) return;
         if (++successes >= config.getRecoverySuccesses()) {
             alive = true;
+            healthGeneration++; // Probes begun before recovery cannot overwrite its new state.
             recoveredNanos = now;
             successes = 0;
             // Recover with a conservative prior, then learn from real workload (not /health latency).

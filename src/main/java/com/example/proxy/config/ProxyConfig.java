@@ -19,8 +19,13 @@ public final class ProxyConfig {
         getMaxBodyBytes(); getMaxHeaderBytes(); getMaxInflight(); getHealthCheckIntervalMs();
         getHealthCheckTimeoutMs(); getMetricsStaleMs(); getWarmupMs(); getBackendMaxInflight();
         getRecoverySuccesses(); getEwmaAlpha(); getInitialLatencyMs(); getExplorationInterval();
-        getHealthCheckPath(); getMetricsPath();
-        if (getBindHost().isBlank()) throw new IllegalArgumentException("Empty proxy.bind.host");
+        getHealthCheckPath(); getMetricsPath(); getMaxHeaderCount(); getShutdownGraceSeconds();
+        String bind = getBindHost();
+        if (!BackendServer.validHost(bind)) {
+            // URI validates a bracketed IPv6 literal without DNS/network I/O.
+            if (!bind.contains(":") || java.net.URI.create("http://[" + bind + "]/").getHost() == null)
+                throw new IllegalArgumentException("Invalid proxy.bind.host");
+        }
         if (!List.of("ADAPTIVE", "ROUND_ROBIN", "LEAST_CONNECTIONS").contains(getLoadBalancerStrategy()))
             throw new IllegalArgumentException("Unknown loadbalancer.strategy: " + getLoadBalancerStrategy());
         if (values.containsKey("healthcheck.interval.seconds"))
@@ -59,6 +64,8 @@ public final class ProxyConfig {
     public int getRequestTimeoutMs() { return integer("proxy.request.timeout.ms", 5000, 1, 300000); }
     public int getMaxBodyBytes() { return integer("proxy.max.body.bytes", 1048576, 1, 16777216); }
     public int getMaxHeaderBytes() { return integer("proxy.max.header.bytes", 32768, 1024, 262144); }
+    public int getMaxHeaderCount() { return integer("proxy.max.header.count", 100, 1, 1000); }
+    public int getShutdownGraceSeconds() { return integer("proxy.shutdown.grace.seconds", 2, 0, 30); }
     public int getMaxInflight() { return integer("proxy.max.inflight", 128, 1, 100000); }
     public int getBackendMaxInflight() { return integer("backend.max.inflight", 64, 1, 100000); }
     public int getHealthCheckIntervalMs() { return integer("healthcheck.interval.ms", 500, 20, 60000); }

@@ -14,11 +14,8 @@ $sourceLines = @($sources | ForEach-Object { '"' + $_.FullName.Replace('\', '/')
 [IO.File]::WriteAllLines($sourceList, $sourceLines, [Text.UTF8Encoding]::new($false))
 & javac --release 21 -encoding UTF-8 -cp $mainClasses -d $testClasses "@$sourceList"
 if ($LASTEXITCODE -ne 0) { throw "Test compilation failed (exit $LASTEXITCODE)." }
-foreach ($test in $tests) {
-    $relative = $test.FullName.Substring($testRoot.Length + 1)
-    $className = $relative.Substring(0, $relative.Length - 5).Replace('\', '.').Replace('/', '.')
-    Write-Host "Running $className"
-    & java -ea -cp "$mainClasses$([IO.Path]::PathSeparator)$testClasses" $className
-    if ($LASTEXITCODE -ne 0) { throw "$className failed (exit $LASTEXITCODE)." }
-}
-Write-Host "Passed $($tests.Count) test mains."
+Push-Location $repoRoot
+try {
+    & java -ea -cp "$mainClasses$([IO.Path]::PathSeparator)$testClasses" com.example.proxy.TestSuite
+    if ($LASTEXITCODE -ne 0) { throw "Java test suite failed (exit $LASTEXITCODE)." }
+} finally { Pop-Location }

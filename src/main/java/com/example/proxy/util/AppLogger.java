@@ -39,6 +39,7 @@ public class AppLogger {
 
     private void log(String level, String msg) {
         String time = LocalDateTime.now().format(FORMATTER);
-        System.out.printf("[%s] [%-5s] [%s] %s%n", time, level, tag, msg);
+        System.err.println("{\"time\":" + Json.quote(time) + ",\"level\":" + Json.quote(level)
+                + ",\"logger\":" + Json.quote(tag) + ",\"message\":" + Json.quote(msg) + "}");
     }
 }

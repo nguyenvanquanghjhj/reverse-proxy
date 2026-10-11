@@ -45,6 +45,9 @@ public final class HttpTransportTest {
             check(request(transport, "GET", "HTTP/1.1 204 No Content\r\n\r\n").body().length == 0, "204 no body");
             check(request(transport, "GET", "HTTP/1.1 304 Not Modified\r\nContent-Length: 100000\r\n\r\n").body().length == 0, "304 no body");
             check(request(transport, "GET", "HTTP/1.1 302 Found\r\nLocation: /elsewhere\r\nContent-Length: 0\r\n\r\n").status() == 302, "redirect is returned unchanged");
+            reject(transport, "HTTP/1.1 200 OK\r\nX-Test: ok\u000b\r\nContent-Length: 0\r\n\r\n", "control character before trimming");
+            reject(transport, "HTTP/1.1 204 No Content\r\nContent-Length: 2\r\n\r\nOK", "204 framing forbidden");
+            reject(transport, "HTTP/1.1 200 OK\r\n" + "X: a\r\n".repeat(101) + "\r\n", "header count limit");
             reject(transport, "HTTP/1.1 200 OK\r\nContent-Length: 2\r\nContent-Length: 2\r\n\r\nOK", "duplicate length");
             reject(transport, "HTTP/1.1 200 OK\r\nContent-Length: 0\r\nTransfer-Encoding: chunked\r\n\r\n0\r\n\r\n", "TE plus CL");
             reject(transport, "HTTP/1.1 200 OK\r\nTransfer-Encoding: gzip, chunked\r\n\r\n", "unsupported transfer coding");
@@ -124,13 +127,16 @@ public final class HttpTransportTest {
         }
     }
     private static void deadline() throws Exception {
+        for (boolean chunked : new boolean[]{false, true}) deadline(chunked);
+    }
+    private static void deadline(boolean chunked) throws Exception {
         try (ServerSocket listener = new ServerSocket(0, 1, InetAddress.getLoopbackAddress());
              UpstreamTransport transport = new UpstreamTransport(300, 300, 160, 1024, 1024)) {
             Thread backend = Thread.startVirtualThread(() -> {
                 try (Socket socket = listener.accept()) {
                     readRequest(socket);
-                    socket.getOutputStream().write(bytes("HTTP/1.1 200 OK\r\nContent-Length: 10\r\n\r\n"));
-                    for (int i = 0; i < 10; i++) { socket.getOutputStream().write('a'); socket.getOutputStream().flush(); Thread.sleep(45); }
+                    socket.getOutputStream().write(bytes("HTTP/1.1 200 OK\r\n" + (chunked ? "Transfer-Encoding: chunked" : "Content-Length: 10") + "\r\n\r\n"));
+                    for (int i = 0; i < 10; i++) { socket.getOutputStream().write(bytes(chunked ? "1\r\na\r\n" : "a")); socket.getOutputStream().flush(); Thread.sleep(45); }
                 } catch (IOException | InterruptedException ignored) { }
             });
             long start = System.nanoTime();
@@ -140,6 +146,7 @@ public final class HttpTransportTest {
             } catch (SocketTimeoutException expected) { checks++; }
             check((System.nanoTime() - start) / 1_000_000 < 1000, "whole exchange deadline interrupts trickling body");
             backend.join(1500);
+            check(transport.activeSocketCount() == 0 && transport.deadlineTaskCount() == 0, "trickling response cleans up socket and deadline");
         }
     }
     private static void proxyIntegration() throws Exception {
@@ -303,6 +310,7 @@ public final class HttpTransportTest {
     private static void reject(UpstreamTransport transport, String response, String message) throws Exception {
         try { request(transport, "GET", response); throw new AssertionError("Accepted " + message); }
         catch (IOException expected) { checks++; }
+        check(transport.activeSocketCount() == 0 && transport.deadlineTaskCount() == 0, "failed response releases socket/deadline: " + message);
     }
     private static byte[] bytes(String text) { return text.getBytes(StandardCharsets.ISO_8859_1); }
     private static String text(byte[] bytes) { return new String(bytes, StandardCharsets.ISO_8859_1); }

@@ -4,7 +4,12 @@ import com.example.proxy.backend.BackendServer;
 import com.example.proxy.config.ProxyConfig;
 import com.example.proxy.loadbalancer.Dispatcher;
 import com.example.proxy.metrics.BackendMetrics;
+import com.example.proxy.util.AppLogger;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.LongAdder;
 import java.io.StringReader;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -25,6 +30,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /** One serial polling loop per backend; health and telemetry failures have different meanings. */
 public final class HealthChecker implements AutoCloseable {
+    private static final AppLogger log = AppLogger.of(HealthChecker.class);
+    private boolean stopped;
+    private final LongAdder healthFailures = new LongAdder(), telemetryFailures = new LongAdder();
+    public long healthFailures() { return healthFailures.sum(); }
+    public long telemetryFailures() { return telemetryFailures.sum(); }
     private final ProxyConfig config;
     private final Dispatcher dispatcher;
     private final ExecutorService workers = Executors.newVirtualThreadPerTaskExecutor();
@@ -37,9 +47,10 @@ public final class HealthChecker implements AutoCloseable {
                 .connectTimeout(Duration.ofMillis(config.getHealthCheckTimeoutMs()))
                 .followRedirects(HttpClient.Redirect.NEVER).build();
     }
-    public void start() {
+    public synchronized void start() {
+        if (stopped) throw new IllegalStateException("Health checker is closed");
         if (!running.compareAndSet(false, true)) return;
-        for (BackendServer backend : config.getBackendServers()) workers.submit(() -> pollLoop(backend));
+        for (BackendServer backend : config.getBackendServers()) workers.execute(() -> pollLoop(backend));
     }
     private void pollLoop(BackendServer backend) {
         while (running.get() && !Thread.currentThread().isInterrupted()) {
@@ -51,19 +62,22 @@ public final class HealthChecker implements AutoCloseable {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 break;
-            } catch (Exception e) { healthy = false; }
+            } catch (ExecutionException | TimeoutException e) { healthy = false; }
+            if (!healthy) healthFailures.increment();
             if (!running.get()) break;
             dispatcher.recordHealth(backend, healthProbe, healthy);
             if (healthy) {
                 var metricsProbe = dispatcher.beginProbe(backend);
                 try {
                     var response = fetch(backend.getBaseUrl() + config.getMetricsPath());
-                    if (response.statusCode() == 200)
+                    if (response.statusCode() == 200 && running.get())
                         dispatcher.recordTelemetry(backend, metricsProbe, parseTelemetry(response.body()));
+                    else telemetryFailures.increment();
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     break;
-                } catch (Exception ignored) {
+                } catch (ExecutionException | TimeoutException | IOException | IllegalArgumentException invalid) {
+                    telemetryFailures.increment();
                     // Missing/invalid telemetry ages out; a working application is NOT marked DOWN.
                 }
             }
@@ -71,14 +85,18 @@ public final class HealthChecker implements AutoCloseable {
             catch (InterruptedException e) { Thread.currentThread().interrupt(); break; }
         }
     }
-    private HttpResponse<byte[]> fetch(String address) throws Exception {
+    private HttpResponse<byte[]> fetch(String address) throws InterruptedException, ExecutionException, TimeoutException {
         var request = HttpRequest.newBuilder(URI.create(address))
                 .timeout(Duration.ofMillis(config.getHealthCheckTimeoutMs())).GET().build();
-        CompletableFuture<HttpResponse<byte[]>> response = client.sendAsync(request, ignored -> new LimitedBody(16384));
+        CompletableFuture<HttpResponse<byte[]>> response;
+        synchronized (this) {
+            if (stopped) throw new InterruptedException("Health checker is closed");
+            response = client.sendAsync(request, ignored -> new LimitedBody(16384));
+        }
         try { return response.get(config.getHealthCheckTimeoutMs(), TimeUnit.MILLISECONDS); }
         finally { if (!response.isDone()) response.cancel(true); }
     }
-    public static BackendMetrics.Telemetry parseTelemetry(byte[] body) throws Exception {
+    public static BackendMetrics.Telemetry parseTelemetry(byte[] body) throws IOException {
         Properties p = new Properties();
         p.load(new StringReader(new String(body, StandardCharsets.UTF_8)));
         return new BackendMetrics.Telemetry(ratio(p, "cpuLoad"), ratio(p, "memoryLoad"),
@@ -96,10 +114,14 @@ public final class HealthChecker implements AutoCloseable {
         return Double.parseDouble(value.trim());
     }
     public void stop() {
-        running.set(false);
-        workers.shutdownNow();
+        synchronized (this) {
+            if (stopped) return;
+            stopped = true;
+            running.set(false);
+            workers.shutdownNow();
+        }
         client.shutdownNow();
-        try { workers.awaitTermination(2, TimeUnit.SECONDS); }
+        try { if (!workers.awaitTermination(2, TimeUnit.SECONDS)) log.warn("health_workers_shutdown_timeout"); }
         catch (InterruptedException e) { Thread.currentThread().interrupt(); }
     }
     public void close() { stop(); }

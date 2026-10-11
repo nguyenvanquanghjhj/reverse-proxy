@@ -28,7 +28,7 @@ public final class DemoBackendServer implements AutoCloseable {
     private final OperatingSystemMXBean os = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
     private volatile boolean healthy = true;
     private volatile int delayMs;
-    private volatile double cpuLoad, processCpuCores, serviceTimeMs;
+    private volatile double cpuLoad = -1, processCpuCores = -1, serviceTimeMs;
     private volatile long cpuSink;
     private long previousCpuNanos, previousSampleNanos;
 
@@ -57,7 +57,7 @@ public final class DemoBackendServer implements AutoCloseable {
             processCpuCores = Math.max(0, (double) (current - previousCpuNanos) / (now - previousSampleNanos));
             cpuLoad = clamp(processCpuCores / cpuBudget);
             cpuSamples++;
-        }
+        } else { cpuLoad = processCpuCores = -1; }
         previousSampleNanos = now; previousCpuNanos = current;
     }
     private void handle(HttpExchange exchange) throws IOException {
@@ -89,6 +89,15 @@ public final class DemoBackendServer implements AutoCloseable {
     }
     private void workload(HttpExchange exchange, String path) throws IOException {
         received.incrementAndGet(); // Excludes health, telemetry and control; includes rejected work.
+        if (path.equals("/status")) {
+            try {
+                int status = integer(query(exchange), "code", 503, 400, 599);
+                if (status != 429 && status != 503) throw new IllegalArgumentException("code must be 429 or 503");
+                exchange.getResponseHeaders().set("X-Backend", "backend-" + getPort());
+                respond(exchange, status, "Simulated backend error", "text/plain");
+            } catch (IllegalArgumentException invalid) { respond(exchange, 400, invalid.getMessage(), "text/plain"); }
+            return;
+        }
         final int cost;
         final int fileKiB;
         try {
@@ -195,7 +204,7 @@ public final class DemoBackendServer implements AutoCloseable {
                 + "healthy=%s%ndelayMs=%d%ncpuWorkers=%d%ncompletedRequests=%d%nreceivedRequests=%d%ncpuSamples=%d%n",
                 cpuLoad, processCpuCores, cpuBudget, runtime.availableProcessors(),
                 clamp((double) heapUsed / runtime.maxMemory()), heapUsed, runtime.maxMemory(),
-                clamp(os.getCpuLoad()), hostTotal <= 0 ? 0 : clamp(1.0 - (double) hostFree / hostTotal), hostTotal,
+                availableRatio(os.getCpuLoad()), hostTotal <= 0 ? -1 : clamp(1.0 - (double) hostFree / hostTotal), hostTotal,
                 active.get(), queued.get(), capacity, serviceTimeMs, healthy, delayMs, backgroundSize(), completed.get(), received.get(), cpuSamples);
     }
     private synchronized int backgroundSize() { return background.size(); }
@@ -217,6 +226,7 @@ public final class DemoBackendServer implements AutoCloseable {
         for (long i = 0; i < iterations; i++) { value ^= value << 13; value ^= value >>> 7; value ^= value << 17; }
         return value;
     }
+    private static double availableRatio(double value) { return Double.isFinite(value) && value >= 0 ? clamp(value) : -1; }
     private static double clamp(double value) { return Math.max(0, Math.min(1, value)); }
     private static int integer(Map<String, String> values, String key, int fallback, int min, int max) {
         int result = Integer.parseInt(values.getOrDefault(key, Integer.toString(fallback)));

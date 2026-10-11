@@ -32,15 +32,8 @@
                         <goals><goal>run</goal></goals>
                         <configuration>
                             <target>
-                                <java classname="com.example.proxy.DispatcherTest" fork="true" failonerror="true" timeout="60000" jvm="${java.home}/bin/java">
-                                    <classpath refid="maven.test.classpath"/>
-                                    <jvmarg value="-ea"/>
-                                </java>
-                                <java classname="com.example.proxy.HealthCheckerTest" fork="true" failonerror="true" timeout="60000" jvm="${java.home}/bin/java">
-                                    <classpath refid="maven.test.classpath"/>
-                                    <jvmarg value="-ea"/>
-                                </java>
-                                <java classname="com.example.proxy.HttpTransportTest" fork="true" failonerror="true" timeout="60000" jvm="${java.home}/bin/java">
+                                <echo level="warning">Surefire is intentionally disabled: ALL *Test.java mains run in TestSuite with 60s per-suite timeouts and XML reports in target/test-reports.</echo>
+                                <java classname="com.example.proxy.TestSuite" fork="true" failonerror="true" timeout="600000" jvm="${java.home}/bin/java" dir="${project.basedir}">
                                     <classpath refid="maven.test.classpath"/>
                                     <jvmarg value="-ea"/>
                                 </java>

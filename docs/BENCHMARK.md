@@ -1,6 +1,6 @@
 # Phương pháp benchmark công bằng
 
-Đợt này giữ nguyên Dispatcher, BackendMetrics và cả ba thuật toán. Backend demo chỉ thêm `receivedRequests` và `cpuSamples` để đếm/kiểm tra khả năng đo; không đổi workload hay công thức routing. Không dùng kết quả trước để chỉnh capacity, EWMA hoặc weights cho Adaptive.
+**Nhiều JVM chạy trên cùng một máy; kết quả không đại diện cho các backend trên nhiều máy vật lý độc lập.** CPU budget không là quota, heap không là RSS. Ba workload gốc và hệ số routing giữ nguyên; hardening bổ sung guard học lại backend rảnh khi estimate cũ vượt budget. Không dùng kết quả cũ để điều chỉnh thuật toán.
 
 ## Workload được chốt trước khi đo
 
@@ -35,7 +35,7 @@ python -m unittest discover -s scripts -p test_benchmark.py
 python scripts/verify_benchmark.py benchmarks/results/my-baseline
 ```
 
-Output mặc định: `benchmarks/results/<timestamp>`. Script từ chối ghi đè thư mục đã có dữ liệu. Có `complete.json` mới là toàn bộ ma trận đã chạy xong; thư mục thiếu file này có thể là lượt bị ngắt, không nên gộp nhầm vào báo cáo.
+Output mặc định: `benchmarks/results/<timestamp>`. Script từ chối thư mục đã tồn tại, kể cả rỗng. Có `complete.json` mới là toàn bộ ma trận đã chạy xong; thư mục thiếu file này có thể là lượt bị ngắt, không nên gộp nhầm vào báo cáo.
 
 ## Kiểm soát sự công bằng
 
@@ -76,4 +76,32 @@ Mỗi run còn có config thực dùng và log JVM. `metadata.json` lưu runtime
 
 **CPU/RAM:** chỉ xuất CPU process khi backend đã có mẫu CPU time hợp lệ (`cpuSamples>0`). Có cả occupied cores và ratio so với CPU budget; budget không tạo quota. Heap bytes/ratio là JVM heap, không phải RSS hay RAM riêng của server. Host RAM chỉ là bối cảnh chung, không cộng ba lần thành tổng RAM backend. Không xuất host CPU vì code hiện tại có thể biến giá trị unavailable thành 0. Polling/JIT/GC cũng tiêu tốn CPU và được tính trong CPU tiến trình.
 
-Phép đo trên một laptop, với artificial delay và vài repeat, chỉ cho bằng chứng về cấu hình này. Cần chạy dài hơn, thêm mức tải và kiểm tra client lag/độ dao động trước khi khái quát. Không gộp các lượt chạy khác seed/rate/máy thành một kết luận thắng tuyệt đối. Chưa thay Adaptive ở bước này.
+Phép đo trên một laptop, với artificial delay và vài repeat, chỉ cho bằng chứng về cấu hình này. Cần chạy dài hơn, thêm mức tải và kiểm tra client lag/độ dao động trước khi khái quát. Không gộp các lượt chạy khác seed/rate/máy thành một kết luận thắng tuyệt đối.
+
+## Artifact schema 2 và fault smoke
+
+Runner kiểm tra count/rate/concurrency/repeat/warmup dương, rate/sample interval hữu hạn, interval >= 0.05 giây; scenario không trùng, JDK đúng 21 và output phải là thư mục mới. Helper summarize hỗ trợ empty rows (count/RPS=0, latency trống); timing NaN/Infinity/âm bị từ chối. CSV/JSON không ghi số NaN/Infinity. OS telemetry không hữu hạn là unknown, không tự đổi thành zero.
+
+Metadata thêm commit Git, trạng thái dirty, schema version và giới hạn máy chung. Snapshot source/classes/config và **runner/verifier** được lưu cùng hash. `complete.json` chỉ được viết sau khi mọi cluster đóng, chứa manifest SHA-256 artifact. Đây là kiểm tra toàn vẹn, không phải chữ ký chống giả mạo. Verifier kiểm tra file/hash, tập run đầy đủ, schedule tái tạo từ seed, warmup, summary tính lại từ requests, backend summary/counters tính lại từ boundaries+telemetry và boundary đã drain. Verifier vẫn hoạt động với `python -O`.
+
+Phiên bản runner phải khớp để tính lại thống kê. Artifact cũ cần script tương ứng; schema 2 có thể dùng script đóng băng:
+
+```powershell
+python benchmarks/results/my-run/verify_benchmark.py benchmarks/results/my-run
+```
+
+Summary mới thêm median thực (khác nearest-rank p50 khi số mẫu chẵn), min/max, sample stddev, coefficient of variation, all-outcome mean và timeout count (504 hoặc TimeoutError client). Một mẫu thì stddev để trống. Aggregate bổ sung mean/sample stddev qua repeat. Chưa xuất confidence interval: request trong một run có tương quan, vài repeat không đủ để tuyên bố độ tin cậy; không tạo interval giả từ hàng nghìn mẫu phụ thuộc nhau.
+
+Ba scenario mới **opt-in**, không thay A/B/C mặc định:
+
+```powershell
+python scripts/benchmark.py --quick --requests 12 --warmup-requests 6 --rate 30 --concurrency 4 --scenarios timeout errors recovery --output benchmarks/results/fault-smoke
+```
+
+- `timeout`: `/slow`, read timeout 300 ms / deadline upstream 500 ms giống nhau cho ba strategy. Failure là kết quả mong đợi; kiểm tra accounting/cleanup, không xếp hạng hiệu năng.
+- `errors`: tỷ lệ light/429/503 cố định qua `/status?code=429|503` của fixture; lỗi trả nhanh không vào latency thành công.
+- `recovery`: health backend 1 DOWN tại 25% và UP tại 65% cửa sổ gửi, ghi thời điểm thực ở `events.csv`; không kill/restart JVM nên không reset counter. Smoke quá ngắn có thể không đủ cho health poll thấy toàn bộ outage. Đo recovery cần tăng count/thời lượng. Crash/restart thật còn cần xử lý counter reset riêng.
+
+Mixed vẫn 60/10/30. Slow upload/disconnect được kiểm tra bằng Java socket regression, chưa thêm vào benchmark so sánh. Chưa đo RSS, GC pause, connection reuse hoặc confidence interval. Admission/routing vẫn được báo chung kèm error rate và success RPS.
+
+Ctrl+C/exception hủy job chưa chạy, đánh thức worker đang đợi lịch, chờ request đang chạy hết timeout, join sampler rồi dừng đúng các JVM đã tạo và đóng log. Lượt bị ngắt không có complete.json và bị verifier từ chối. Port động có cửa sổ bind race giữa chọn port và JVM bind; startup lỗi được báo và cluster cleanup, không âm thầm đổi workload.

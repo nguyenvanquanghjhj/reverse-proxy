@@ -4,6 +4,7 @@ import java.net.URI;
 
 /** Deterministic service/queue estimates with an injected monotonic time; no sleeping. */
 public final class EstimatedWorkTest {
+    public static void main(String[] args) { runAll(); System.out.println("EstimatedWorkTest passed"); }
     private static final long NOW = 1_000_000_000L;
     public static void runAll() {
         var work = new EstimatedWork(50);

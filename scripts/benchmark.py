@@ -168,20 +168,67 @@ class Cluster:
         self.backends[index].wait(timeout=5)
 
     def close(self):
+        errors = []
         for proc in reversed(self.processes):
             if proc.poll() is None:
-                proc.terminate()
+                try:
+                    proc.terminate()
+                except OSError as exc:
+                    if proc.poll() is None:
+                        errors.append(exc)
         for proc in reversed(self.processes):
             try:
                 proc.wait(timeout=5)
             except subprocess.TimeoutExpired:
-                proc.kill()
-                proc.wait(timeout=5)
+                try:
+                    proc.kill()
+                    proc.wait(timeout=5)
+                except (OSError, subprocess.TimeoutExpired) as exc:
+                    errors.append(exc)
+            except OSError as exc:
+                errors.append(exc)
         for log in self.logs:
-            log.close()
+            try:
+                log.close()
+            except OSError as exc:
+                errors.append(exc)
+        if errors:
+            raise ExceptionGroup("Benchmark cleanup failed", errors)
 
     def __exit__(self, *_):
         self.close()
+
+
+class Recovery:
+    """Fixed-time health outage of backend 1; no counter reset or adaptive tuning."""
+    def __init__(self, cluster, duration, directory):
+        self.cluster, self.duration, self.directory = cluster, duration, directory
+        self.stop = threading.Event()
+        self.events = []
+        self.pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+
+    def __enter__(self):
+        self.future = self.pool.submit(self.run)
+        return self
+
+    def run(self):
+        start = time.perf_counter()
+        for fraction, healthy in ((.25, False), (.65, True)):
+            if self.stop.wait(max(0, .25 + fraction * self.duration - (time.perf_counter() - start))):
+                return
+            self.cluster.control(0, healthy=str(healthy).lower())
+            self.events.append(dict(healthy=healthy, elapsed_ms=(time.perf_counter() - start) * 1000))
+
+    def __exit__(self, kind, *_):
+        # Normal completion waits for the recovery event even if all requests were rejected early.
+        if kind is not None:
+            self.stop.set()
+        try:
+            self.future.result()
+        finally:
+            self.pool.shutdown(wait=True, cancel_futures=True)
+            self.cluster.control(0, healthy="true")
+            csv_write(self.directory / "events.csv", self.events)
 
 
 # Fixed before inspecting any algorithm's result. Capacity is concurrency, not CPU quota.
@@ -189,6 +236,9 @@ SCENARIOS = {
     "homogeneous": ((4, 30), (4, 30), (4, 30)),
     "heterogeneous": ((8, 20), (4, 60), (2, 160)),
     "mixed": ((4, 20), (4, 20), (4, 20)),
+    "timeout": ((4, 20), (4, 20), (4, 20)),
+    "recovery": ((4, 20), (4, 20), (4, 20)),
+    "errors": ((4, 20), (4, 20), (4, 20)),
 }
 
 
@@ -201,12 +251,27 @@ def percentile(values, fraction):
 
 def schedule(scenario, count, rate, seed):
     """Exact 60/10/30 mix for multiples of ten; shuffled deterministically."""
+    positive(rate, "rate")
+    positive(count, "count", integer=True)
+    if scenario not in SCENARIOS:
+        raise ValueError("Unknown scenario")
     types = ["light", "slow", "cpu", "light", "cpu", "light", "light", "cpu", "light", "light"]
     rows = [types[i % 10] if scenario == "mixed" else "light" for i in range(count)]
+    if scenario == "timeout":
+        rows = ["slow"] * count
+    elif scenario == "errors":
+        rows = [("light", "429", "503")[i % 3] for i in range(count)]
     random.Random(seed).shuffle(rows)
-    paths = {"light": "/work?cost=1", "slow": "/slow?cost=1", "cpu": "/compute?cost=8"}
+    paths = {"light": "/work?cost=1", "slow": "/slow?cost=1", "cpu": "/compute?cost=8", "429": "/status?code=429", "503": "/status?code=503"}
     return [{"index": i, "kind": kind, "path": paths[kind], "scheduled_ms": 1000 * i / rate}
             for i, kind in enumerate(rows)]
+
+
+def positive(value, name, integer=False):
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value <= 0:
+        raise ValueError(f"{name} must be finite and positive")
+    if integer and not isinstance(value, int):
+        raise ValueError(f"{name} must be an integer")
 
 
 def finite(value):
@@ -216,6 +281,10 @@ def finite(value):
 def csv_write(path, rows):
     if not rows:
         return
+    for row in rows:
+        for key, value in row.items():
+            if isinstance(value, float) and not math.isfinite(value):
+                raise ValueError(f"Nonfinite CSV field: {key}")
     fields = list(dict.fromkeys(key for row in rows for key in row))
     with Path(path).open("w", newline="", encoding="utf-8") as stream:
         writer = csv.DictWriter(stream, fieldnames=fields)
@@ -267,7 +336,9 @@ def sample_cluster(cluster, start, phase):
                                  ("capacity", "capacity")):
                 row[dest] = finite(metrics.get(source))
             cpu_available = (metrics.get("cpuSamples", 0) > 0
-                             and finite(metrics.get("processCpuCores")) is not None)
+                             and finite(metrics.get("processCpuCores")) is not None
+                             and metrics["processCpuCores"] >= 0
+                             and finite(metrics.get("cpuLoad")) is not None and metrics["cpuLoad"] >= 0)
             row["cpu_available"] = cpu_available
             row["process_cpu_cores"] = finite(metrics.get("processCpuCores")) if cpu_available else None
             row["cpu_budget_ratio"] = finite(metrics.get("cpuLoad")) if cpu_available else None
@@ -297,6 +368,9 @@ def drain(cluster):
 
 
 def workload(cluster, arrivals, rate, concurrency, sample_interval=0.5, telemetry=True):
+    positive(rate, "rate")
+    positive(concurrency, "concurrency", integer=True)
+    positive(sample_interval, "sample interval")
     start = time.perf_counter() + 0.25
     stop = threading.Event()
     samples = []
@@ -309,7 +383,8 @@ def workload(cluster, arrivals, rate, concurrency, sample_interval=0.5, telemetr
 
     def one(item):
         due = start + item["scheduled_ms"] / 1000
-        time.sleep(max(0, due - time.perf_counter()))
+        if stop.wait(max(0, due - time.perf_counter())):
+            raise concurrent.futures.CancelledError("Benchmark interrupted")
         sent = time.perf_counter()
         status, backend, error = 0, "", ""
         try:
@@ -326,11 +401,13 @@ def workload(cluster, arrivals, rate, concurrency, sample_interval=0.5, telemetr
     thread = threading.Thread(target=sampler, name="benchmark-sampler") if telemetry else None
     if thread:
         thread.start()
+    pool = concurrent.futures.ThreadPoolExecutor(max_workers=concurrency)
     try:
-        with concurrent.futures.ThreadPoolExecutor(max_workers=concurrency) as pool:
-            rows = list(pool.map(one, arrivals))
+        rows = list(pool.map(one, arrivals))
     finally:
+        # Wake scheduled workers before shutdown waits, cancel jobs not yet running.
         stop.set()
+        pool.shutdown(wait=True, cancel_futures=True)
         if thread:
             # Each HTTP read has a timeout; join completely so no old sampler affects another run.
             thread.join()
@@ -338,24 +415,36 @@ def workload(cluster, arrivals, rate, concurrency, sample_interval=0.5, telemetr
 
 
 def summarize(rows, rate):
+    positive(rate, "rate")
+    for row in rows:
+        for field in ("latency_ms", "completed_ms", "request_latency_ms", "client_lag_ms"):
+            if finite(row[field]) is None or row[field] < 0:
+                raise ValueError(f"Invalid request timing: {field}")
     success = [r for r in rows if 200 <= r["status"] < 300]
     latencies = [r["latency_ms"] for r in success]
     all_latencies = [r["latency_ms"] for r in rows]
     # Denominator includes intended arrival window AND drain time, even when errors return instantly.
     window = len(rows) / rate
-    elapsed = max(window, max(r["completed_ms"] for r in rows) / 1000)
+    elapsed = max(window, max((r["completed_ms"] for r in rows), default=0) / 1000)
     result = {"requests": len(rows), "successes": len(success), "errors": len(rows) - len(success),
-              "error_rate": (len(rows) - len(success)) / len(rows), "offered_rps": rate,
-              "measurement_seconds": elapsed, "success_rps": len(success) / elapsed,
-              "completed_rps": len(rows) / elapsed,
+              "error_rate": (len(rows) - len(success)) / len(rows) if rows else 0, "offered_rps": rate,
+              "measurement_seconds": elapsed, "success_rps": len(success) / elapsed if elapsed else 0,
+              "completed_rps": len(rows) / elapsed if elapsed else 0,
               "avg_ms": statistics.fmean(latencies) if latencies else None,
               "p50_ms": percentile(latencies, .5), "p95_ms": percentile(latencies, .95),
               "p99_ms": percentile(latencies, .99), "all_outcomes_p95_ms": percentile(all_latencies, .95),
               "all_outcomes_p99_ms": percentile(all_latencies, .99),
               "request_latency_p95_ms": percentile([r["request_latency_ms"] for r in success], .95),
               "client_lag_p95_ms": percentile([r["client_lag_ms"] for r in rows], .95),
-              "client_lag_max_ms": max(r["client_lag_ms"] for r in rows)}
-    result["client_lag_warning"] = result["client_lag_p95_ms"] > max(20, 1000 / rate)
+              "client_lag_max_ms": max((r["client_lag_ms"] for r in rows), default=0)}
+    result["client_lag_warning"] = bool(rows) and result["client_lag_p95_ms"] > max(20, 1000 / rate)
+    result.update(min_ms=min(latencies) if latencies else None,
+                  max_ms=max(latencies) if latencies else None,
+                  median_ms=statistics.median(latencies) if latencies else None,
+                  stddev_ms=statistics.stdev(latencies) if len(latencies) > 1 else None,
+                  all_outcomes_avg_ms=statistics.fmean(all_latencies) if rows else None,
+                  timeout_count=sum(r["status"] == 504 or r.get("error", "").startswith(("TimeoutError:", "SocketTimeout:")) for r in rows))
+    result["cv"] = result["stddev_ms"] / result["avg_ms"] if result["stddev_ms"] is not None and result["avg_ms"] else None
     return result
 
 
@@ -410,7 +499,7 @@ def main():
     parser.add_argument("--seed", type=int, default=20260927)
     parser.add_argument("--repeats", type=int)
     parser.add_argument("--sample-interval", type=float, default=0.5)
-    parser.add_argument("--scenarios", nargs="+", choices=tuple(SCENARIOS), default=list(SCENARIOS))
+    parser.add_argument("--scenarios", nargs="+", choices=tuple(SCENARIOS), default=["homogeneous", "heterogeneous", "mixed"])
     parser.add_argument("--java", default=shutil.which("java"), help="JDK21 java executable; compiler must be adjacent")
     args = parser.parse_args()
     args.requests = args.requests if args.requests is not None else (120 if args.quick else 1200)
@@ -420,6 +509,8 @@ def main():
             or not math.isfinite(args.rate) or args.rate <= 0
             or not math.isfinite(args.sample_interval) or args.sample_interval < 0.05):
         parser.error("counts/rate must be finite and positive; sample interval >= 0.05")
+    if len(set(args.scenarios)) != len(args.scenarios):
+        parser.error("Duplicate scenarios are not allowed")
     if not args.java or not Path(args.java).is_file():
         parser.error("--java must name an existing Java executable")
     compiler = Path(args.java).with_name("javac.exe" if os.name == "nt" else "javac")
@@ -431,9 +522,10 @@ def main():
         parser.error("--java must be from JDK 21 (the runtime is part of the fixed benchmark configuration)")
     source_files = sorted((ROOT / "src/main/java").rglob("*.java"))
     args.output = (args.output or ROOT / "benchmarks/results" / datetime.now().strftime("%Y%m%d-%H%M%S")).resolve()
-    if args.output.exists() and any(args.output.iterdir()):
-        parser.error("Output directory must be new/empty; previous measurements will not be overwritten.")
-    args.output.mkdir(parents=True, exist_ok=True)
+    try:
+        args.output.mkdir(parents=True, exist_ok=False)
+    except OSError as exc:
+        parser.error(f"Output must be a new writable directory: {exc}")
     # Compile a frozen source snapshot outside target/classes: IDE auto-builds cannot change this run.
     frozen_sources = []
     for source in source_files:
@@ -452,7 +544,21 @@ def main():
     (args.output / "build.log").write_text(build.stdout + build.stderr, encoding="utf-8")
     build.check_returncode()
     digest = lambda path: hashlib.sha256(path.read_bytes()).hexdigest()
-    metadata = {"timestamp_utc": datetime.now(timezone.utc).isoformat(), "command": sys.argv,
+    shutil.copyfile(Path(__file__), args.output / "benchmark.py")
+    shutil.copyfile(ROOT / "scripts/verify_benchmark.py", args.output / "verify_benchmark.py")
+    git_commit = None
+    git_dirty = None
+    if shutil.which("git"):
+        commit = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True)
+        if commit.returncode == 0:
+            git_commit = commit.stdout.strip()
+            dirty = subprocess.run(["git", "status", "--porcelain"], cwd=ROOT, capture_output=True, text=True, check=True)
+            git_dirty = bool(dirty.stdout)
+        else:
+            print("Git commit unavailable: not a Git checkout", file=sys.stderr)
+    metadata = {"schema_version": 2, "git_commit": git_commit, "git_dirty": git_dirty,
+                "limitation": "All JVMs share one physical host; CPU budget is not a quota, heap is not RSS",
+                "timestamp_utc": datetime.now(timezone.utc).isoformat(), "command": sys.argv,
                 "java": version_text, "java_executable": str(Path(args.java).resolve()),
                 "python": sys.version, "platform": platform.platform(), "logical_cpus": os.cpu_count(),
                 "requests": args.requests, "warmup_requests": args.warmup_requests, "offered_rps": args.rate,
@@ -462,6 +568,7 @@ def main():
                 "class_sha256": {str(p.relative_to(classes)): digest(p) for p in sorted(classes.rglob("*.class"))},
                 "script_sha256": digest(Path(__file__)),
                 "config_sha256": digest(args.output / "application.properties"),
+                "verifier_sha256": digest(args.output / "verify_benchmark.py"),
                 "protocol": "HTTP/1.1, one TCP connection per request, no retry",
                 "latency": "scheduled arrival to response completion; includes client lag; success-only primary percentiles",
                 "percentile": "nearest-rank", "cpu": "process CPU cores and CPU/budget; budget is not a quota",
@@ -480,14 +587,19 @@ def main():
                             "order_position": position + 1}
                 run = args.output / f"{repeat+1}-{scenario}-{strategy.lower()}"
                 print(f"START {identity}", flush=True)
-                with Cluster(run, strategy, SCENARIOS[scenario], java=args.java, classes=classes, config_text=config_text) as cluster:
+                overrides = {"proxy.read.timeout.ms": 300, "proxy.request.timeout.ms": 500} if scenario == "timeout" else None
+                with Cluster(run, strategy, SCENARIOS[scenario], overrides=overrides, java=args.java, classes=classes, config_text=config_text) as cluster:
                     warm_rows, _ = workload(cluster, schedule(scenario, args.warmup_requests, args.rate,
                                                               args.seed + repeat + 10000),
                                             args.rate, args.concurrency, telemetry=False)
                     csv_write(run / "warmup.csv", warm_rows)
                     drain(cluster)
                     before = sample_cluster(cluster, time.perf_counter(), "before")
-                    rows, samples = workload(cluster, arrivals, args.rate, args.concurrency, args.sample_interval)
+                    if scenario == "recovery":
+                        with Recovery(cluster, args.requests / args.rate, run):
+                            rows, samples = workload(cluster, arrivals, args.rate, args.concurrency, args.sample_interval)
+                    else:
+                        rows, samples = workload(cluster, arrivals, args.rate, args.concurrency, args.sample_interval)
                     csv_write(run / "requests.csv", rows)
                     csv_write(run / "telemetry.csv", samples)
                     drain(cluster)
@@ -525,12 +637,16 @@ def main():
             row = {"scenario": scenario, "strategy": strategy, "runs": len(group)}
             for metric in ("success_rps", "avg_ms", "p50_ms", "p95_ms", "p99_ms", "error_rate", "client_lag_p95_ms"):
                 values = [r[metric] for r in group if r[metric] is not None]
+                row[metric + "_mean"] = statistics.fmean(values) if values else None
+                row[metric + "_stddev"] = statistics.stdev(values) if len(values) > 1 else None
                 row[metric + "_median"] = statistics.median(values) if values else None
                 row[metric + "_min"] = min(values) if values else None
                 row[metric + "_max"] = max(values) if values else None
             aggregates.append(row)
     csv_write(args.output / "aggregate.csv", aggregates)
-    json_write(args.output / "complete.json", {"runs": len(summaries), "completed_utc": datetime.now(timezone.utc).isoformat()})
+    json_write(args.output / "complete.json", {"file_sha256": {
+        p.relative_to(args.output).as_posix(): digest(p) for p in sorted(args.output.rglob("*")) if p.is_file()},
+        "runs": len(summaries), "completed_utc": datetime.now(timezone.utc).isoformat()})
     print(f"Saved {len(summaries)} runs to {args.output}", flush=True)
 
 

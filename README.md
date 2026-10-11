@@ -12,7 +12,7 @@ Giao diện backend: mở `http://127.0.0.1:9001/demo`, `:9002/demo`, `:9003/dem
 
 Demo từ máy khác cùng Wi-Fi/LAN: `scripts/demo.ps1 start` mặc định mở Proxy trên `0.0.0.0:8080` và in URL `http://<IPv4 máy chủ>:8080/demo`. Backend vẫn nội bộ. Xem [cách mở firewall và kết nối LAN](docs/DEMO.md#cho-máy-khác-truy-cập-qua-wi-filan). Muốn chỉ chạy local, dùng `start -BindHost 127.0.0.1`. Đổi bind host cần stop/start; đổi strategy giữ nguyên bind host.
 
-Cần JDK **21 trở lên**, có `java`, `javac`, `jar` trong `PATH`. Python 3 chỉ cần khi chạy integration/benchmark. Không cần Maven hoặc thư viện Java/Python bên ngoài.
+Cần JDK **21**, có `java`, `javac`, `jar` trong `PATH`. Python 3.11/3.12 dùng cho benchmark. Không cần Maven hoặc thư viện Java/Python bên ngoài.
 
 ### Windows PowerShell
 
@@ -56,7 +56,7 @@ java -jar target/reverse-proxy-demo.jar config/application.properties
 
 `CAPACITY` là số công việc có thể phục vụ đồng thời, không phải trọng số chia request. `DELAY_MS` mô phỏng thời gian công việc; `CPU_WORKERS` tạo các luồng tính toán thật để gây tải CPU.
 
-Maven là lựa chọn bổ sung: `mvn clean verify` chạy các test Java `main` rồi tạo cùng JAR. Maven dùng plugin AntRun để fork từng chương trình test với assertions bật; test lỗi hoặc quá 60 giây làm build thất bại. Surefire được bỏ qua vì đây không phải test JUnit. Maven có thể cần mạng để tải build plugin lần đầu; ứng dụng và test vẫn không có dependency ngoài JDK. Các script test bên dưới dùng được khi không có Maven.
+Maven là lựa chọn bổ sung: `mvn -B -ntp clean verify` chạy **mọi `*Test.java` qua TestSuite**, rồi tạo cùng JAR. Mỗi test main chạy trong JVM riêng với assertions và timeout 60 giây; thiếu main, lỗi hoặc timeout làm build thất bại. XML theo định dạng JUnit và log nằm ở `target/test-reports/` (mỗi executable suite là một test case). Giữ dependency-free: AntRun chạy suite; Surefire được tắt có chủ ý và Maven in cảnh báo giải thích. Không coi dòng “Tests are skipped” là kết quả kiểm thử. Script PowerShell/Bash dùng cùng runner, không cần Maven. Maven có thể cần mạng để tải build plugin lần đầu.
 
 ## Quan sát và tạo tình huống demo
 
@@ -82,7 +82,6 @@ curl.exe "http://127.0.0.1:9002/control?cpuWorkers=0"
 curl.exe "http://127.0.0.1:9002/control?healthy=false"
 curl.exe "http://127.0.0.1:9002/control?healthy=true"
 ```
-
 `/control` là công cụ demo chỉ nhận kết nối loopback và không được chuyển tiếp qua proxy. Khi backend hồi phục, proxy đợi đủ số lần health check thành công rồi tăng tải dần (slow start). Chạy nhiều request đồng thời để quan sát quyết định cân bằng tải; vài request nối tiếp không đủ để đánh giá thuật toán.
 
 ## Thuật toán chọn backend
@@ -148,7 +147,7 @@ python scripts/benchmark.py --requests 1200 --warmup-requests 300 --rate 60 --re
 
 Trên Linux thay dòng đầu bằng `bash scripts/test.sh`. Benchmark tự biên dịch source snapshot bằng `javac` cạnh executable `java`; dùng `--java "C:/path/to/jdk-21/bin/java.exe"` nếu PATH chưa trỏ tới JDK 21. Không dùng class do IDE tự tạo trong `target/classes`. Output nằm ngoài `target`, mặc định `benchmarks/results/<timestamp>`, gồm `summary.csv`, `aggregate.csv`, `backends.csv`, `request_types.csv`, raw request và telemetry CSV. `--quick` chỉ kiểm tra pipeline, không dùng kết luận thắng/thua.
 
-Xem [phương pháp và ý nghĩa từng cột](docs/BENCHMARK.md) và [kết quả thực tế](docs/BENCHMARK_RESULTS.md). Cả ba chiến lược dùng cùng lịch gửi, cùng timeout/giới hạn và warm-up; thứ tự chạy cân bằng qua ba lần lặp. Báo cáo cả lỗi, client lag và p95/p99. Các test Java hiện có đã chứa kiểm thử HTTP thực; chưa có script `integration.py` riêng.
+Xem [phương pháp, ý nghĩa từng cột và giới hạn kết quả](docs/BENCHMARK.md). Cả ba chiến lược dùng cùng lịch gửi, cùng timeout/giới hạn và warm-up; thứ tự chạy cân bằng qua ba lần lặp. Báo cáo cả lỗi, client lag và p95/p99. Các test Java chứa kiểm thử HTTP/socket thực.
 
 Build dùng `javac --release 21 -encoding UTF-8`, tạo `target/reverse-proxy-demo.jar`. Lượt audit ngày 27/09/2026 đã chạy thành công `mvn clean verify` trên Microsoft JDK 21.0.12.1, gồm cả test HTTP/socket thực. Xem [báo cáo audit và lệnh kiểm chứng](docs/AUDIT.md); đây là kiểm tra correctness, chưa phải kết luận hiệu năng từ benchmark.
 
@@ -172,3 +171,16 @@ docs/                    Khảo sát, thiết kế, kết quả đo
 ```
 
 [Khảo sát và kế hoạch sửa](docs/REFACTOR_PLAN.md) ghi các vấn đề của bản cũ và những phần đã giữ, sửa, bỏ, thêm. Khi bảo vệ PBL4, tách rõ proxy tự xây dựng và backend demo tạo tải; dùng benchmark để giải thích vì sao một quyết định phân tải tốt hơn trong từng tình huống.
+
+## Hardening và vận hành nội bộ
+
+- `X-Request-Id`: nhận đúng một giá trị `[A-Za-z0-9._-]{1,64}`, nếu không hợp lệ thì sinh UUID; forward và trả lại cùng ID. Backend không ghi đè được ID. Response do handler xử lý có `Cache-Control: no-store`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`.
+- Log JSON trên stderr chứa key/value request ID, method, nhóm path, backend, status, latency và loại lỗi. Không log query, body, credential hoặc path động (đổi thành `/<redacted>`).
+- Giữ JSON `/__proxy/metrics`; thêm `/__proxy/prometheus` dạng Prometheus text. Cả metrics, health và Prometheus **chỉ nhận loopback**, kể cả khi bind LAN. Không tin `X-Forwarded-For` để xác thực. Khi deploy thật, đặt sau gateway TLS/auth và network policy; loopback không phải xác thực người dùng.
+- `/control`, `/down`, `/up` và biến thể đường dẫn chuẩn hóa bị chặn ở proxy. Backend cấu hình tĩnh, không có API đăng ký backend động.
+- `proxy.max.header.count=100` giới hạn tổng header value; `proxy.shutdown.grace.seconds=2` cho request hiện tại hoàn tất trước khi hủy. Shutdown dừng listener, hết grace đóng socket upstream, interrupt handler, dừng health checker/deadline scheduler và chờ executor tối đa 2 giây.
+- `proxy.request.timeout.ms` là deadline **riêng từng pha** upload, upstream, download/đóng exchange; không phải một deadline xuyên suốt cả ba pha. Read timeout upstream giới hạn chờ một lần đọc; deadline upstream còn giới hạn backend trickle liên tục. Không retry request.
+- JDK HttpServer phân tích ingress trước handler: request bị JDK từ chối có thể chưa có ID/security headers/counters. Admission không giới hạn mọi TCP connection hoặc incomplete header. Khi client ngắt trong lúc chờ upstream, JDK không cung cấp hook phát hiện ngay; tài nguyên được thu hồi khi upstream kết thúc hoặc hết deadline. Backend có thể vẫn thực thi sau khi socket proxy đóng.
+- Vẫn HTTP/1.1 buffered, mỗi request một upstream socket. Chưa pooling, TLS termination, HTTP/2, WebSocket hoặc streaming; không coi đây là proxy production đầy đủ.
+
+CI tại [.github/workflows/ci.yml](.github/workflows/ci.yml) chạy Windows/Linux, JDK 21, Python 3.12: Maven verify, Python unittest, `git diff --check`, smoke benchmark và verifier; upload XML/log/artifact, không cần secret hay dịch vụ ngoài. Lệnh local Windows là `powershell -ExecutionPolicy Bypass -File scripts/test.ps1`, Linux là `bash scripts/test.sh`; cả hai chạy cùng bộ test. CI cần mạng để lấy công cụ/build plugin.
