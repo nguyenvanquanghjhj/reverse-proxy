@@ -19,7 +19,7 @@ public final class ProxyConfig {
         getMaxBodyBytes(); getMaxHeaderBytes(); getMaxInflight(); getHealthCheckIntervalMs();
         getHealthCheckTimeoutMs(); getMetricsStaleMs(); getWarmupMs(); getBackendMaxInflight();
         getRecoverySuccesses(); getEwmaAlpha(); getInitialLatencyMs(); getExplorationInterval();
-        getHealthCheckPath(); getMetricsPath(); getMaxHeaderCount(); getShutdownGraceSeconds();
+        getHealthCheckPath(); getMetricsPath(); getMaxHeaderCount(); getShutdownGraceSeconds(); getMaxHandlerTasks();
         String bind = getBindHost();
         if (!BackendServer.validHost(bind)) {
             // URI validates a bracketed IPv6 literal without DNS/network I/O.
@@ -66,6 +66,7 @@ public final class ProxyConfig {
     public int getMaxHeaderBytes() { return integer("proxy.max.header.bytes", 32768, 1024, 262144); }
     public int getMaxHeaderCount() { return integer("proxy.max.header.count", 100, 1, 1000); }
     public int getShutdownGraceSeconds() { return integer("proxy.shutdown.grace.seconds", 2, 0, 30); }
+    public int getMaxHandlerTasks() { return integer("proxy.max.handler.tasks", getMaxInflight() + 16, 1, 100016); }
     public int getMaxInflight() { return integer("proxy.max.inflight", 128, 1, 100000); }
     public int getBackendMaxInflight() { return integer("backend.max.inflight", 64, 1, 100000); }
     public int getHealthCheckIntervalMs() { return integer("healthcheck.interval.ms", 500, 20, 60000); }

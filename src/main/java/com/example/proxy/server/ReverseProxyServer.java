@@ -10,7 +10,6 @@ import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.*;
 
 /** Owns all threads, sockets and monitoring lifecycle for one proxy instance. */
 public final class ReverseProxyServer implements AutoCloseable {
@@ -19,11 +18,12 @@ public final class ReverseProxyServer implements AutoCloseable {
     private final Dispatcher dispatcher;
     private final HealthChecker healthChecker;
     private final ProxyHandler handler;
-    private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+    private final BoundedRequestExecutor executor;
     private HttpServer httpServer;
     private boolean stopped, starting;
     public ReverseProxyServer(ProxyConfig config) {
         this.config = config;
+        this.executor = new BoundedRequestExecutor(config.getMaxHandlerTasks(), config.getRequestTimeoutMs());
         this.dispatcher = new Dispatcher(config);
         this.healthChecker = new HealthChecker(config, dispatcher);
         this.handler = new ProxyHandler(config, dispatcher);
@@ -36,7 +36,7 @@ public final class ReverseProxyServer implements AutoCloseable {
         HttpServer created = null;
         try {
             // DNS and bind are outside the lifecycle lock. close() may win while they run.
-            created = HttpServer.create(new InetSocketAddress(config.getBindHost(), config.getProxyPort()), config.getMaxInflight());
+            created = HttpServer.create(new InetSocketAddress(config.getBindHost(), config.getProxyPort()), config.getMaxHandlerTasks());
             created.createContext("/", handler);
             created.createContext("/__proxy/", e -> handler.handleManagement(e, this::monitor));
             created.setExecutor(executor);
@@ -97,12 +97,12 @@ public final class ReverseProxyServer implements AutoCloseable {
             stopped = true;
             server = httpServer;
         }
+        executor.stopAccepting();
+        dispatcher.stopAccepting();
+        healthChecker.stop();
         // HttpServer closes its listener first, then waits at most this grace for existing exchanges.
         if (server != null) server.stop(config.getShutdownGraceSeconds());
         handler.close();
-        healthChecker.stop();
-        executor.shutdownNow();
-        try { if (!executor.awaitTermination(2, TimeUnit.SECONDS)) log.warn("handler_executor_shutdown_timeout"); }
-        catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+        executor.close();
     }
 }

@@ -44,7 +44,7 @@ public final class HealthCheckerTest {
         Dispatcher dispatcher = new Dispatcher(config);
         BackendServer good = config.getBackendServers().get(1);
         try (HealthChecker checker = new HealthChecker(config, dispatcher)) {
-            checker.start();
+            checker.start(); checker.start(); // Idempotent start must not create duplicate poll loops.
             await(() -> dispatcher.snapshots().get(1).alive() && dispatcher.snapshots().get(1).telemetryFresh(), 5000,
                     "healthy backend should become ready despite another endpoint stalling");
             check(!dispatcher.snapshots().getFirst().alive(), "stalled backend is DOWN");
@@ -58,6 +58,7 @@ public final class HealthCheckerTest {
             check(dispatcher.acquire() == null, "all DOWN rejects dispatch");
             reachable.set(true); valid.set(true);
             await(() -> dispatcher.snapshots().get(1).alive() && dispatcher.snapshots().get(1).telemetryFresh(), 3000, "health and telemetry recover");
+            try (var recovered = dispatcher.acquire()) { check(recovered != null && recovered.backend().equals(good), "recovered backend selected again"); }
             check(checker.telemetryFailures() > 0 && checker.healthFailures() > 0, "poll failures are observable");
             checker.close();
             try { checker.start(); throw new AssertionError("closed checker restarted"); }

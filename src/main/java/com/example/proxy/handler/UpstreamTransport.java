@@ -32,6 +32,8 @@ public final class UpstreamTransport implements AutoCloseable {
     }
     private UpstreamTransport(int connectTimeoutMs, int readTimeoutMs, int requestTimeoutMs,
                               int maxBodyBytes, int maxHeaderBytes, int maxHeaderCount) {
+        if (connectTimeoutMs <= 0 || readTimeoutMs <= 0 || requestTimeoutMs <= 0 || maxBodyBytes <= 0 || maxHeaderBytes <= 0 || maxHeaderCount <= 0)
+            throw new IllegalArgumentException("Timeouts and limits must be positive");
         this.connectTimeoutMs = connectTimeoutMs;
         this.readTimeoutMs = readTimeoutMs;
         this.requestTimeoutMs = requestTimeoutMs;
@@ -49,6 +51,15 @@ public final class UpstreamTransport implements AutoCloseable {
     }
     public Response exchange(String host, int port, String method, URI uri,
                              Map<String, List<String>> headers, byte[] body) throws IOException {
+        return exchange(host, port, method, uri, headers, body,
+                System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(requestTimeoutMs));
+    }
+    public Response exchange(BackendServer backend, String method, URI uri,
+                             Map<String, List<String>> headers, byte[] body, long expires) throws IOException {
+        return exchange(backend.host(), backend.port(), method, uri, headers, body, expires);
+    }
+    private Response exchange(String host, int port, String method, URI uri,
+                              Map<String, List<String>> headers, byte[] body, long expires) throws IOException {
         if (body.length > maxBodyBytes) throw new BodyLimitException("Request body exceeds limit");
         if (host == null || !host.matches("[A-Za-z0-9._:-]+") || port < 1 || port > 65535)
             throw new ProtocolException("Invalid upstream address");
@@ -84,17 +95,19 @@ public final class UpstreamTransport implements AutoCloseable {
         head.append("\r\n");
         byte[] headBytes = head.toString().getBytes(StandardCharsets.ISO_8859_1);
         if (headBytes.length > maxHeaderBytes) throw new HeaderLimitException("Request headers exceed limit");
-        long expires = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(requestTimeoutMs);
+        long remaining = expires - System.nanoTime();
+        if (remaining <= 0 || Thread.currentThread().isInterrupted()) throw new SocketTimeoutException("Request deadline exceeded");
+        int remainingMs = (int) Math.min(Integer.MAX_VALUE, Math.max(1, TimeUnit.NANOSECONDS.toMillis(remaining)));
         Socket socket = new Socket();
         try (socket) {
             activeSockets.add(socket);
             if (closed.get()) throw new IOException("Transport is closed");
             ScheduledFuture<?> deadline;
-            try { deadline = deadlines.schedule(() -> closeQuietly(socket), requestTimeoutMs, TimeUnit.MILLISECONDS); }
+            try { deadline = deadlines.schedule(() -> closeQuietly(socket), remaining, TimeUnit.NANOSECONDS); }
             catch (RejectedExecutionException shutdown) { throw new IOException("Transport is closed", shutdown); }
             try {
-                socket.connect(new InetSocketAddress(host, port), Math.min(connectTimeoutMs, requestTimeoutMs));
-                socket.setSoTimeout(Math.min(readTimeoutMs, requestTimeoutMs));
+                socket.connect(new InetSocketAddress(host, port), Math.min(connectTimeoutMs, remainingMs));
+                socket.setSoTimeout(Math.min(readTimeoutMs, remainingMs));
                 socket.setTcpNoDelay(true);
                 OutputStream out = new BufferedOutputStream(socket.getOutputStream());
                 out.write(headBytes);

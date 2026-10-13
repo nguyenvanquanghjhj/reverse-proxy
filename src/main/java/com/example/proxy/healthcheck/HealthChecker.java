@@ -63,6 +63,10 @@ public final class HealthChecker implements AutoCloseable {
                 Thread.currentThread().interrupt();
                 break;
             } catch (ExecutionException | TimeoutException e) { healthy = false; }
+            catch (RuntimeException failure) {
+                log.warn("health_probe_failed error_type=" + failure.getClass().getSimpleName());
+                healthy = false;
+            }
             if (!healthy) healthFailures.increment();
             if (!running.get()) break;
             dispatcher.recordHealth(backend, healthProbe, healthy);

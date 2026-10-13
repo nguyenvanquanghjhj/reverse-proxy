@@ -18,6 +18,11 @@ public final class Dispatcher {
     private final Map<BackendServer, BackendMetrics> metrics = new LinkedHashMap<>();
     private final Map<BackendServer, EstimatedWork> work = new LinkedHashMap<>();
     private long workRejected;
+    private volatile boolean draining;
+    public void stopAccepting() {
+        lock.lock();
+        try { draining = true; } finally { lock.unlock(); }
+    }
     private final ProxyConfig config;
     private final LoadBalancer algorithm;
     private final LongSupplier clock;
@@ -35,6 +40,7 @@ public final class Dispatcher {
     public Lease acquire(URI uri) {
         lock.lock();
         try {
+            if (draining) return null;
             long now = clock.getAsLong();
             var request = EstimatedWork.Request.of(uri);
             boolean adaptive = algorithm instanceof AdaptiveLoadBalancer;
@@ -117,6 +123,7 @@ public final class Dispatcher {
         } finally { lock.unlock(); }
     }
     public boolean hasAvailableBackend() {
+        if (draining) return false;
         var current = snapshots();
         return current.stream().mapToLong(BackendMetrics.Snapshot::inFlight).sum() < config.getMaxInflight()
                 && current.stream().anyMatch(BackendMetrics.Snapshot::eligible);
