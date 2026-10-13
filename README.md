@@ -8,7 +8,7 @@ Reverse proxy HTTP viết bằng **Java 21, chỉ dùng thư viện JDK**. Thu�
 
 Demo trực tiếp Windows PowerShell: xem [hướng dẫn bốn demo A/B/C/D](docs/DEMO.md). Sau khi đặt JDK 21, chạy `scripts/demo.ps1 start`, rồi `basic`, `rr`, `adaptive`, `health`; kết thúc bằng `stop` để dừng đúng các process đã tạo.
 
-Giao diện backend: mở `http://127.0.0.1:9001/demo`, `:9002/demo`, `:9003/demo` để thấy ba server với màu sắc, PID và port riêng; mở `http://127.0.0.1:8080/demo` để xem server được proxy chọn. Nút **Gửi request tiếp** tạo một HTTP request mới, không tải ảnh hoặc tài nguyên ngoài.
+Giao diện **PBL / Request Studio**: mở `http://127.0.0.1:9001/demo`, `:9002/demo`, `:9003/demo` để xem từng backend; mở `http://127.0.0.1:8080/demo` để quan sát đường đi qua proxy. Chọn Work/Slow/Compute hoặc tác vụ sản phẩm/tải tệp/đặt đơn, rồi **Gửi request**. Dashboard hiển thị backend được chọn, strategy từ response thật, telemetry snapshot, kết quả và sáu request gần nhất trong sessionStorage. Có theme sáng/tối, hỗ trợ mobile và bàn phím; không polling hoặc tải tài nguyên ngoài. Xem [hướng dẫn giao diện](docs/DEMO.md#giao-diện-web-của-ba-backend).
 
 Demo từ máy khác cùng Wi-Fi/LAN: `scripts/demo.ps1 start` mặc định mở Proxy trên `0.0.0.0:8080` và in URL `http://<IPv4 máy chủ>:8080/demo`. Backend vẫn nội bộ. Xem [cách mở firewall và kết nối LAN](docs/DEMO.md#cho-máy-khác-truy-cập-qua-wi-filan). Muốn chỉ chạy local, dùng `start -BindHost 127.0.0.1`. Đổi bind host cần stop/start; đổi strategy giữ nguyên bind host.
 
@@ -153,7 +153,7 @@ Build dùng `javac --release 21 -encoding UTF-8`, tạo `target/reverse-proxy-de
 
 ## Phạm vi và tổ chức mã
 
-Proxy nhận HTTP qua JDK `HttpServer`, chuyển tiếp HTTP/1.1 qua TCP `Socket`, dùng virtual threads và giới hạn request/body. Mỗi request upstream mở một kết nối với `Connection: close`; chưa có connection pooling. Phạm vi hiện tại chưa gồm TCP tunnel tùy ý, HTTPS termination, HTTP/2, WebSocket, cache hoặc dashboard. Endpoint JSON giúp quan sát thuật toán, không phải hệ thống giám sát production có xác thực.
+Proxy nhận HTTP qua JDK `HttpServer`, chuyển tiếp HTTP/1.1 qua TCP `Socket`, dùng virtual threads và giới hạn request/body. Mỗi request upstream mở một kết nối với `Connection: close`; chưa có connection pooling. Phạm vi hiện tại chưa gồm TCP tunnel tùy ý, HTTPS termination, HTTP/2, WebSocket, cache hoặc dashboard giám sát realtime. Endpoint JSON giúp quan sát thuật toán, không phải hệ thống giám sát production có xác thực.
 
 ```text
 src/main/java/com/example/

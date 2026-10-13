@@ -15,7 +15,6 @@ final class DemoPage {
         String[] colors = {"#087f67", "#b94b1d", "#7051c2"};
         String[] bright = {"#8ef0ca", "#ffbf86", "#c8b2ff"};
         String[] soft = {"#e0f4ea", "#fff0e1", "#eee8fb"};
-        String[] mottos = {"Một sắc xanh. Một điểm đến.", "Một sắc cam. Một nhịp xử lý.", "Một sắc tím. Một kết nối mới."};
         return PAGE.replace("@@NUMBER@@", number).replace("@@NAME@@", names[theme])
                 .replace("@@ACCENT@@", colors[theme]).replace("@@BRIGHT@@", bright[theme]).replace("@@SOFT@@", soft[theme])
                 .replace("@@PORT@@", Integer.toString(port))
@@ -31,172 +30,219 @@ final class DemoPage {
         <!doctype html>
         <html lang="vi">
         <head>
-          <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-          <title>@@NAME@@ · PBL Request Studio</title>
-          <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%231c2928'/%3E%3Cpath d='M9 10h14M9 16h14M9 22h8' stroke='%238ef0ca' stroke-width='3'/%3E%3C/svg%3E">
-          <style>
-            :root{--ink:#192d2a;--muted:#6b7873;--line:#dfe5dd;--paper:#f6f7f2;--accent:@@ACCENT@@;--soft:@@SOFT@@;--bright:@@BRIGHT@@}
-            *{box-sizing:border-box}body{margin:0;color:var(--ink);background:var(--paper);font-family:'Segoe UI',Arial,sans-serif;font-size:14px;-webkit-font-smoothing:antialiased}button,input,select{font:inherit}a{color:inherit;text-decoration:none}button,a,input,select{touch-action:manipulation}button{cursor:pointer}button:disabled{cursor:default;opacity:.45}[hidden]{display:none!important}:focus-visible{outline:3px solid var(--accent);outline-offset:4px}.mono{font-family:Consolas,monospace}.muted{color:var(--muted)}
-            .shell{max-width:1240px;margin:auto;padding:0 40px}header{height:86px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:20px}.brand{display:flex;align-items:center;gap:11px;font-size:18px;font-weight:750;letter-spacing:-.5px}.mark{width:35px;height:35px;border-radius:10px;background:var(--ink);display:grid;align-content:center;gap:4px;padding:10px}.mark i{height:3px;background:var(--bright);border-radius:2px}.mark i:last-child{width:60%}.brand span{font-weight:400;color:var(--muted)}.badge{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:600;border:1px solid var(--line);border-radius:30px;padding:8px 12px;background:white}.dot{width:6px;height:6px;border-radius:50%;background:var(--accent)}.header-right{display:flex;align-items:center;gap:14px}.header-right>span{font-size:11px;color:var(--muted)}
-            .intro{display:flex;justify-content:space-between;align-items:end;gap:30px;padding:40px 0 30px}.eyebrow{font-size:10px;font-weight:700;letter-spacing:2px;color:var(--accent);text-transform:uppercase}h1{font-size:clamp(30px,3.7vw,46px);font-weight:650;line-height:1.15;letter-spacing:-1.8px;margin:12px 0}h1 em{font-style:normal;color:var(--accent)}.intro p{color:var(--muted);line-height:1.7;margin:0;max-width:560px}.page-origin{text-align:right;font-size:11px;line-height:1.8;flex-shrink:0}.page-origin strong{color:var(--accent);font-weight:600}.page-origin a{display:block;text-decoration:underline;text-underline-offset:4px;margin-top:5px}
-            .workspace{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(280px,1fr);gap:22px;align-items:start}.panel{background:white;border:1px solid var(--line);border-radius:18px;padding:25px}.section-top{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:23px}.section-top h2{font-size:15px;letter-spacing:-.2px;margin:0}.step{color:var(--muted);font-size:10px;letter-spacing:1px}.types{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.type{border:1px solid var(--line);background:white;border-radius:12px;padding:17px 12px;text-align:left;display:flex;flex-direction:column;gap:8px;color:var(--ink)}.type:hover{background:var(--paper)}.type[aria-pressed=true]{background:var(--soft);border-color:var(--accent)}.type-icon{width:32px;height:32px;display:grid;place-items:center;border-radius:9px;background:var(--paper);color:var(--accent);margin-bottom:3px}.type-icon svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}.type strong{font-size:12px}.type small{font-size:10px;color:var(--muted);line-height:1.5}
-            .request-config{margin-top:22px;min-height:110px}.request-config p{font-size:12px;color:var(--muted);line-height:1.7;margin:0 0 14px}.field{display:flex;align-items:center;justify-content:space-between;gap:16px;font-size:12px}.field input,.field select{padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:white;color:var(--ink);max-width:165px}.field input{width:80px}.endpoint{display:flex;align-items:center;gap:10px;background:var(--paper);border:1px solid var(--line);border-radius:9px;padding:11px 13px;margin:6px 0 18px;font-size:11px;overflow-wrap:anywhere}.method{font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--accent)}.send-row{display:flex;align-items:center;justify-content:space-between;gap:10px}.send{background:var(--ink);border:0;border-radius:10px;padding:13px 23px;color:white;font-size:12px;font-weight:600;display:flex;gap:26px;align-items:center}.send:hover{background:var(--accent)}.pending{font-size:11px;color:var(--muted)}.help{font-size:10px!important;line-height:1.6!important;color:var(--muted);margin:13px 0 0}
-            .distribution{background:#1c302b;color:#eff5ef;border-color:#1c302b}.distribution .muted{color:#acbdb3}.distribution .section-top{margin-bottom:18px}.flow{display:flex;align-items:center;gap:10px;font-size:11px;color:#d3dfd7;margin-bottom:23px}.flow .client{background:#ffffff0e;border:1px solid #ffffff20;border-radius:7px;padding:7px 10px}.strategy{font-size:10px;color:#b5d0bd}.server{display:grid;grid-template-columns:34px 1fr auto;gap:12px;align-items:center;padding:15px 0;border-top:1px solid #ffffff14}.server-icon{width:32px;height:36px;border-radius:7px;display:grid;place-items:center;font-size:11px;font-weight:700;color:#1c302b;background:var(--server)}.server-name{font-size:12px;font-weight:600}.server-name a[href]:hover{text-decoration:underline}.server-name small{font-size:10px;color:#a8beb0;font-weight:400;margin-left:5px}.bar{height:3px;background:#ffffff10;border-radius:5px;margin-top:9px;overflow:hidden}.bar i{height:100%;background:var(--server);display:block;width:0;transition:width .2s}.server-count{font-size:19px;font-variant-numeric:tabular-nums}.distribution .help{color:#a8beb0}.distribution .section-top>span{font-size:10px;color:#a8beb0}
-            .stats{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line);margin-top:23px;padding-top:19px;gap:10px}.stats small{font-size:10px;color:var(--muted);display:block;margin-bottom:5px}.stats strong{font-size:24px;font-weight:600;letter-spacing:-1px;font-variant-numeric:tabular-nums}.stats strong small{font-size:11px;display:inline;margin-left:3px;letter-spacing:0}.stats p{font-size:10px;color:var(--muted);margin:5px 0 0}.error-text{color:#b34830}
-            .result-panel{margin-top:22px;padding-top:22px}.result-panel .section-top{margin-bottom:14px}.result-badge{font-size:10px;color:var(--muted)}.result-content{font-size:12px;line-height:1.7}.placeholder{color:var(--muted);padding:10px 0}.product-list{list-style:none;padding:0;margin:0}.product-list li{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line)}.product-list li:last-child{border:0}.product-list strong{font-weight:600}.result-content code{overflow-wrap:anywhere;font-size:11px}.save-file{display:inline-flex;margin-top:12px;padding:9px 14px;border:1px solid var(--line);border-radius:8px;font-size:11px;font-weight:600}.result-content p{margin:5px 0}.result-content .help{margin-top:9px}
-            .log{margin:24px 0}.log .section-top{margin-bottom:16px}.log .section-top span{font-size:11px;color:var(--muted)}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;text-align:left;min-width:560px;font-size:11px}th{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:500;padding:0 12px 12px;border-bottom:1px solid var(--line)}td{padding:13px 12px;border-bottom:1px solid #edf0e9;font-variant-numeric:tabular-nums}tbody tr:last-child td{border:0}.status{font-size:10px;border-radius:5px;padding:4px 7px;background:var(--soft);color:var(--accent)}.status.error{background:#fff0eb;color:#b34830}.status.waiting{background:#f2f4ef;color:var(--muted)}.empty{text-align:center;color:var(--muted);padding:27px}.log-note{font-size:10px;line-height:1.6;color:var(--muted);margin:15px 0 0}
-            details{font-size:11px;color:var(--muted);border-top:1px solid var(--line);padding:17px 0}summary{cursor:pointer}.technical{display:flex;flex-wrap:wrap;gap:12px 25px;padding-top:13px;line-height:1.7}footer{display:flex;justify-content:space-between;gap:15px;color:var(--muted);font-size:10px;padding:15px 0 28px;line-height:1.6}.noscript{background:#fff0eb;padding:15px}
-            @media(max-width:850px){.shell{padding:0 23px}.workspace{grid-template-columns:minmax(0,1.2fr) minmax(255px,1fr);gap:16px}.panel{padding:20px}.intro{padding-top:30px}.type{padding:13px 9px}.type strong{font-size:11px}.header-right>span{display:none}}
-            @media(max-width:650px){.shell{padding:0 16px}header{height:72px}.brand{font-size:15px}.header-right .badge{font-size:10px;padding:7px 9px}.intro{display:block;padding:26px 0 22px}h1{font-size:35px}.intro p{font-size:12px}.page-origin{text-align:left;margin-top:14px}.page-origin a{display:inline;margin-left:12px}.workspace{grid-template-columns:minmax(0,1fr)}.panel{padding:20px}.type{padding:15px 10px}.type strong{font-size:12px}.request-config{min-height:95px}.distribution{margin-top:2px}.log .section-top{align-items:start;flex-direction:column;gap:6px}.log{padding:20px 12px}.log .section-top,.log-note{padding:0 8px}.send{padding:13px 18px}.stats strong{font-size:23px}footer{flex-direction:column;gap:3px}.technical{flex-direction:column;gap:5px}}
-            @media(prefers-reduced-motion:reduce){*{transition:none!important}}
-          </style>
+        <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>@@NAME@@ · PBL Request Studio</title>
+        <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23087f67'/%3E%3Cpath d='M8 10h16M8 16h16M8 22h10' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+        <style>
+        /* Palette and typography */
+        :root{color-scheme:light;--bg:#f3f5f8;--surface:#fff;--surface-elevated:#f7f9fb;--text:#17263b;--muted:#526177;--border:#d9e1eb;--accent:#245bd6;--success:#08745e;--warning:#92510f;--danger:#b52d40;--shadow:0 4px 20px #17263b06;--aurora:#08745e;--ember:#a44818;--orbit:#7051c2}
+        :root[data-theme=dark]{color-scheme:dark;--bg:#0d1522;--surface:#152132;--surface-elevated:#1c2a3e;--text:#edf3fc;--muted:#a9bad1;--border:#33445c;--accent:#96b7ff;--success:#7ee0be;--warning:#ffc782;--danger:#ffa5b1;--shadow:none;--aurora:#7ee0be;--ember:#ffc08c;--orbit:#c9b5ff}
+        *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.55 'Segoe UI',Arial,sans-serif;-webkit-font-smoothing:antialiased}button,input,select{font:inherit}button,a,input,select{touch-action:manipulation}button{cursor:pointer}button:disabled{cursor:wait;opacity:.65}a{color:var(--accent);text-underline-offset:4px}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--accent);outline-offset:4px}[hidden]{display:none!important}svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}h1,h2,h3,p{margin:0}h1{font-size:clamp(27px,3.2vw,42px);line-height:1.18;letter-spacing:-1.3px}h2{font-size:18px;letter-spacing:-.4px}h3{font-size:15px}small,.help{font-size:12px;color:var(--muted)}code,pre{font-family:Consolas,monospace}code{overflow-wrap:anywhere}.muted{color:var(--muted)}.eyebrow{font-size:11px;letter-spacing:1.6px;font-weight:700;color:var(--accent);text-transform:uppercase}.shell{max-width:1400px;margin:auto;padding:0 32px}.skip{position:absolute;left:16px;top:-100px;background:var(--surface);padding:12px;z-index:3}.skip:focus{top:12px}
+        /* Header and overview */
+        header{min-height:76px;display:flex;align-items:center;justify-content:space-between;gap:16px;border-bottom:1px solid var(--border)}.brand{display:flex;align-items:center;gap:10px;font-weight:700;color:var(--text);text-decoration:none}.mark{display:grid;place-items:center;background:var(--text);color:var(--surface);border-radius:10px;width:36px;height:36px}.brand small{font-weight:400}.header-meta,.badges,.section-top,.actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.header-meta{justify-content:flex-end;font-size:12px}.badge{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:6px;padding:4px 9px;font-size:11px;font-weight:650;background:var(--surface-elevated);overflow-wrap:anywhere}.mode{color:var(--accent)}.button{border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:8px;padding:8px 12px;text-decoration:none;font-weight:600}.button:hover{background:var(--surface-elevated)}.intro{display:flex;justify-content:space-between;align-items:center;gap:24px;padding:32px 0 24px}.intro p{color:var(--muted);margin:12px 0 16px;max-width:740px}.intro .eyebrow{margin-bottom:10px}.origin{text-align:right;flex-shrink:0}.origin strong{display:block;font-size:18px}.origin a{display:inline-block;margin-top:12px}.badges{gap:7px}
+        /* Metrics and workspace */
+        .metrics{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px;margin-bottom:22px}.metric{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;min-width:0}.metric strong{display:block;font-size:25px;line-height:1.4;font-variant-numeric:tabular-nums}.metric .word{font-size:16px;margin:7px 0}.workspace{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.3fr);gap:20px;align-items:start}.panel{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;box-shadow:var(--shadow);min-width:0}.section-top{justify-content:space-between;margin-bottom:18px}.step{font-size:11px;color:var(--muted);letter-spacing:1px}.stack{display:grid;gap:20px}.types{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:14px 0}.type{text-align:left;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:10px;padding:14px 11px;min-width:0;position:relative;transition:border-color .15s}.type:hover{background:var(--surface-elevated);border-color:var(--accent)}.type[aria-pressed=true]{border:2px solid var(--accent);padding:13px 10px;background:var(--surface-elevated)}.type[aria-pressed=true]:after{content:'✓';position:absolute;right:9px;top:8px;color:var(--accent);font-weight:700}.type svg{color:var(--accent);margin-bottom:8px}.type strong,.type small,.type code{display:block}.type code{font-size:11px;color:var(--accent);margin:5px 0}.type small{font-size:11px;line-height:1.5}.more{margin:18px 0;border-top:1px solid var(--border);padding-top:14px}summary{cursor:pointer;font-weight:600}.request-config{min-height:85px;background:var(--surface-elevated);border-radius:8px;padding:13px;margin:16px 0;color:var(--muted);font-size:13px}.field{display:flex;gap:12px;align-items:center;margin-top:10px;flex-wrap:wrap}input,select{min-height:36px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);padding:5px 9px;max-width:100%}input{width:80px}.endpoint{display:flex;align-items:center;gap:12px;border:1px solid var(--border);padding:12px;border-radius:8px;background:var(--bg);margin-bottom:14px}.method{font-size:11px;font-weight:750;color:var(--success)}.send{display:flex;justify-content:center;align-items:center;gap:10px;width:100%;padding:13px;border:0;border-radius:9px;background:#245bd6;color:#fff;font-weight:650}.send:hover:not(:disabled){background:#1949b9}.send svg{width:19px;height:19px}.send-row .help{display:block;margin:10px 0}.pending{font-size:12px;color:var(--muted)}
+        /* Routing and backend observations */
+        .routing{border-top:3px solid var(--accent)}.flow{display:flex;align-items:center;gap:0;margin:23px 0}.node{flex:1;min-width:0;text-align:center;background:var(--surface-elevated);border:1px solid var(--border);border-radius:10px;padding:17px 8px}.node svg{display:block;margin:0 auto 8px}.node strong,.node small{display:block}.node strong{font-size:13px}.node small{font-size:11px;overflow-wrap:anywhere}.connector{flex:0 0 30px;color:var(--muted);text-align:center;font-size:22px}.selected-node{border:2px solid var(--node-color,var(--accent));color:var(--node-color,var(--accent))}.selected-node .badge{margin-top:7px;color:var(--node-color,var(--accent));font-size:10px}.route-note{font-size:12px;color:var(--muted);border-bottom:1px solid var(--border);padding-bottom:18px}.servers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:18px 0 12px}.server{border:1px solid var(--border);border-radius:10px;padding:12px;min-width:0;position:relative}.server[data-selected=true]{border:2px solid var(--server);padding:11px;background:var(--surface-elevated)}.server-name{font-size:14px;font-weight:700;color:var(--server)}.server-name a{color:inherit}.server .badge{font-size:10px;margin:8px 0;min-height:25px}.server[data-selected=true] .badge{color:var(--server)}.server-number{font-size:10px;color:var(--muted);letter-spacing:1px}.server dl{margin:4px 0 0;font-size:11px}.server dl div{display:flex;justify-content:space-between;gap:5px;margin-top:4px}.server dt{color:var(--muted)}.server dd{margin:0;font-variant-numeric:tabular-nums}.observed{margin-top:8px;font-size:10px;color:var(--muted)}.pulse{animation:arrive .65s ease-out 1}@keyframes arrive{0%{box-shadow:0 0 0 5px var(--border)}100%{box-shadow:0 0 0 0 transparent}}.decision{margin-top:18px;border-top:1px solid var(--border);padding-top:14px}.decision p{margin-top:9px}.decision-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}.decision-grid div{min-width:0}.decision-grid strong{display:block;font-size:12px;overflow-wrap:anywhere}
+        /* Response and session history */
+        .result-panel[data-state=success]{border-left:3px solid var(--success)}.result-panel[data-state=error]{border-left:3px solid var(--danger)}.result-panel[data-state=waiting]{border-left:3px solid var(--warning)}.status{display:inline-block;font-size:11px;font-weight:650;border-radius:5px;padding:4px 8px;background:var(--surface-elevated);border:1px solid currentColor;color:var(--success)}.status.error{color:var(--danger)}.status.waiting{color:var(--warning)}.result-content p{margin:8px 0}.placeholder{text-align:center;color:var(--muted);padding:25px 10px}.result-details{display:flex;gap:8px 18px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-bottom:14px}.result-details code{width:100%}.error-text{color:var(--danger)}pre{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;max-height:260px;overflow:auto}.product-list{list-style:none;padding:0;margin:10px 0}.product-list li{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--border);padding:9px 0}.save-file{display:inline-block;margin:8px 0;font-weight:650}.log{margin-top:20px}.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;text-align:left;font-size:12px;min-width:800px}th{color:var(--muted);font-size:11px;font-weight:600;background:var(--surface-elevated)}td,th{padding:12px 10px;border-bottom:1px solid var(--border);vertical-align:top}td small{display:block;font-size:10px;max-width:200px;overflow-wrap:anywhere}.empty{text-align:center;padding:30px}.log-note{margin-top:14px}.technical{margin-top:20px}.technical p{margin-top:10px;overflow-wrap:anywhere}footer{display:flex;justify-content:space-between;gap:16px;color:var(--muted);font-size:11px;padding:24px 0}.noscript{padding:16px;border:1px solid var(--warning)}
+        @media(min-width:1500px){.shell{padding:0 40px}.intro{padding-top:40px}}
+        @media(max-width:1100px){.metrics{grid-template-columns:repeat(4,minmax(0,1fr))}.header-meta .header-observation{display:none}.workspace{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr)}.panel{padding:18px}.types{gap:6px}.servers{gap:6px}.server{padding:9px}.server[data-selected=true]{padding:8px}}
+        @media(max-width:850px){.workspace{grid-template-columns:minmax(0,1fr)}.intro{align-items:start}.origin{max-width:180px}.metrics{grid-template-columns:repeat(4,minmax(0,1fr))}.shell{padding:0 20px}}
+        @media(max-width:540px){.shell{padding:0 12px}header{flex-wrap:wrap;padding:14px 0;gap:10px}.brand small{display:none}.header-meta{justify-content:flex-start;width:100%}.header-meta #host{flex:1}.intro{display:block;padding:24px 0 20px}.origin{text-align:left;max-width:none;margin-top:18px}.origin strong{display:inline;font-size:14px}.origin a{margin:8px 0 0 12px}.metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.metric{padding:10px 12px}.metric:last-child{grid-column:span 2}.metric strong{font-size:23px}.metric .word{margin:0}.panel{padding:16px}.types{grid-template-columns:1fr}.type{display:grid;grid-template-columns:30px 1fr;column-gap:10px;padding:12px}.type[aria-pressed=true]{padding:11px}.type svg{grid-row:span 3;margin-top:5px}.type code{margin:2px 0}.type strong{padding-right:14px}.type small{font-size:12px}.flow{gap:0}.node{padding:12px 5px}.node strong{font-size:11px}.connector{flex-basis:18px;font-size:16px}.node .badge{font-size:9px;padding:3px 5px}.servers{grid-template-columns:1fr}.server{padding:12px}.server[data-selected=true]{padding:11px}.server dl{display:grid;grid-template-columns:1fr 1fr;gap:2px 16px}.server-number{display:inline;margin-right:8px}.server-name{display:inline}.server .badge{float:right;margin:0}.server dl{clear:both;padding-top:8px}.decision-grid{grid-template-columns:1fr}.section-top{gap:7px}.section-top h2{font-size:17px}footer{flex-direction:column;gap:4px}.result-details{gap:8px}}
+        @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+        </style>
         </head>
         <body data-backend="@@PORT@@" data-request="@@REQUEST@@" data-via-proxy="@@VIA@@">
+        <a class="skip" href="#main">Đến nội dung chính</a>
+        <svg hidden aria-hidden="true"><defs>
+        <symbol id="icon-client" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4M3 8h18"/></symbol>
+        <symbol id="icon-proxy" viewBox="0 0 24 24"><path d="M4 12h16M8 5l4-3 4 3M12 2v20M8 19l4 3 4-3"/><circle cx="4" cy="12" r="2"/><circle cx="20" cy="12" r="2"/></symbol>
+        <symbol id="icon-server" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="7" rx="2"/><rect x="4" y="14" width="16" height="7" rx="2"/><path d="M8 6.5h.01M8 17.5h.01M12 6.5h4m-4 11h4"/></symbol>
+        <symbol id="icon-work" viewBox="0 0 24 24"><path d="m13 2-9 12h7l-1 8 10-13h-8l1-7Z"/></symbol>
+        <symbol id="icon-slow" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v5l3 2M9 2h6m-3 0v3"/></symbol>
+        <symbol id="icon-cpu" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 1v4m6-4v4M9 19v4m6-4v4M1 9h4m-4 6h4m14-6h4m-4 6h4"/><rect x="9" y="9" width="6" height="6"/></symbol>
+        <symbol id="icon-send" viewBox="0 0 24 24"><path d="m3 3 19 9-19 9 4-9-4-9Zm4 9h15"/></symbol>
+        </defs></svg>
         <div class="shell">
-          <header><a href="/demo" class="brand"><span class="mark" aria-hidden="true"><i></i><i></i><i></i></span>PBL<span>/</span>Request Studio</a><div class="header-right"><span>Hệ điều hành &amp; Mạng máy tính</span><span class="badge"><i class="dot"></i><span id="mode">Demo HTTP</span></span></div></header>
-          <main>
-            <section class="intro"><div><div class="eyebrow">@@NAME@@ / BACKEND @@NUMBER@@</div><h1>Mỗi thao tác.<br><em>Một công việc khác nhau.</em></h1><p>Xem sản phẩm, tải một tệp hay đặt đơn thử.<br>Gửi request và theo dõi server nào thực sự xử lý.</p></div><div class="page-origin muted">Trang này được trả bởi <strong>B@@NUMBER@@ · :@@PORT@@</strong><br><span id="origin"></span><a id="proxy-link" hidden>Chuyển sang Proxy ↗</a></div></section>
-            <div class="workspace">
-              <section class="panel" aria-labelledby="request-title">
-                <div class="section-top"><h2 id="request-title">Bạn muốn làm gì?</h2><span class="step">01 / GỬI REQUEST</span></div>
-                <div class="types" aria-label="Loại tác vụ">
-                  <button class="type" data-kind="products" aria-pressed="true"><span class="type-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></span><strong>Xem sản phẩm</strong><small>Đọc dữ liệu nhỏ</small></button>
-                  <button class="type" data-kind="download" aria-pressed="false"><span class="type-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 16v4h16v-4"/></svg></span><strong>Tải tệp</strong><small>Truyền nhiều dữ liệu</small></button>
-                  <button class="type" data-kind="orders" aria-pressed="false"><span class="type-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12l1 14H5L6 7Zm3 0V5a3 3 0 0 1 6 0v2M9 13l2 2 4-4"/></svg></span><strong>Đặt đơn thử</strong><small>Gửi dữ liệu bằng POST</small></button>
-                </div>
-                <div class="request-config">
-                  <div id="config-products"><p>Lấy danh sách 3 sản phẩm mẫu từ backend. Kết quả trả về dưới dạng JSON, giao diện hiển thị ở bên dưới.</p></div>
-                  <div id="config-download" hidden><p>Tải tệp nhị phân thật. Tăng kích thước để quan sát lượng dữ liệu và thời gian truyền.</p><label class="field">Kích thước tệp<select id="file-size"><option value="64">64 KiB</option><option value="256" selected>256 KiB</option><option value="768">768 KiB</option></select></label></div>
-                  <div id="config-orders" hidden><p>Đặt thử <strong>Sổ tay PBL · 49.000 đ/cuốn</strong>. Backend kiểm tra dữ liệu và tạo mã đơn demo.</p><label class="field">Số lượng<input id="quantity" type="number" min="1" max="10" value="1" aria-label="Số lượng sổ tay"></label></div>
-                </div>
-                <div class="endpoint"><span class="method" id="method">GET</span><code id="endpoint">/products</code></div>
-                <div class="send-row"><button class="send" id="send">Gửi request <span aria-hidden="true">↗</span></button><span class="pending" id="pending" role="status">Sẵn sàng</span></div>
-                <p class="help" id="action-note">Chỉ gửi khi bạn bấm. Có thể gửi tiếp khi request trước còn chờ.</p>
-                <div class="stats"><div><small>ĐÃ HOÀN TẤT</small><strong id="finished">0</strong><p id="error-count">0 lỗi</p></div><div><small>THÀNH CÔNG</small><strong id="succeeded">0</strong><p>HTTP 2xx</p></div><div><small>ĐỘ TRỄ TB.</small><strong id="average">—</strong><p>Request thành công · ms</p></div></div>
-              </section>
-              <aside>
-                <section class="panel distribution" aria-labelledby="distribution-title"><div class="section-top"><h2 id="distribution-title">Request đi đâu?</h2><span>02 / ĐÍCH ĐẾN</span></div><div class="flow"><span class="client">Trình duyệt</span><span>→</span><span id="route-target">Proxy</span><span>→</span><span>Backend</span></div><p class="strategy" id="strategy">Strategy xuất hiện sau phản hồi từ Proxy.</p>
-                  <div class="server" data-server="9001" style="--server:#a9e4c7"><span class="server-icon">01</span><div><div class="server-name"><a data-port="9001">Aurora</a><small>:9001</small></div><div class="bar"><i></i></div></div><strong class="server-count">0</strong></div>
-                  <div class="server" data-server="9002" style="--server:#f6c596"><span class="server-icon">02</span><div><div class="server-name"><a data-port="9002">Ember</a><small>:9002</small></div><div class="bar"><i></i></div></div><strong class="server-count">0</strong></div>
-                  <div class="server" data-server="9003" style="--server:#c6b6f1"><span class="server-icon">03</span><div><div class="server-name"><a data-port="9003">Orbit</a><small>:9003</small></div><div class="bar"><i></i></div></div><strong class="server-count">0</strong></div>
-                  <p class="help">Phản hồi xác định được backend trong lần mở trang này. Không bao gồm lượt tải giao diện.</p><p class="help" id="backend-links-note"></p>
-                </section>
-                <section class="panel result-panel" aria-labelledby="result-title"><div class="section-top"><h2 id="result-title">Kết quả nhận được</h2><span class="result-badge" id="result-meta">03 / PHẢN HỒI</span></div><div class="result-content" id="result" aria-live="polite"><p class="placeholder">Gửi tác vụ đầu tiên để xem dữ liệu thật từ backend.</p></div></section>
-              </aside>
-            </div>
-            <section class="panel log" aria-labelledby="log-title"><div class="section-top"><h2 id="log-title">Nhật ký request</h2><span>20 request gần nhất · riêng trang này</span></div><div class="table-wrap"><table><thead><tr><th scope="col">#</th><th scope="col">Tác vụ</th><th scope="col">Backend</th><th scope="col">Thời gian</th><th scope="col">Dữ liệu về</th><th scope="col">Kết quả</th></tr></thead><tbody id="log"><tr><td colspan="6" class="empty">Chưa gửi tác vụ nào.</td></tr></tbody></table></div><p class="log-note">Thời gian đo tại trình duyệt, gồm chờ và nhận hết response. “Đang chờ” là request của tab, không phải tổng tải backend. Đây là demo tương tác, không thay thế benchmark.</p></section>
-            <details><summary>Thông tin kỹ thuật của trang này</summary><div class="technical"><span>Backend: <b>127.0.0.1:@@PORT@@</b> (nội bộ máy chủ)</span><span>PID: <b>@@PID@@</b></span><span>Capacity: <b>@@CAPACITY@@</b></span><span>Đang xử lý / chờ: <b>@@ACTIVE@@ / @@QUEUED@@</b></span><span>Delay: <b>@@DELAY@@ ms</b></span><span>Heap: <b>@@HEAP@@ MiB</b></span><span>Snapshot: <time datetime="@@TIME@@">@@TIME@@</time></span></div></details>
-          </main><footer><span>PBL4 / Reverse Proxy &amp; Load Balancing</span><span>Đơn hàng mô phỏng, không thanh toán hoặc lưu bền · Tệp demo tối đa 768 KiB</span></footer>
-          <noscript><p class="noscript">Bật JavaScript để gửi tác vụ. Trang này vẫn là phản hồi thật từ backend @@PORT@@.</p></noscript>
+        <header><a href="/demo" class="brand"><span class="mark"><svg aria-hidden="true"><use href="#icon-proxy"/></svg></span>PBL <span class="muted">/</span> Request Studio <small>Reverse Proxy Demo</small></a><div class="header-meta"><span id="host"></span><span id="mode" class="badge mode"></span><span class="header-observation" id="header-backend">@@NAME@@</span><span class="header-observation" id="header-strategy">—</span><button class="button" id="theme" aria-pressed="false">Giao diện tối</button></div></header>
+        <main id="main">
+        <section class="intro"><div><div class="eyebrow">PBL4 / Network observability</div><h1>Theo dấu từng request.</h1><p>Gửi một tác vụ, quan sát đường đi và xác nhận backend thực sự xử lý.</p><div class="badges"><span class="badge">Trang: @@NAME@@ · :@@PORT@@</span><span class="badge">PID @@PID@@</span><span class="badge">Capacity @@CAPACITY@@</span><span class="badge">Delay @@DELAY@@ ms</span><span class="badge" id="overview-strategy">Strategy —</span></div></div><div class="origin"><small>PHẢN HỒI TRANG TỪ</small><strong>Backend @@NUMBER@@ / @@NAME@@</strong><a id="proxy-link" class="button" hidden>Đi qua Proxy ↗</a></div></section>
+        <section class="metrics" aria-label="Thống kê request trong lần mở trang này"><div class="metric"><small>Completed</small><strong id="finished">0</strong></div><div class="metric"><small>Success · HTTP 2xx</small><strong id="succeeded">0</strong></div><div class="metric"><small>Errors</small><strong id="error-count">0</strong></div><div class="metric"><small>Average latency · ms</small><strong id="average">—</strong></div><div class="metric"><small>Last status</small><strong class="word" id="last-status">—</strong></div><div class="metric"><small>Selected backend</small><strong class="word" id="selected-backend">@@NAME@@</strong></div><div class="metric"><small>Connection mode</small><strong class="word" id="metric-mode">—</strong></div></section>
+        <div class="workspace">
+        <section class="panel" aria-labelledby="request-title"><div class="section-top"><h2 id="request-title">Request Studio</h2><span class="step">01 / GỬI REQUEST</span></div><p class="muted">Chọn công việc để quan sát cách định tuyến.</p>
+        <div class="types" role="group" aria-label="Request thử tải">
+        <button class="type" data-kind="work" aria-pressed="true"><svg aria-hidden="true"><use href="#icon-work"/></svg><strong>Light / Work</strong><code>/work</code><small>Tác vụ nhẹ · quan sát phân phối request.</small></button>
+        <button class="type" data-kind="slow" aria-pressed="false"><svg aria-hidden="true"><use href="#icon-slow"/></svg><strong>Slow</strong><code>/slow</code><small>Chờ 2 giây · quan sát độ trễ phản hồi.</small></button>
+        <button class="type" data-kind="compute" aria-pressed="false"><svg aria-hidden="true"><use href="#icon-cpu"/></svg><strong>CPU / Compute</strong><code>/compute</code><small>Tính toán CPU · thử công việc nặng.</small></button>
         </div>
+        <details class="more"><summary>Tác vụ ứng dụng <span class="muted">· 3 lựa chọn</span></summary><div class="types" role="group" aria-label="Tác vụ ứng dụng">
+        <button class="type" data-kind="products" aria-pressed="false"><svg aria-hidden="true"><use href="#icon-server"/></svg><strong>Xem sản phẩm</strong><code>/products</code><small>GET JSON · đọc danh sách sản phẩm.</small></button>
+        <button class="type" data-kind="download" aria-pressed="false"><svg aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 16v4h16v-4"/></svg><strong>Tải tệp</strong><code>/download</code><small>Tệp nhị phân · quan sát truyền dữ liệu.</small></button>
+        <button class="type" data-kind="orders" aria-pressed="false"><svg aria-hidden="true"><path d="M6 7h12l1 14H5L6 7Zm3 0V5a3 3 0 0 1 6 0v2M9 13l2 2 4-4"/></svg><strong>Đặt đơn thử</strong><code>/orders</code><small>POST form · kiểm tra gửi dữ liệu.</small></button>
+        </div></details>
+        <div class="request-config"><p id="config-description"></p><label class="field" id="config-download" hidden>Kích thước tệp<select id="file-size"><option value="64">64 KiB</option><option value="256" selected>256 KiB</option><option value="768">768 KiB</option></select></label><label class="field" id="config-orders" hidden>Số lượng sổ tay<input id="quantity" type="number" min="1" max="10" step="1" required value="1"></label></div>
+        <div class="endpoint"><span class="method" id="method">GET</span><code id="endpoint">/work?cost=1</code></div><div class="send-row"><button class="send" id="send"><svg aria-hidden="true"><use href="#icon-send"/></svg><span id="send-label">Gửi request</span></button><span class="help" id="action-note">Chỉ gửi khi bạn bấm. Không tự retry hoặc polling.</span><span class="pending" id="pending" role="status" aria-live="polite">Sẵn sàng · một request mỗi lần</span></div>
+        <div class="decision"><h3>Giải thích định tuyến</h3><div class="decision-grid"><div><small>Chế độ</small><strong id="decision-mode">—</strong></div><div><small>Strategy từ response</small><strong id="decision-strategy">—</strong></div><div><small>Backend gần nhất</small><strong id="decision-backend">@@NAME@@ · phản hồi trang</strong></div><div><small>Request gần nhất</small><strong id="decision-type">Tải trang /demo</strong></div><div><small>Endpoint gần nhất</small><strong id="decision-endpoint">—</strong></div></div><p class="help" id="decision-note"></p></div>
+        </section>
+        <div class="stack"><section class="panel routing" aria-labelledby="routing-title"><div class="section-top"><h2 id="routing-title">Request đi đâu?</h2><span class="step">02 / ĐƯỜNG ĐI</span></div>
+        <div class="flow"><div class="node"><svg aria-hidden="true"><use href="#icon-client"/></svg><strong>Client</strong><small>Trình duyệt của bạn</small></div><span class="connector" aria-hidden="true">→</span><div class="node" id="proxy-node"><svg aria-hidden="true"><use href="#icon-proxy"/></svg><strong>Reverse Proxy</strong><small id="proxy-host"></small></div><span class="connector" id="proxy-connector" aria-hidden="true">→</span><div class="node selected-node" id="backend-node"><svg aria-hidden="true"><use href="#icon-server"/></svg><strong id="flow-backend">@@NAME@@</strong><small id="flow-port">Backend :@@PORT@@</small><span class="badge" id="flow-badge">Selected · trang</span></div></div>
+        <p class="route-note" id="strategy">Strategy sẽ xuất hiện khi có response từ proxy.</p>
+        <div class="servers" id="servers"></div><p class="help">Telemetry là snapshot của backend trả trang, không phải trạng thái trực tiếp. <time datetime="@@TIME@@" id="snapshot-time">@@TIME@@</time></p><p class="help" id="backend-links-note"></p>
+        </section>
+        <section class="panel result-panel" id="result-panel" aria-labelledby="result-title"><div class="section-top"><h2 id="result-title">Kết quả phản hồi</h2><span id="result-meta" class="badge">03 / RESPONSE</span></div><div id="result" class="result-content" aria-live="polite" aria-atomic="true"><div class="placeholder"><svg aria-hidden="true"><use href="#icon-send"/></svg><p>Chưa có request nào.</p><small>Chọn tác vụ và gửi để xem response thật.</small></div></div><button id="copy" class="button" hidden>Copy response</button><span id="copy-status" class="help" role="status"></span></section></div>
+        </div>
+        <section class="panel log" aria-labelledby="log-title"><div class="section-top"><h2 id="log-title">Nhật ký request</h2><span class="help" id="history-note">6 request gần nhất · lưu trong tab/origin</span></div><div class="table-wrap" role="region" aria-label="Lịch sử request, có thể cuộn ngang" tabindex="0"><table><thead><tr><th scope="col">Kết quả</th><th scope="col">Tác vụ / thời điểm</th><th scope="col">Backend</th><th scope="col">Mode / strategy</th><th scope="col">Latency</th><th scope="col">Dữ liệu / lỗi</th></tr></thead><tbody id="log"></tbody></table></div><p class="help log-note">Metrics phía trên tính trong lần mở trang này. Latency gồm thời gian chờ và nhận hết response; trung bình chỉ tính request thành công. Lịch sử giữ tối đa 6 request hoàn tất, không gồm lượt tải trang.</p></section>
+        <details class="technical"><summary>Thông tin snapshot của trang</summary><p class="help">Backend @@NUMBER@@ · @@NAME@@ · port @@PORT@@ · PID @@PID@@ · Capacity @@CAPACITY@@ · Active @@ACTIVE@@ · Queued @@QUEUED@@ · Delay @@DELAY@@ ms · Request count @@REQUEST@@ · Heap @@HEAP@@ MiB. Snapshot lúc @@TIME@@. Các giá trị không tự cập nhật.</p></details>
+        </main><footer><span>PBL4 / Reverse Proxy &amp; Load Balancing</span><span>Không polling · Không tài nguyên ngoài · Đơn thử không thanh toán, không lưu bền</span></footer><noscript><p class="noscript">Bật JavaScript để gửi request. Trang được trả bởi @@NAME@@, port @@PORT@@.</p></noscript></div>
         <script>
         (() => {
+          'use strict';
           const $ = id => document.getElementById(id);
-          const via = document.body.dataset.viaProxy === 'true';
-          const local = ['127.0.0.1', 'localhost', '[::1]'].includes(location.hostname);
-          $('mode').textContent = via ? 'Qua Reverse Proxy' : 'Backend trực tiếp';
-          $('origin').textContent = location.host + '/demo';
-          $('route-target').textContent = via ? 'Proxy :' + (location.port || '80') : 'Trực tiếp';
-          if (!via) {
-            const url = new URL('/demo', location.href); url.port = '8080';
-            $('proxy-link').href = url.href; $('proxy-link').hidden = false;
-            $('strategy').textContent = 'Truy cập trực tiếp · không qua cân bằng tải';
-          }
-          document.querySelectorAll('[data-port]').forEach(link => {
-            if (local) { const url = new URL('/demo', location.href); url.port = link.dataset.port; link.href = url.href; }
-          });
-          $('backend-links-note').textContent = local ? 'Bấm tên server để mở trực tiếp trên máy chủ.' : 'Backend nội bộ; máy khách chỉ truy cập qua Proxy.';
-          let kind = 'products', sequence = 0, pending = 0, finished = 0, succeeded = 0, totalMs = 0, objectUrl = null;
-          const counts = {9001:0,9002:0,9003:0}; const rows = [];
-          const titles = {products:'Xem sản phẩm',download:'Tải tệp',orders:'Đặt đơn thử'};
-          function settings() {
-            return {path: kind === 'download' ? '/download?sizeKiB=' + $('file-size').value : '/' + kind,
-              method:kind === 'orders' ? 'POST' : 'GET'};
-          }
-          function configure() {
-            document.querySelectorAll('[data-kind]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.kind === kind)));
-            Object.keys(titles).forEach(key => $('config-' + key).hidden = key !== kind);
-            const config = settings(); $('method').textContent = config.method; $('endpoint').textContent = config.path;
-            $('action-note').textContent = kind === 'download' ? 'Tệp demo được nhận hết vào bộ nhớ. Chưa hỗ trợ tải file lớn bằng streaming.' : kind === 'orders' ? 'Đơn thử, không lưu bền. Mỗi lần bấm tạo một đơn mới; không tự retry.' : 'Chỉ gửi khi bạn bấm. Có thể gửi tiếp khi request trước còn chờ.';
-          }
-          document.querySelectorAll('[data-kind]').forEach(button => button.addEventListener('click', () => {kind = button.dataset.kind; configure();}));
-          $('file-size').addEventListener('change', configure);
-          function cell(row, text) { const td = document.createElement('td'); td.textContent = text; row.appendChild(td); return td; }
+          const via = document.body.dataset.viaProxy === 'true', pagePort = document.body.dataset.backend;
+          const local = ['127.0.0.1','localhost','[::1]'].includes(location.hostname);
+          const mode = via ? 'Through Proxy' : 'Direct Backend';
+          const names = {'9001':'Aurora','9002':'Ember','9003':'Orbit'};
+          const colors = {'9001':'var(--aurora)','9002':'var(--ember)','9003':'var(--orbit)'};
+          const historyKey = 'pbl-request-studio-history-v1';
+          let kind = 'work', pending = false, finished = 0, succeeded = 0, totalMs = 0, objectUrl = null, copyText = '', rows = [];
+          const counts = {'9001':0,'9002':0,'9003':0};
+          const titles = {work:'Light / Work',slow:'Slow',compute:'CPU / Compute',products:'Xem sản phẩm',download:'Tải tệp',orders:'Đặt đơn thử'};
+          const descriptions = {work:'GET nhẹ, cost = 1. Thời gian xử lý phụ thuộc delay cấu hình của backend.',slow:'Backend chờ 2 giây. Theo dõi trạng thái đang gửi và độ trễ thực tế.',compute:'Backend tính CPU với cost = 8. Đây là công việc thật, không phải số CPU giả lập.',products:'Lấy danh sách 3 sản phẩm mẫu dưới dạng JSON.',download:'Nhận đủ tệp nhị phân vào bộ nhớ trước khi lưu, tối đa 768 KiB.',orders:'Đặt thử Sổ tay PBL · 49.000 đ/cuốn. Mỗi lần gửi tạo một đơn demo mới.'};
+          function element(tag, text, className) { const node = document.createElement(tag); if (text != null) node.textContent = text; if (className) node.className = className; return node; }
+          function backendName(port) { return Object.hasOwn(names, port) ? names[port] : port ? 'Backend :' + port : '—'; }
           function bytesText(n) { return n < 1024 ? n + ' B' : (n / 1024).toFixed(1) + ' KiB'; }
-          function update() {
-            $('pending').textContent = pending ? pending + ' đang chờ / tối đa 6' : 'Sẵn sàng'; $('send').disabled = pending >= 6;
-            $('finished').textContent = finished; $('succeeded').textContent = succeeded;
-            $('error-count').textContent = (finished - succeeded) + ' lỗi';
-            $('average').textContent = succeeded ? (totalMs / succeeded).toFixed(1) : '—';
-            const known = Object.values(counts).reduce((a,b) => a+b, 0);
-            document.querySelectorAll('[data-server]').forEach(server => {
-              const count = counts[server.dataset.server]; server.querySelector('.server-count').textContent = count;
-              server.querySelector('.bar i').style.width = (known ? 100 * count / known : 0) + '%';
-            });
+          function storageNotice() { $('history-note').textContent = '6 request gần nhất · không thể lưu sessionStorage'; }
+          const shortText = (value, limit) => typeof value === 'string' && value.length <= limit;
+          const validPort = value => typeof value === 'string' && String(Number(value)) === value && Number.isInteger(Number(value)) && Number(value) > 0 && Number(value) <= 65535;
+          function validHistory(item) {
+            return item && Object.hasOwn(titles,item.kind)
+              && shortText(item.time,40) && Number.isFinite(Date.parse(item.time))
+              && Number.isFinite(item.ms) && item.ms >= 0 && typeof item.ok === 'boolean'
+              && shortText(item.path,100) && item.path.startsWith('/' + item.kind)
+              && item.method === (item.kind === 'orders' ? 'POST' : 'GET')
+              && ['Through Proxy','Direct Backend'].includes(item.mode)
+              && (item.port === null || validPort(item.port))
+              && (item.strategy === null || shortText(item.strategy,100))
+              && (item.status == null || Number.isInteger(item.status) && item.status >= 100 && item.status <= 599)
+              && (!item.ok || item.status >= 200 && item.status < 300)
+              && (item.bytes == null || Number.isSafeInteger(item.bytes) && item.bytes >= 0)
+              && (item.message == null || shortText(item.message,500));
+          }
+          try { const saved = JSON.parse(sessionStorage.getItem(historyKey) || '[]'); if (Array.isArray(saved)) rows = saved.filter(validHistory).slice(0,6); } catch (_) { storageNotice(); }
+          let dark = matchMedia('(prefers-color-scheme: dark)').matches;
+          try { const saved = sessionStorage.getItem('pbl-theme'); if (saved === 'dark' || saved === 'light') dark = saved === 'dark'; } catch (_) { }
+          function setTheme() { document.documentElement.dataset.theme = dark ? 'dark' : 'light'; $('theme').setAttribute('aria-pressed',String(dark)); $('theme').textContent = dark ? 'Giao diện sáng' : 'Giao diện tối'; }
+          setTheme(); $('theme').addEventListener('click', () => { dark = !dark; setTheme(); try { sessionStorage.setItem('pbl-theme',dark ? 'dark' : 'light'); } catch (_) { } });
+          $('host').textContent = location.host; $('mode').textContent = mode; $('metric-mode').textContent = via ? 'Proxy' : 'Direct'; $('decision-mode').textContent = mode;
+          $('decision-endpoint').textContent = location.origin + '/demo'; $('proxy-host').textContent = location.host;
+          $('proxy-node').hidden = !via; $('proxy-connector').hidden = !via;
+          $('decision-note').textContent = via ? 'Proxy không expose score chi tiết trong response này.' : 'Request đi thẳng tới backend trên URL, không qua cân bằng tải.';
+          $('snapshot-time').textContent = new Date('@@TIME@@').toLocaleString('vi-VN');
+          if (!via) { const url = new URL('/demo',location.href); url.port = '8080'; $('proxy-link').href = url.href; $('proxy-link').hidden = false; }
+          $('backend-links-note').textContent = local ? 'Bấm tên backend để mở trực tiếp trên máy chủ.' : 'Backend nội bộ máy chủ; máy khách truy cập qua Proxy.';
+          const snapshot = [['PID','@@PID@@'],['Capacity','@@CAPACITY@@'],['Active / queued','@@ACTIVE@@ / @@QUEUED@@'],['Delay','@@DELAY@@ ms'],['Request count','@@REQUEST@@'],['Heap','@@HEAP@@ MiB']];
+          const ports = Object.keys(names); if (!ports.includes(pagePort)) { ports.push(pagePort); names[pagePort] = '@@NAME@@'; colors[pagePort] = 'var(--accent)'; counts[pagePort] = 0; }
+          ports.forEach((port,index) => {
+            const card = element('article',null,'server'); card.dataset.server = port; card.style.setProperty('--server',colors[port]);
+            card.append(element('div','BACKEND ' + (index + 1).toString().padStart(2,'0'),'server-number'));
+            const title = element('div',null,'server-name'), link = element('a',names[port]);
+            if (local) { const url = new URL('/demo',location.href); url.port = port; link.href = url.href; }
+            title.append(link,element('small',' :' + port)); card.append(title,element('span','Not observed','badge'));
+            const dl = element('dl'); snapshot.forEach(([key,value]) => { const row = element('div'); row.append(element('dt',key),element('dd',port === pagePort ? value : '—')); dl.append(row); });
+            card.append(dl,element('p','0 response trong lần mở trang','observed')); $('servers').append(card);
+          });
+          function routing(port, strategy, initial = false) {
+            const name = backendName(port), color = colors[port] || 'var(--accent)';
+            $('selected-backend').textContent = name; $('header-backend').textContent = name; $('flow-backend').textContent = name === '—' ? 'Chưa xác định' : name;
+            $('flow-port').textContent = port ? 'Backend :' + port : 'Không có header backend'; $('flow-badge').textContent = port ? 'Selected' + (initial ? ' · trang' : '') : 'Unknown';
+            $('backend-node').style.setProperty('--node-color',color); $('decision-backend').textContent = name + (initial ? ' · phản hồi trang' : '');
+            const strategyText = via ? strategy || '—' : 'Không áp dụng';
+            $('header-strategy').textContent = via ? strategyText : ''; $('overview-strategy').textContent = 'Strategy · ' + strategyText; $('decision-strategy').textContent = strategyText;
+            $('strategy').textContent = via ? strategy ? 'Strategy · ' + strategy + ' · từ response header' : 'Chưa có strategy trong response. Gửi request để quan sát header thật.' : 'Direct Backend · Client kết nối trực tiếp, không đi qua Proxy.';
+            document.querySelectorAll('[data-server]').forEach(card => { const p = card.dataset.server; card.dataset.selected = String(p === port); card.querySelector('.badge').textContent = p === port ? 'Selected' : p === pagePort ? 'Page snapshot' : counts[p] ? 'Observed' : 'Not observed'; card.querySelector('.observed').textContent = counts[p] + ' response trong lần mở trang'; });
+            if (!initial) { $('backend-node').classList.remove('pulse'); void $('backend-node').offsetWidth; $('backend-node').classList.add('pulse'); }
+          }
+          routing(pagePort,null,true);
+          function settings() { return {path:kind === 'work' ? '/work?cost=1' : kind === 'compute' ? '/compute?cost=8' : kind === 'download' ? '/download?sizeKiB=' + $('file-size').value : '/' + kind,method:kind === 'orders' ? 'POST' : 'GET'}; }
+          function configure() {
+            document.querySelectorAll('[data-kind]').forEach(button => button.setAttribute('aria-pressed',String(button.dataset.kind === kind)));
+            $('config-description').textContent = descriptions[kind]; $('config-download').hidden = kind !== 'download'; $('config-orders').hidden = kind !== 'orders';
+            const config = settings(); $('method').textContent = config.method; $('endpoint').textContent = config.path;
+            $('action-note').textContent = kind === 'orders' ? 'Đơn thử không lưu bền. Không tự gửi lại khi lỗi hoặc timeout.' : 'Chỉ gửi khi bạn bấm. Không tự retry hoặc polling.';
+          }
+          document.querySelectorAll('[data-kind]').forEach(button => button.addEventListener('click',() => {kind = button.dataset.kind; configure();})); $('file-size').addEventListener('change',configure); configure();
+          function statusText(item) { return item.status ? 'HTTP ' + item.status : 'Lỗi mạng'; }
+          function renderHistory() {
             $('log').replaceChildren();
+            if (!rows.length) { const tr = element('tr'), td = element('td','Chưa có request. Bắt đầu từ Request Studio phía trên.','empty'); td.colSpan = 6; tr.append(td); $('log').append(tr); }
             rows.forEach(item => {
-              const row = document.createElement('tr'); row.dataset.request = item.id;
-              cell(row, String(item.id).padStart(2,'0')); cell(row, item.label); cell(row, item.backend || '—');
-              cell(row, item.ms == null ? '—' : item.ms.toFixed(1) + ' ms'); cell(row, item.bytes == null ? '—' : bytesText(item.bytes));
-              const badge = document.createElement('span'); badge.className = 'status' + (item.pending ? ' waiting' : item.ok ? '' : ' error');
-              badge.textContent = item.pending ? 'Đang chờ' : item.status ? 'HTTP ' + item.status : 'Lỗi mạng';
-              badge.title = item.message || ''; cell(row, '').appendChild(badge); $('log').appendChild(row);
+              const tr = element('tr'); const cells = Array.from({length:6},() => element('td')); cells[0].append(element('span',(item.ok ? '✓ ' : '✕ ') + statusText(item),'status' + (item.ok ? '' : ' error')));
+              cells[1].append(element('div',titles[item.kind]),element('small',new Date(item.time).toLocaleString('vi-VN')),element('small',item.path));
+              cells[2].textContent = backendName(item.port); cells[3].append(element('div',item.mode),element('small',item.mode === 'Direct Backend' ? 'Không áp dụng' : item.strategy || '—'));
+              cells[4].textContent = item.ms.toFixed(1) + ' ms'; cells[5].textContent = item.bytes == null ? '—' : bytesText(item.bytes); if (item.message) cells[5].append(element('small',item.message,'error-text'));
+              tr.append(...cells); $('log').append(tr);
             });
           }
-          function paragraph(text, className) { const p = document.createElement('p'); p.textContent = text; if (className) p.className = className; $('result').appendChild(p); }
-          function renderResult(item, data, blob, fileKiB) {
-            if (objectUrl) { URL.revokeObjectURL(objectUrl); objectUrl = null; }
-            $('result').replaceChildren(); $('result-meta').textContent = '#' + item.id + ' · ' + (item.backend || 'Không rõ backend');
-            if (!item.ok) { paragraph(item.message || 'Request không thành công.', 'error-text'); return; }
-            if (item.kind === 'products') {
-              const list = document.createElement('ul'); list.className = 'product-list';
-              data.products.forEach(product => { const li = document.createElement('li'); const name = document.createElement('span'); name.textContent = product.name; const price = document.createElement('strong'); price.textContent = product.price.toLocaleString('vi-VN') + ' đ'; li.append(name, price); list.appendChild(li); });
-              $('result').appendChild(list);
-            } else if (item.kind === 'orders') {
-              paragraph('Đã tạo đơn thử · ' + data.quantity + ' × ' + data.product);
-              const code = document.createElement('code'); code.textContent = data.orderId; $('result').appendChild(code);
-              paragraph('Tổng mô phỏng: ' + data.total.toLocaleString('vi-VN') + ' đ'); paragraph('Không thanh toán, không lưu bền.', 'help');
-            } else {
-              paragraph('Đã nhận đủ ' + bytesText(blob.size) + ' từ backend.');
-              objectUrl = URL.createObjectURL(blob); const save = document.createElement('a'); save.className = 'save-file'; save.href = objectUrl; save.download = 'pbl4-demo-' + fileKiB + 'KiB.bin'; save.textContent = 'Lưu tệp về máy ↓'; $('result').appendChild(save);
-              paragraph('Lưu từ dữ liệu đã nhận, không gửi thêm HTTP request.', 'help');
-            }
+          renderHistory();
+          function update() {
+            $('send').disabled = pending; $('send-label').textContent = pending ? 'Đang gửi request…' : 'Gửi request'; $('send').setAttribute('aria-busy',String(pending));
+            $('pending').textContent = pending ? 'Đang chờ response · không gửi lặp' : 'Sẵn sàng · một request mỗi lần';
+            $('finished').textContent = finished; $('succeeded').textContent = succeeded; $('error-count').textContent = finished - succeeded; $('average').textContent = succeeded ? (totalMs / succeeded).toFixed(1) : '—';
           }
-          $('send').addEventListener('click', async () => {
-            if (pending >= 6) return;
+          function releaseDownload() { if (objectUrl) { URL.revokeObjectURL(objectUrl); objectUrl = null; } }
+          // Keep the URL when the browser caches this page for Back navigation.
+          window.addEventListener('pagehide', event => { if (!event.persisted) releaseDownload(); });
+          function renderResult(item,data,blob,fileKiB,raw) {
+            releaseDownload();
+            $('result').replaceChildren(); $('copy-status').textContent = ''; $('copy').hidden = true;
+            $('result-panel').dataset.state = item.ok ? 'success' : 'error'; $('result-meta').className = 'status' + (item.ok ? '' : ' error');
+            $('result-meta').textContent = (item.ok ? '✓ Thành công · ' : '✕ ') + statusText(item);
+            const meta = element('div',null,'result-details'); meta.append(element('span',backendName(item.port)),element('span',item.mode),element('span',via ? item.strategy || 'Strategy —' : 'Strategy · Không áp dụng'),element('span',item.ms.toFixed(1) + ' ms'),element('code',item.method + ' ' + item.path)); $('result').append(meta);
+            if (!item.ok) { $('result').append(element('h3',item.status === 503 ? 'Backend / dịch vụ không sẵn sàng' : item.status ? item.status >= 400 ? 'HTTP error' : 'Response không hợp lệ' : 'Không nhận được response'),element('p',item.message,'error-text')); }
+            else if (item.kind === 'products') { const list = element('ul',null,'product-list'); data.products.forEach(product => {const li = element('li'); li.append(element('span',product.name),element('strong',Number(product.price).toLocaleString('vi-VN') + ' đ')); list.append(li);}); $('result').append(list); }
+            else if (item.kind === 'orders') { $('result').append(element('p','Đã tạo đơn thử · ' + data.quantity + ' × ' + data.product),element('code',data.orderId),element('p','Tổng mô phỏng: ' + Number(data.total).toLocaleString('vi-VN') + ' đ'),element('p','Không thanh toán, không lưu bền.','help')); }
+            else if (item.kind === 'download') { $('result').append(element('p','Đã nhận đủ ' + bytesText(blob.size) + ' từ backend.')); objectUrl = URL.createObjectURL(blob); const save = element('a','Lưu tệp về máy ↓','save-file'); save.href = objectUrl; save.download = 'pbl4-demo-' + fileKiB + 'KiB.bin'; $('result').append(save,element('p','Lưu từ dữ liệu đã nhận, không gửi thêm HTTP request.','help')); }
+            copyText = raw || item.message || ''; if (raw) $('result').append(element('pre',raw));
+            $('copy').hidden = !copyText || !navigator.clipboard?.writeText;
+          }
+          $('copy').addEventListener('click',async () => { try { await navigator.clipboard.writeText(copyText); $('copy-status').textContent = ' Đã sao chép.'; } catch (_) { $('copy-status').textContent = ' Không thể sao chép; hãy chọn văn bản response.'; } });
+          $('send').addEventListener('click',async () => {
+            if (pending) return;
             if (kind === 'orders' && (!$('quantity').reportValidity() || !Number.isInteger(Number($('quantity').value)))) return;
-            const config = settings(), fileKiB = Number($('file-size').value);
-            const item = {id:++sequence,kind,label:titles[kind] + (kind === 'download' ? ' · ' + fileKiB + ' KiB' : ''),pending:true,ok:false};
-            rows.unshift(item); if (rows.length > 20) rows.pop(); pending++; update();
-            const controller = new AbortController(); const timeout = setTimeout(() => controller.abort(), 8000);
-            const start = performance.now(); let data = null, blob = null;
+            const config = settings(), fileKiB = Number($('file-size').value), quantity = $('quantity').value;
+            const item = {kind,path:config.path,method:config.method,time:new Date().toISOString(),mode,ok:false,port:null,strategy:null};
+            releaseDownload();
+            pending = true; update(); $('result-panel').dataset.state = 'waiting'; $('result-meta').className = 'status waiting'; $('result-meta').textContent = 'Đang gửi'; $('result').replaceChildren(element('p','Đang chờ ' + item.method + ' ' + item.path + '…','placeholder')); $('copy').hidden = true; $('copy-status').textContent = '';
+            const controller = new AbortController(), timeout = setTimeout(() => controller.abort(),8000), start = performance.now(); let data = null, blob = null, raw = '';
             try {
               const options = {method:config.method,cache:'no-store',signal:controller.signal};
-              if (item.kind === 'orders') { options.headers = {'Content-Type':'application/x-www-form-urlencoded'}; options.body = new URLSearchParams({productId:'notebook',quantity:$('quantity').value}).toString(); }
-              const response = await fetch(config.path, options);
-              item.status = response.status;
+              if (item.kind === 'orders') { options.headers = {'Content-Type':'application/x-www-form-urlencoded'}; options.body = new URLSearchParams({productId:'notebook',quantity}).toString(); }
+              const response = await fetch(config.path,options); item.status = response.status;
               const backend = response.headers.get('X-Proxy-Backend') || response.headers.get('X-Backend') || '';
-              const backendPort = backend.includes(':') ? backend.split(':').pop() : backend.replace('backend-', '');
-              if (Object.hasOwn(counts, backendPort)) { item.backend = 'B' + (Number(backendPort)-9000); counts[backendPort]++; }
-              const strategy = response.headers.get('X-Proxy-Strategy'); if (via && strategy) $('strategy').textContent = 'Strategy · ' + strategy;
+              const port = backend.includes(':') ? backend.split(':').pop() : backend.startsWith('backend-') ? backend.slice(8) : '';
+              if (validPort(port)) { item.port = port; if (Object.hasOwn(counts,port)) counts[port]++; }
+              item.strategy = via ? response.headers.get('X-Proxy-Strategy') : null;
               const buffer = await response.arrayBuffer(); item.ms = performance.now() - start; item.bytes = buffer.byteLength;
-              if (!response.ok) throw new Error('HTTP ' + response.status + ': ' + new TextDecoder().decode(buffer).slice(0,180));
-              if (item.kind === 'download') {
-                if (buffer.byteLength !== fileKiB * 1024 || !response.headers.get('Content-Type')?.includes('application/octet-stream')) throw new Error('Dữ liệu tệp không đúng kích thước hoặc định dạng.');
-                blob = new Blob([buffer], {type:'application/octet-stream'});
-              } else {
-                data = JSON.parse(new TextDecoder().decode(buffer));
-                if (item.kind === 'products' && !Array.isArray(data.products)) throw new Error('Response không chứa danh sách sản phẩm.');
-                if (item.kind === 'orders' && (!data.orderId || data.demo !== true)) throw new Error('Response không chứa đơn demo hợp lệ.');
+              if (item.kind !== 'download' || !response.ok) raw = new TextDecoder().decode(buffer);
+              if (!response.ok) throw new Error('HTTP ' + response.status + ': ' + raw.slice(0,180));
+              if (item.kind === 'download') { if (buffer.byteLength !== fileKiB * 1024 || !response.headers.get('Content-Type')?.includes('application/octet-stream')) throw new Error('Dữ liệu tệp không đúng kích thước hoặc định dạng.'); blob = new Blob([buffer],{type:'application/octet-stream'}); }
+              else {
+                data = JSON.parse(raw); raw = JSON.stringify(data,null,2);
+                if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('Response không chứa JSON object hợp lệ.');
+                if (item.kind === 'products' && (!Array.isArray(data.products) || !data.products.every(product => product && typeof product.name === 'string' && Number.isFinite(product.price) && product.price >= 0))) throw new Error('Response không chứa danh sách sản phẩm hợp lệ.');
+                if (item.kind === 'orders' && (typeof data.orderId !== 'string' || !data.orderId || data.demo !== true || typeof data.product !== 'string' || !Number.isInteger(data.quantity) || data.quantity < 1 || data.quantity > 10 || !Number.isFinite(data.total) || data.total < 0)) throw new Error('Response không chứa đơn demo hợp lệ.');
               }
               item.ok = true; succeeded++; totalMs += item.ms;
-            } catch (error) {
-              item.ms ??= performance.now() - start;
-              item.message = error.name === 'AbortError' ? 'Quá 8 giây chờ ở trình duyệt. Backend có thể vẫn xử lý; không tự gửi lại đơn.' : String(error.message);
-            } finally { clearTimeout(timeout); item.pending = false; pending--; finished++; update(); renderResult(item, data, blob, fileKiB); }
+            } catch (error) { item.ms ??= performance.now() - start; item.message = error.name === 'AbortError' ? 'Quá 8 giây chờ ở trình duyệt. Backend có thể vẫn xử lý; không tự gửi lại đơn.' : String(error.message); }
+            finally {
+              clearTimeout(timeout); pending = false; finished++; update(); $('last-status').textContent = statusText(item);
+              rows.unshift(item); rows = rows.slice(0,6); try { sessionStorage.setItem(historyKey,JSON.stringify(rows)); } catch (_) { storageNotice(); }
+              routing(item.port,item.strategy); $('decision-type').textContent = titles[item.kind]; $('decision-endpoint').textContent = item.method + ' ' + location.origin + item.path;
+              renderHistory(); renderResult(item,data,blob,fileKiB,raw);
+            }
           });
         })();
         </script></body></html>
         """;
 }
-

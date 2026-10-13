@@ -58,14 +58,18 @@ Sau khi `demo.ps1 start`, mở bốn tab:
 
 Trang có hình server SVG, port/PID thật, số lượt phản hồi của backend, active/queue, delay cấu hình và heap. Những số này là snapshot lúc request được xử lý, không phải giám sát liên tục. Backend tắt sau đó thì trang cũ không tự biết; tải lại để kiểm tra. `/demo` vẫn qua admission, worker và health như workload khác; `/work`, `/slow`, `/compute` vẫn giữ API JSON cũ.
 
-Nút **Gửi request tiếp** gọi lại `/demo` trên host/cổng hiện tại: đang ở 9001 thì tiếp tục tới B1; đang ở 8080 thì tiếp tục qua Proxy và được chọn backend theo strategy. Nút **Đi qua Proxy** chuyển từ backend trực tiếp sang cổng 8080 trên cùng host; nếu đã qua Proxy thì hai nút cùng gửi request mới qua Proxy. Các tab Aurora/Ember/Orbit mở **backend trực tiếp trên máy chủ** khi dùng localhost/127.0.0.1; từ máy khác, tab chỉ hiển thị danh tính, không có liên kết vì backend lắng nghe nội bộ. Lịch sử dưới trang lưu tối đa sáu response đã nhận trong tab/origin bằng sessionStorage, không sinh request nền. Số lượt là counter riêng của backend, có thể nhảy số nếu có client khác hoặc reset khi restart JVM.
+Trong **Request Studio**, chọn Light / Work (`/work?cost=1`), Slow (`/slow`) hoặc CPU / Compute (`/compute?cost=8`), rồi bấm **Gửi request**. Request dùng host/cổng hiện tại: ở 9001 thì tới B1, ở 8080 thì qua Proxy. Nút bị khóa trong lúc chờ để tránh gửi trùng; timeout trình duyệt 8 giây, không tự retry. Mục **Tác vụ ứng dụng** giữ các chức năng xem sản phẩm, tải tệp 64/256/768 KiB và đặt đơn thử bằng POST form. Tệp được nhận đầy đủ vào bộ nhớ rồi lưu tại máy; đơn demo không thanh toán, không lưu bền.
 
-Muốn thấy web đổi màu theo vòng:
+Sơ đồ hiển thị Client → Proxy → backend được chọn, hoặc Client → backend khi direct. Strategy lấy từ `X-Proxy-Strategy` của response sau khi gửi; trước đó hiển thị chưa biết. Highlight và kết quả cập nhật theo response gần nhất; không có header backend thì hiển thị Unknown. Chỉ backend trả trang có telemetry snapshot; các backend khác hiển thị `—`, không suy đoán health/CPU/score. Metrics đếm trong lần mở trang này, latency trung bình chỉ tính request thành công. Lịch sử lưu tối đa sáu request hoàn tất bằng sessionStorage theo tab/origin, giữ qua refresh; nếu storage bị chặn, giao diện vẫn hoạt động trong bộ nhớ.
+
+Nút **Đi qua Proxy** ở chế độ direct chuyển sang cổng 8080 trên cùng host. Tên Aurora/Ember/Orbit mở **backend trực tiếp trên máy chủ** khi dùng localhost/127.0.0.1; từ máy khác chỉ hiển thị danh tính, không tạo liên kết loopback. Theme sáng/tối lưu theo phiên; hỗ trợ bàn phím, reduced motion và màn hình từ 320px. Bảng lịch sử cuộn ngang trên màn hình nhỏ. Copy response chỉ hiện khi trình duyệt hỗ trợ clipboard; có thể chọn văn bản trực tiếp nếu bị từ chối quyền.
+
+Muốn thấy backend Selected đổi theo vòng:
 
 ```powershell
 .\scripts\demo.ps1 strategy -Strategy ROUND_ROBIN
-# Mở http://127.0.0.1:8080/demo rồi bấm Gửi request tiếp.
-# Giữ nguyên URL 8080, quan sát B1 -> B2 -> B3 và lịch sử trong tab.
+# Mở http://127.0.0.1:8080/demo rồi bấm Gửi request từng lần.
+# Giữ nguyên URL 8080, quan sát backend Selected và lịch sử trong tab.
 ```
 
 Không có ảnh/font/CSS ngoài: favicon cũng nhúng bằng data URI, cache tắt. Mỗi lần tải trang tạo một request ứng dụng; không có polling hoặc background fetch. SVG chỉ minh họa server; các số trên thẻ mới là dữ liệu đo thật. Đường đi trên trang lấy từ metadata forwarding và URL trình duyệt; có thể đối chiếu response header `X-Proxy-Backend` trong DevTools Network.
