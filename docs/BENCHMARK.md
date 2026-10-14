@@ -105,3 +105,36 @@ python scripts/benchmark.py --quick --requests 12 --warmup-requests 6 --rate 30 
 Mixed vẫn 60/10/30. Slow upload/disconnect được kiểm tra bằng Java socket regression, chưa thêm vào benchmark so sánh. Chưa đo RSS, GC pause, connection reuse hoặc confidence interval. Admission/routing vẫn được báo chung kèm error rate và success RPS.
 
 Ctrl+C/exception hủy job chưa chạy, đánh thức worker đang đợi lịch, chờ request đang chạy hết timeout, join sampler rồi dừng đúng các JVM đã tạo và đóng log. Lượt bị ngắt không có complete.json và bị verifier từ chối. Port động có cửa sổ bind race giữa chọn port và JVM bind; startup lỗi được báo và cluster cleanup, không âm thầm đổi workload.
+## Circuit breaker and rate-limit experiment (2026-10-14)
+
+The separate `scripts/benchmark_resilience.py` experiment compares protection
+enabled/disabled with the same request sequence. It does not change the workload,
+statistics or ranking in the existing algorithm benchmark.
+
+```powershell
+python scripts/benchmark_resilience.py --java "$env:JAVA_HOME/bin/java.exe" --output benchmarks/results/resilience-new --seed 2026 --repeats 2
+```
+
+Requires JDK 21 and a **new** output directory. Each run compiles a frozen source
+snapshot, records SHA-256 hashes of sources/classes/scripts/config, Java/Python/OS,
+seed and repeats, and starts isolated JVMs. The seed determines the order of the
+initial 503/429 faults. Every HTTP outcome (including failures) is written to
+`requests.csv` with latency, backend identity, Retry-After and body checksum.
+`snapshots.json` holds before/opened/after metrics. `validation.json` reports actual
+assertions and output checksums; a failed experiment exits nonzero. Process cleanup
+uses the existing Cluster context manager. Results remain in the ignored results
+directory for inspection.
+
+Circuit arm: two backend errors open the circuit; six work requests are refused
+without dispatch; after a one-second cooldown a recovery request succeeds. Disabled
+control sends all nine requests upstream. Rate arm: burst 3, rate 0.1/s; a burst of
+nine requests admits three and rejects six; disabled control admits nine. Each arm
+asserts dispatch counts, no in-flight leases at completion, and a closed final
+circuit. Unexpected timing (for example an extremely slow host allowing token
+refill during the burst) fails validation rather than silently adjusting results.
+
+This is a small **behavior/failure-isolation experiment**, not evidence of higher
+throughput or lower latency. The baseline benchmark inherits the configured circuit
+default; use identical circuit/rate settings for all strategies and inspect saved
+properties when comparing historical results. Pooling remains unimplemented, so
+there are no connection-reuse performance claims.

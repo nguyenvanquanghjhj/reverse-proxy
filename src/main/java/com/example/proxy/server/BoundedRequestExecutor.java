@@ -13,10 +13,12 @@ final class BoundedRequestExecutor implements Executor, AutoCloseable {
             Thread.ofPlatform().daemon().name("ingress-deadlines").factory());
     private final Semaphore slots;
     private final int timeoutMs;
+    private final int limit;
     private boolean accepting = true;
 
     BoundedRequestExecutor(int limit, int timeoutMs) {
         slots = new Semaphore(limit);
+        this.limit = limit;
         this.timeoutMs = timeoutMs;
         timers.setRemoveOnCancelPolicy(true);
     }
@@ -46,6 +48,8 @@ final class BoundedRequestExecutor implements Executor, AutoCloseable {
         } catch (RuntimeException failure) { slots.release(); throw failure; }
     }
     synchronized void stopAccepting() { accepting = false; }
+    int activeTasks() { return limit - slots.availablePermits(); }
+    boolean hasCapacity() { return slots.availablePermits() > 0; }
     @Override public void close() {
         stopAccepting();
         workers.shutdownNow();

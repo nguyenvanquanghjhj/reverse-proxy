@@ -26,12 +26,14 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
     private final ProxyConfig config;
     private final Dispatcher dispatcher;
     private final UpstreamTransport transport;
+    private final ClientRateLimiter rateLimiter;
     private final Semaphore admission;
     private final Semaphore managementAdmission = new Semaphore(8);
     private final ScheduledThreadPoolExecutor deadlines = new ScheduledThreadPoolExecutor(1,
             Thread.ofPlatform().daemon().name("client-deadlines").factory());
     public ProxyHandler(ProxyConfig config, Dispatcher dispatcher) {
         this.config = config;
+        this.rateLimiter = new ClientRateLimiter(config);
         this.dispatcher = dispatcher;
         this.transport = new UpstreamTransport(config);
         this.admission = new Semaphore(config.getMaxInflight());
@@ -106,7 +108,7 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
                 + ",\"requests_rejected\":" + rejected.sum() + ",\"upstream_timeouts\":" + timeouts.sum()
                 + ",\"requests_successful\":" + successful.sum()
                 + ",\"upstream_connection_errors\":" + connectionErrors.sum() + ",\"upstream_response_errors\":" + responseErrors.sum()
-                + ",\"upstream_errors\":" + upstreamErrors.sum() + ",\"in_flight\":" + owners.size();
+                + ",\"upstream_errors\":" + upstreamErrors.sum() + ",\"in_flight\":" + owners.size() + "," + rateLimiter.json();
     }
     public String prometheus() {
         return metric("requests_total", requests.sum(), "counter") + metric("requests_failed_total", failed.sum(), "counter")
@@ -114,7 +116,7 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
                 + metric("requests_successful_total", successful.sum(), "counter")
                 + metric("upstream_connection_errors_total", connectionErrors.sum(), "counter")
                 + metric("upstream_response_errors_total", responseErrors.sum(), "counter")
-                + metric("upstream_errors_total", upstreamErrors.sum(), "counter") + metric("in_flight", owners.size(), "gauge");
+                + metric("upstream_errors_total", upstreamErrors.sum(), "counter") + metric("in_flight", owners.size(), "gauge") + rateLimiter.prometheus();
     }
     private static String metric(String name, long value, String type) {
         return "# TYPE proxy_" + name + " " + type + "\nproxy_" + name + " " + value + "\n";
@@ -152,6 +154,12 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
             }
             if (!validRequestFraming(exchange)) return;
             if (!validRequestHeaders(exchange)) return;
+            var rate = rateLimiter.acquire(exchange.getRemoteAddress().getAddress().getHostAddress());
+            if (!rate.allowed()) {
+                exchange.getResponseHeaders().set("Retry-After", Long.toString(rate.retryAfterSeconds()));
+                sendFailure(exchange, 429, "Client request rate exceeded");
+                return;
+            }
             byte[] body;
             try { body = readBody(exchange.getRequestBody(), config.getMaxBodyBytes()); }
             catch (UpstreamTransport.BodyLimitException e) { sendFailure(exchange, 413, e.getMessage()); return; }
@@ -179,7 +187,7 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
                     lease.complete(elapsedMs(start), response.status() >= 500 || response.status() == 429, false);
                 } catch (UpstreamTransport.BodyLimitException | UpstreamTransport.HeaderLimitException e) {
                     upstreamErrors.increment(); responseErrors.increment();
-                    lease.complete(elapsedMs(start), true, false);
+                    lease.completePolicyRejection(elapsedMs(start));
                     sendFailure(exchange, 502, "Backend response exceeds proxy limits");
                     return;
                 } catch (SocketTimeoutException e) {
@@ -281,7 +289,7 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
         if (id == null) { id = requestId(exchange); exchange.getResponseHeaders().set("X-Request-Id", id); }
         String code = switch (status) {
             case 400 -> "BAD_REQUEST"; case 403 -> "FORBIDDEN"; case 404 -> "NOT_FOUND";
-            case 405 -> "METHOD_NOT_ALLOWED"; case 413 -> "BODY_TOO_LARGE"; case 431 -> "HEADERS_TOO_LARGE";
+            case 405 -> "METHOD_NOT_ALLOWED"; case 429 -> "RATE_LIMITED"; case 413 -> "BODY_TOO_LARGE"; case 431 -> "HEADERS_TOO_LARGE";
             case 501 -> "NOT_IMPLEMENTED"; case 502 -> "BAD_GATEWAY"; case 503 -> "UNAVAILABLE";
             case 504 -> "UPSTREAM_TIMEOUT"; default -> "REQUEST_FAILED";
         };

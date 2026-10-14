@@ -17,6 +17,7 @@ public final class Dispatcher {
     private final ReentrantLock lock = new ReentrantLock();
     private final Map<BackendServer, BackendMetrics> metrics = new LinkedHashMap<>();
     private final Map<BackendServer, EstimatedWork> work = new LinkedHashMap<>();
+    private final Map<BackendServer, CircuitBreaker> circuits = new LinkedHashMap<>();
     private long workRejected;
     private volatile boolean draining;
     public void stopAccepting() {
@@ -33,6 +34,7 @@ public final class Dispatcher {
         algorithm = LoadBalancerFactory.create(config.getLoadBalancerStrategy(), config.getExplorationInterval());
         config.getBackendServers().forEach(b -> {
             metrics.put(b, new BackendMetrics(b, config.getInitialLatencyMs()));
+            circuits.put(b, new CircuitBreaker(config));
             work.put(b, new EstimatedWork(config.getInitialLatencyMs()));
         });
     }
@@ -51,7 +53,7 @@ public final class Dispatcher {
             for (BackendMetrics value : metrics.values()) {
                 var snapshot = value.snapshot(now, config);
                 total += snapshot.inFlight();
-                if (!snapshot.eligible()) continue;
+                if (!snapshot.eligible() || !circuits.get(snapshot.backend()).eligible(now)) continue;
                 if (adaptive) {
                     var estimate = work.get(snapshot.backend());
                     estimate.generation(value.healthGeneration());
@@ -78,7 +80,7 @@ public final class Dispatcher {
             EstimatedWork.Reservation reservation = adaptive ? work.get(chosen.backend()).reserve(request, now,
                     forecasts.get(chosen.backend()), Math.max(1, (int) Math.floor(chosen.effectiveCapacity())), external(chosen)) : null;
             metrics.get(chosen.backend()).reserve(now);
-            return new Lease(chosen.backend(), reservation);
+            return new Lease(chosen.backend(), reservation, circuits.get(chosen.backend()).reserve(now));
         } finally { lock.unlock(); }
     }
     private static int external(BackendMetrics.Snapshot s) { return s.telemetryFresh() ? s.externalOutstanding() : 0; }
@@ -123,11 +125,16 @@ public final class Dispatcher {
         } finally { lock.unlock(); }
     }
     public boolean hasAvailableBackend() {
-        if (draining) return false;
-        var current = snapshots();
-        return current.stream().mapToLong(BackendMetrics.Snapshot::inFlight).sum() < config.getMaxInflight()
-                && current.stream().anyMatch(BackendMetrics.Snapshot::eligible);
+        lock.lock();
+        try {
+            if (draining) return false;
+            var current = snapshots();
+            long now = clock.getAsLong();
+            return current.stream().mapToLong(BackendMetrics.Snapshot::inFlight).sum() < config.getMaxInflight()
+                    && current.stream().anyMatch(s -> s.eligible() && circuits.get(s.backend()).eligible(now));
+        } finally { lock.unlock(); }
     }
+
     public String snapshotJson() {
         lock.lock();
         try {
@@ -161,20 +168,31 @@ public final class Dispatcher {
                     .append(",\"estimatedNextSlotMs\":").append(number(f.waitMs()))
                     .append(",\"completionBudgetMs\":").append(number(completionBudgetMs()));
             }
+            json.append(',').append(circuits.get(s.backend()).json(clock.getAsLong()));
             json.append('}');
         }
         return json.append("]}").toString();
         } finally { lock.unlock(); }
     }
     public String prometheus() {
+        lock.lock();
+        try {
         StringBuilder out = new StringBuilder("# TYPE proxy_backend_selection_total counter\n# TYPE proxy_backend_in_flight gauge\n");
+        out.append("# TYPE proxy_backend_circuit_state gauge\n# TYPE proxy_backend_circuit_open_total counter\n");
+        out.append("# HELP proxy_backend_circuit_state CLOSED=0, OPEN=1, HALF_OPEN=2\n");
+        out.append("# TYPE proxy_backend_circuit_failures gauge\n# TYPE proxy_backend_circuit_probe_in_flight gauge\n");
         for (var s : snapshots()) {
             // Backend identifiers are constrained by BackendServer's host validation.
             String label = "{backend=\"" + s.backend().getId() + "\"} ";
             out.append("proxy_backend_selection_total").append(label).append(s.dispatched()).append('\n');
             out.append("proxy_backend_in_flight").append(label).append(s.inFlight()).append('\n');
+            out.append("proxy_backend_circuit_state").append(label).append(circuits.get(s.backend()).stateCode(clock.getAsLong())).append('\n');
+            out.append("proxy_backend_circuit_open_total").append(label).append(circuits.get(s.backend()).openedCount()).append('\n');
+            out.append("proxy_backend_circuit_failures").append(label).append(circuits.get(s.backend()).failures()).append('\n');
+            out.append("proxy_backend_circuit_probe_in_flight").append(label).append(circuits.get(s.backend()).probing() ? 1 : 0).append('\n');
         }
         return out.toString();
+        } finally { lock.unlock(); }
     }
     private static String number(double value) { return Json.number(value); }
     public record Probe(long generation, int inFlight) { }
@@ -183,13 +201,23 @@ public final class Dispatcher {
         private final BackendServer backend;
         private final EstimatedWork.Reservation reservation;
         private boolean released;
-        private Lease(BackendServer backend, EstimatedWork.Reservation reservation) { this.backend = backend; this.reservation = reservation; }
+        private final long circuitTicket;
+        private Lease(BackendServer backend, EstimatedWork.Reservation reservation, long circuitTicket) { this.backend = backend; this.reservation = reservation; this.circuitTicket = circuitTicket; }
         public BackendServer backend() { return backend; }
         public void complete(double latencyMs, boolean error, boolean transportFailure) {
+            complete(latencyMs, error, transportFailure, true);
+        }
+        /** Proxy policy limits do not establish backend failure or recovery. */
+        public void completePolicyRejection(double latencyMs) {
+            complete(latencyMs, true, false, false);
+        }
+        private void complete(double latencyMs, boolean error, boolean transportFailure, boolean circuitOutcome) {
             lock.lock();
             try {
                 if (released) return;
                 released = true;
+                if (circuitOutcome) circuits.get(backend).complete(circuitTicket, error || transportFailure, clock.getAsLong());
+                else circuits.get(backend).cancel(circuitTicket, clock.getAsLong());
                 if (reservation != null) {
                     var estimate = work.get(backend);
                     estimate.generation(require(backend).healthGeneration());
@@ -203,6 +231,7 @@ public final class Dispatcher {
             try {
                 if (!released) {
                     released = true;
+                    circuits.get(backend).cancel(circuitTicket, clock.getAsLong());
                     if (reservation != null) work.get(backend).release(reservation);
                     require(backend).release();
                 }

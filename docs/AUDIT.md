@@ -153,3 +153,12 @@ JAR: `target/reverse-proxy-demo.jar`. Log trước/sau được lưu ở `target
 `git diff --check` không có lỗi whitespace; Git chỉ cảnh báo chuẩn hóa LF/CRLF. Chưa chạy benchmark hiệu năng trong lượt audit này. Không tuyên bố Adaptive thắng RR hoặc LC; các test quyết định tổng hợp chỉ chứng minh implementation phản ứng theo metric và giữ bất biến đồng thời, không chứng minh hiệu năng thực tế.
 
 Nguồn công cụ: [Apache Maven](https://maven.apache.org/download.cgi), [Microsoft OpenJDK](https://learn.microsoft.com/en-us/java/openjdk/download), [Maven AntRun](https://maven.apache.org/plugins/maven-antrun-plugin/usage.html). Tài liệu chỉ dùng để chọn/chạy công cụ; các kết luận runtime ở trên lấy từ code và thử nghiệm repository.
+
+
+## 2026-10-14: backend protection follow-up
+
+Circuit breaker, bounded peer-IP rate limiting, metrics and failure-isolation experiments are now implemented. The earlier audit findings and results above are preserved. See [the dated validation report](BACKEND_PROTECTION_VALIDATION.md) for the actual JDK 21 test results, generated artifacts, the initial JDK 26/experiment failures, and deferred pooling/retry scope.
+
+### Same-day follow-up: isolated management and policy-error classification
+
+Reviewed the existing circuit/rate implementation without replacing it. Proxy body/header limits are now neutral for circuit state; cancelled half-open probes release their slot without claiming failure or recovery. Added an optional loopback management listener with independent bounded ingress, readiness/task metrics, and bind-failure rollback regression. Pooling remains deferred with an explicit disabled flag. The earlier audit is preserved; see [follow-up validation](BACKEND_PROTECTION_VALIDATION.md#follow-up-validation-before-commit-2026-10-14) for real failures and the final JDK 21 results.

@@ -79,6 +79,7 @@ public final class HardeningTest {
             f.release.countDown();
             f.clean();
             check(f.proxy.getDispatcher().snapshots().getFirst().inFlight() == 0, "disconnect releases lease");
+            check(f.proxy.getDispatcher().snapshotJson().contains("\"circuitFailures\":0"), "disconnect after backend completion does not fail circuit");
         }
         shutdown();
         gracefulShutdown();

@@ -129,3 +129,94 @@ Một estimate vượt admission budget trước đây có thể ngăn mọi l�
 JSON dùng helper escape tập trung, số không hữu hạn thành null. Giữ field benchmark cũ, thêm counters handler/probe ở root. `/__proxy/prometheus` xuất request/error/timeout counters, handler in-flight và backend selection/in-flight. Admission không có hàng đợi nên không xuất queue_wait giả. `requests_total` gồm management; backend counters chỉ gồm lease. Snapshot các nhóm counter không nguyên tử cùng nhau. Log không chứa raw query/body/path động.
 
 Giới hạn giữ có chủ ý: không pooling để giữ parser/benchmark một socket/request kiểm chứng được; chưa RSS/GC pause/trace phân tán. JDK không cung cấp callback client disconnect trong lúc backend đang chạy; socket upstream đóng khi hoàn thành, lỗi hoặc timeout. Incomplete ingress header chưa vào handler không thuộc admission/deadline này; cần gateway TLS/auth/rate-limit ở biên khi deploy. Các endpoint quản lý đều loopback-only; không có backend discovery/config động.
+## Backend protection (2026-10-14)
+
+Each configured backend has an independent circuit breaker, guarded by the same
+Dispatcher lock as selection, work reservations and in-flight accounting. All three
+balancing strategies filter circuit eligibility before selecting a backend. OPEN
+backends receive no new request leases; if none are eligible the proxy returns 503.
+There is no waiting queue or automatic retry.
+
+- CLOSED counts consecutive completed transport/timeout failures, HTTP 5xx and
+  upstream HTTP 429. A completed non-failure resets the count. HTTP 400/401/403/404
+  do not count as backend failures. Proxy-generated errors before dispatch do not
+  touch the circuit. Downstream write failures happen after lease completion.
+- OPEN becomes HALF_OPEN lazily on selection/readiness/metrics after the monotonic
+  cooldown. Health checks still run and cannot reset the circuit. A backend marked
+  DOWN must also satisfy the existing health recovery policy before receiving a probe.
+- HALF_OPEN reserves exactly one request under the Dispatcher lock. Success closes
+  the circuit; failure reopens it for a fresh cooldown. A cancelled or policy-limited
+  probe returns its slot and stays HALF_OPEN, without claiming failure or recovery.
+  Generation tickets prevent late
+  completions from a previous circuit epoch from changing the current state.
+- Leases remain idempotent: complete/close release estimated work and in-flight
+  exactly once, including stale completions. Circuit recovery does not bypass
+  health recovery, warmup, global/backend capacity, or graceful shutdown.
+
+Configuration: `proxy.circuit-breaker.enabled=true`, `failure-threshold=5`,
+`open-duration.ms=5000`, `half-open-max-probes=1` under the same prefix. Threshold
+and duration must be positive; probe counts other than 1 are explicitly rejected.
+JSON adds `circuitState`, `circuitFailures`, `circuitOpenCount` and
+`circuitProbeInFlight` to each backend. Prometheus adds `proxy_backend_circuit_state`
+(CLOSED=0, OPEN=1, HALF_OPEN=2), `proxy_backend_circuit_open_total`,
+`proxy_backend_circuit_failures` and `proxy_backend_circuit_probe_in_flight`.
+Open count only increases on classified backend failures. Proxy body/header limits
+do not increment or reset the circuit failure count; error metrics and adaptive
+learning still record the unsuccessful exchange without marking the backend DOWN.
+
+The optional client limiter uses token buckets keyed by the numeric TCP peer IP.
+`Forwarded` and `X-Forwarded-For` cannot change identity. Clients behind a NAT share
+a quota; deployment behind another proxy requires a separate trusted-proxy design.
+The limiter runs after header/framing validation, before reading the request body or
+acquiring a backend lease. Rejection is JSON HTTP 429 (`RATE_LIMITED`), with
+`Retry-After` in seconds and the existing request ID/security headers. Monitoring
+and local management endpoints retain their existing access/admission rules and
+are exempt from client quotas.
+
+`proxy.rate-limit.enabled=false` preserves the existing demo/benchmark traffic by
+default; enable explicitly to enforce limits. Defaults under `proxy.rate-limit.`:
+`requests-per-second=100`, `burst=200`, `max-clients=4096`, `idle.ms=60000`.
+All values are validated, including finite positive rate and idle time at least a
+full burst refill. The bounded access-ordered table evicts only expired idle
+buckets. If full, it rejects an unknown peer instead of evicting an active quota.
+This avoids quota bypass by client churn and uses no background threads. A single
+short synchronized section makes refill, expiration and consumption atomic.
+
+JSON counters: `rate_limit_rejected`, `rate_limit_capacity_rejected`,
+`rate_limit_clients`; Prometheus: `proxy_rate_limit_rejected_total`,
+`proxy_rate_limit_capacity_rejected_total`, `proxy_rate_limit_clients`.
+Capacity rejection is a subset of all rate rejections. No per-IP metric labels are
+exported. Idle entries are reclaimed on the next data request, not by monitoring.
+
+Connection pooling and retries are **not implemented** in this increment. Transport
+still uses one socket per exchange and `Connection: close`. Safe reuse needs a
+separate framing/lifecycle design covering EOF-delimited responses, unread bytes,
+stale idle sockets, pool bounds, deadlines and shutdown; retries also need explicit
+idempotency rules. No partial pooling path or untested retry is enabled.
+`proxy.connection-pool.enabled=false` is explicit; setting it to true fails
+configuration validation instead of silently pretending connections are reused.
+
+## Optional management listener
+
+Set `proxy.management.enabled=true` to add a second HTTP listener on
+`127.0.0.1:${proxy.management.port}` (default 9090, 0 selects an ephemeral test port).
+Its own bounded executor uses `proxy.management.max.handler.tasks=16` and the
+existing request deadline, including incomplete header parsing. It shares the
+existing monitoring handler, metrics and loopback access/method checks. Only
+`/__proxy/metrics`, `/__proxy/prometheus`, `/__proxy/health` are served; other paths
+return 404 and never acquire a backend lease. No new authentication or remote
+management exposure is introduced. Disabled mode creates no second listener.
+
+Legacy loopback-only management routes on the data listener remain available for
+compatibility. Their executor can still saturate with data traffic; monitoring via
+the separate listener remains available in that case. The management admission
+limit (8), handler counters/deadline scheduler and process CPU/memory are shared:
+this isolates ingress task capacity, not all process resources. Management requests
+do not consume client tokens. Readiness now includes available data ingress slots.
+
+JSON adds `data_ingress_tasks` and `management_ingress_tasks`; Prometheus adds
+`proxy_data_ingress_tasks` and `proxy_management_ingress_tasks` gauges. These include
+incomplete headers and the monitoring request itself on its listener; they are not
+backend lease counts. Bind failure rolls back both listeners; shutdown stops the
+management listener immediately, then uses the configured grace for data requests
+and closes both executors. There is no additional management grace period.

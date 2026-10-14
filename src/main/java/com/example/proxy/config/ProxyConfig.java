@@ -20,6 +20,13 @@ public final class ProxyConfig {
         getHealthCheckTimeoutMs(); getMetricsStaleMs(); getWarmupMs(); getBackendMaxInflight();
         getRecoverySuccesses(); getEwmaAlpha(); getInitialLatencyMs(); getExplorationInterval();
         getHealthCheckPath(); getMetricsPath(); getMaxHeaderCount(); getShutdownGraceSeconds(); getMaxHandlerTasks();
+        isCircuitBreakerEnabled(); getCircuitFailureThreshold(); getCircuitOpenDurationMs(); getCircuitHalfOpenMaxProbes();
+        isManagementEnabled(); getManagementPort(); getManagementMaxTasks();
+        if (bool("proxy.connection-pool.enabled", false))
+            throw new IllegalArgumentException("proxy.connection-pool.enabled=true is not supported; pooling is not implemented");
+        isRateLimitEnabled(); getRateLimitPerSecond(); getRateLimitBurst(); getRateLimitMaxClients(); getRateLimitIdleMs();
+        if (getRateLimitIdleMs() < 1000.0 * getRateLimitBurst() / getRateLimitPerSecond())
+            throw new IllegalArgumentException("proxy.rate-limit.idle.ms must cover a full burst refill");
         String bind = getBindHost();
         if (!BackendServer.validHost(bind)) {
             // URI validates a bracketed IPv6 literal without DNS/network I/O.
@@ -53,6 +60,23 @@ public final class ProxyConfig {
         if (!result.matches("/[a-zA-Z0-9_./-]*")) throw new IllegalArgumentException("Invalid " + key);
         return result;
     }
+    private boolean bool(String key, boolean fallback) {
+        String value = values.getProperty(key, Boolean.toString(fallback)).trim();
+        if (!value.equals("true") && !value.equals("false")) throw new IllegalArgumentException(key + " must be true or false");
+        return Boolean.parseBoolean(value);
+    }
+    public boolean isCircuitBreakerEnabled() { return bool("proxy.circuit-breaker.enabled", true); }
+    public boolean isManagementEnabled() { return bool("proxy.management.enabled", false); }
+    public int getManagementPort() { return integer("proxy.management.port", 9090, 0, 65535); }
+    public int getManagementMaxTasks() { return integer("proxy.management.max.handler.tasks", 16, 1, 1024); }
+    public int getCircuitFailureThreshold() { return integer("proxy.circuit-breaker.failure-threshold", 5, 1, 100000); }
+    public int getCircuitOpenDurationMs() { return integer("proxy.circuit-breaker.open-duration.ms", 5000, 1, 3600000); }
+    public int getCircuitHalfOpenMaxProbes() { return integer("proxy.circuit-breaker.half-open-max-probes", 1, 1, 1); }
+    public boolean isRateLimitEnabled() { return bool("proxy.rate-limit.enabled", false); }
+    public double getRateLimitPerSecond() { return decimal("proxy.rate-limit.requests-per-second", 100, .001, 1000000); }
+    public int getRateLimitBurst() { return integer("proxy.rate-limit.burst", 200, 1, 1000000); }
+    public int getRateLimitMaxClients() { return integer("proxy.rate-limit.max-clients", 4096, 1, 1000000); }
+    public int getRateLimitIdleMs() { return integer("proxy.rate-limit.idle.ms", 60000, 1, 86400000); }
     public int getProxyPort() { return integer("proxy.port", 8080, 0, 65535); }
     public String getBindHost() { return values.getProperty("proxy.bind.host", "127.0.0.1").trim(); }
     public List<BackendServer> getBackendServers() { return backends; }

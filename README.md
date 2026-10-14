@@ -4,6 +4,10 @@ Reverse proxy HTTP viết bằng **Java 21, chỉ dùng thư viện JDK**. Thu�
 
 Đây là thuật toán heuristic: học chi phí gần đây theo nhóm route, không biết chính xác chi phí request mới và không bảo đảm luôn chọn được server nhanh nhất. Thiết kế, giả thuyết và kết quả Mixed trước/sau được ghi trong [Estimated Completion Time](docs/ADAPTIVE_COMPLETION.md).
 
+Backend có circuit breaker riêng (CLOSED/OPEN/HALF_OPEN, một probe khi phục hồi), bật mặc định. Rate limiting theo IP kết nối dùng token bucket có giới hạn bộ nhớ; bật bằng `proxy.rate-limit.enabled=true` trong cấu hình. Cả hai có JSON/Prometheus metrics và regression test. Xem [thiết kế và cấu hình](docs/ARCHITECTURE.md#backend-protection-2026-10-14) và [thí nghiệm bật/tắt](docs/BENCHMARK.md#circuit-breaker-and-rate-limit-experiment-2026-10-14). Chưa triển khai connection pooling hoặc retry.
+
+Để đọc metrics khi executor cổng dữ liệu bão hòa, bật `proxy.management.enabled=true`; listener riêng ở `127.0.0.1:9090` phục vụ `/__proxy/metrics`, `/__proxy/prometheus`, `/__proxy/health`. Có thể đổi `proxy.management.port` và `proxy.management.max.handler.tasks` (mặc định 16). Cổng quản lý luôn chỉ bind loopback; các route quản lý cũ trên cổng dữ liệu vẫn giữ nguyên. Xem [giới hạn và lifecycle](docs/ARCHITECTURE.md#optional-management-listener).
+
 ## Chạy nhanh
 
 Demo trực tiếp Windows PowerShell: xem [hướng dẫn bốn demo A/B/C/D](docs/DEMO.md). Sau khi đặt JDK 21, chạy `scripts/demo.ps1 start`, rồi `basic`, `rr`, `adaptive`, `health`; kết thúc bằng `stop` để dừng đúng các process đã tạo.
