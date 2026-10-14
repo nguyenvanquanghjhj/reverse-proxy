@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public final class CircuitBreakerTest {
     public static void main(String[] args) throws Exception {
+        boundaries();
         for (String strategy : List.of("ROUND_ROBIN", "LEAST_CONNECTIONS", "ADAPTIVE")) {
             Fixture f = new Fixture(strategy, true);
             var old = f.lease();
@@ -80,14 +81,44 @@ public final class CircuitBreakerTest {
         final BackendServer backend=new BackendServer("localhost",9001,8);
         final Dispatcher dispatcher;
         Fixture(String strategy, boolean enabled) {
+            this(strategy, enabled, 2, 100);
+        }
+        Fixture(String strategy, boolean enabled, int threshold, int cooldown) {
             Properties p=new Properties();p.setProperty("loadbalancer.strategy",strategy);p.setProperty("healthcheck.recovery.successes","1");
-            p.setProperty("adaptive.warmup.ms","0");p.setProperty("proxy.circuit-breaker.failure-threshold","2");
-            p.setProperty("proxy.circuit-breaker.open-duration.ms","100");p.setProperty("proxy.circuit-breaker.enabled",Boolean.toString(enabled));
+            p.setProperty("adaptive.warmup.ms","0");p.setProperty("proxy.circuit-breaker.failure-threshold",Integer.toString(threshold));
+            p.setProperty("proxy.circuit-breaker.open-duration.ms",Integer.toString(cooldown));p.setProperty("proxy.circuit-breaker.enabled",Boolean.toString(enabled));
             dispatcher=new Dispatcher(new ProxyConfig(p,List.of(backend)),clock::get);healthy();
         }
         void healthy() { dispatcher.recordHealth(backend,dispatcher.beginProbe(backend),true); }
         Dispatcher.Lease lease() { var lease=dispatcher.acquire();check(lease!=null,"lease expected");return lease; }
         boolean state(String name) { return dispatcher.snapshotJson().contains("\"circuitState\":\""+name+"\""); }
+    }
+    private static void boundaries() {
+        for (int threshold : new int[]{1, 1000}) {
+            Fixture f = new Fixture("ROUND_ROBIN", true, threshold, 1);
+            var late = f.lease();
+            for (int i = 1; i < threshold; i++) { f.lease().complete(1, true, false); check(f.state("CLOSED"), "large threshold not reached early"); }
+            f.lease().complete(1, true, false);
+            String opened = f.dispatcher.snapshotJson();
+            String prom = f.dispatcher.prometheus();
+            f.clock.addAndGet(999_999); check(f.dispatcher.acquire() == null, "minimum cooldown boundary");
+            f.clock.incrementAndGet();
+            check(f.dispatcher.snapshotJson().equals(opened) && f.dispatcher.prometheus().equals(prom), "metrics do not advance circuit after cooldown");
+            f.lease().complete(1, false, false);
+            late.complete(1, true, false); late.close();
+            check(f.state("CLOSED") && f.dispatcher.snapshotJson().contains("\"circuitFailures\":0"), "old failure cannot undo recovery");
+            check(f.dispatcher.snapshots().getFirst().inFlight() == 0, "late completion releases once");
+        }
+        for (boolean halfOpen : new boolean[]{false, true}) {
+            Fixture f = new Fixture("ROUND_ROBIN", true, 1, 1);
+            f.lease().complete(1, true, false);
+            Dispatcher.Lease probe = null;
+            if (halfOpen) { f.clock.addAndGet(1_000_000); probe = f.lease(); }
+            f.dispatcher.stopAccepting(); f.clock.addAndGet(1_000_000);
+            check(f.dispatcher.acquire() == null && !f.dispatcher.hasAvailableBackend(), "shutdown never dispatches OPEN/HALF_OPEN");
+            if (probe != null) probe.close();
+            check(f.dispatcher.snapshots().getFirst().inFlight() == 0, "shutdown probe cleanup");
+        }
     }
     private static void check(boolean value,String message) { if(!value)throw new AssertionError(message); }
 }

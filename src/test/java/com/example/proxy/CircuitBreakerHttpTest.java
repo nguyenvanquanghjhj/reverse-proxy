@@ -61,10 +61,10 @@ public final class CircuitBreakerHttpTest {
             check(calls.get() == dispatched, "open backend received no request");
             await(() -> health.get() > probes, "health polling continues while open");
             check(proxy.getDispatcher().snapshotJson().contains("\"circuitState\":\"OPEN\""), "health success cannot close circuit");
-            await(() -> proxy.getDispatcher().snapshotJson().contains("\"circuitState\":\"HALF_OPEN\""), "cooldown");
+            await(() -> proxy.getDispatcher().hasAvailableBackend(), "cooldown");
             status.set(503); check(get(client, url).statusCode() == 503, "failed probe forwarded");
             check(proxy.getDispatcher().snapshotJson().contains("\"circuitOpenCount\":2"), "failed probe reopens");
-            await(() -> proxy.getDispatcher().snapshotJson().contains("\"circuitState\":\"HALF_OPEN\""), "second cooldown");
+            await(() -> proxy.getDispatcher().hasAvailableBackend(), "second cooldown");
             status.set(200); check(get(client, url).statusCode() == 200, "recovered probe");
             check(proxy.getDispatcher().snapshotJson().contains("\"circuitState\":\"CLOSED\""), "success closes");
             await(() -> proxy.diagnostics().activeHandlers() == 0, "cleanup");

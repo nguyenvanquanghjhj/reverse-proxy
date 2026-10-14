@@ -168,7 +168,7 @@ public final class Dispatcher {
                     .append(",\"estimatedNextSlotMs\":").append(number(f.waitMs()))
                     .append(",\"completionBudgetMs\":").append(number(completionBudgetMs()));
             }
-            json.append(',').append(circuits.get(s.backend()).json(clock.getAsLong()));
+            json.append(',').append(circuits.get(s.backend()).json());
             json.append('}');
         }
         return json.append("]}").toString();
@@ -186,7 +186,7 @@ public final class Dispatcher {
             String label = "{backend=\"" + s.backend().getId() + "\"} ";
             out.append("proxy_backend_selection_total").append(label).append(s.dispatched()).append('\n');
             out.append("proxy_backend_in_flight").append(label).append(s.inFlight()).append('\n');
-            out.append("proxy_backend_circuit_state").append(label).append(circuits.get(s.backend()).stateCode(clock.getAsLong())).append('\n');
+            out.append("proxy_backend_circuit_state").append(label).append(circuits.get(s.backend()).stateCode()).append('\n');
             out.append("proxy_backend_circuit_open_total").append(label).append(circuits.get(s.backend()).openedCount()).append('\n');
             out.append("proxy_backend_circuit_failures").append(label).append(circuits.get(s.backend()).failures()).append('\n');
             out.append("proxy_backend_circuit_probe_in_flight").append(label).append(circuits.get(s.backend()).probing() ? 1 : 0).append('\n');

@@ -52,12 +52,11 @@ final class CircuitBreaker {
             state = State.HALF_OPEN; generation++; probing = false;
         }
     }
-    String json(long now) {
-        advance(now);
+    String json() {
         return "\"circuitState\":\"" + state + "\",\"circuitFailures\":" + failures
                 + ",\"circuitOpenCount\":" + openedCount + ",\"circuitProbeInFlight\":" + probing;
     }
-    int stateCode(long now) { advance(now); return state.ordinal(); }
+    int stateCode() { return state.ordinal(); }
     long openedCount() { return openedCount; }
     int failures() { return failures; }
     boolean probing() { return probing; }

@@ -107,25 +107,26 @@ def main():
         parser.error('Use JDK 21; runtime is part of the experiment')
     compiler = Path(args.java).with_name('javac.exe' if os.name == 'nt' else 'javac')
     output = args.output.resolve(); output.mkdir(parents=True, exist_ok=False)
-    sources = []
-    for source in sorted((ROOT / 'src/main/java').rglob('*.java')):
-        copied = output / 'source' / source.relative_to(ROOT / 'src/main/java')
-        copied.parent.mkdir(parents=True, exist_ok=True); shutil.copyfile(source, copied); sources.append(copied)
-    classes = output / 'classes'; classes.mkdir()
-    source_list = output / 'sources.txt'
-    source_list.write_text('\n'.join('"' + p.as_posix() + '"' for p in sources), encoding='utf-8')
-    build = subprocess.run([str(compiler), '--release', '21', '-encoding', 'UTF-8', '-d', str(classes), '@'+str(source_list)],
-                           capture_output=True, text=True)
-    (output / 'build.log').write_text(build.stdout + build.stderr, encoding='utf-8'); build.check_returncode()
-    config_text = (ROOT / 'config/application.properties').read_text(encoding='utf-8')
-    (output / 'application.properties').write_text(config_text, encoding='utf-8')
-    for script in (Path(__file__), ROOT / 'scripts/benchmark.py'):
-        shutil.copyfile(script, output / script.name)
-    metadata = dict(seed=args.seed, repeats=args.repeats, java=version_text, python=sys.version, platform=platform.platform(),
-                    command=sys.argv, kind='behavior experiment; not a performance ranking',
-                    sha256={str(p.relative_to(output)): digest(p) for p in output.rglob('*') if p.is_file()})
-    (output / 'metadata.json').write_text(json.dumps(metadata, indent=2), encoding='utf-8')
+    print("Behavior experiment only; not a throughput benchmark.")
     try:
+        sources = []
+        for source in sorted((ROOT / 'src/main/java').rglob('*.java')):
+            copied = output / 'source' / source.relative_to(ROOT / 'src/main/java')
+            copied.parent.mkdir(parents=True, exist_ok=True); shutil.copyfile(source, copied); sources.append(copied)
+        classes = output / 'classes'; classes.mkdir()
+        source_list = output / 'sources.txt'
+        source_list.write_text('\n'.join('"' + p.as_posix() + '"' for p in sources), encoding='utf-8')
+        build = subprocess.run([str(compiler), '--release', '21', '-encoding', 'UTF-8', '-d', str(classes), '@'+str(source_list)],
+                               capture_output=True, text=True)
+        (output / 'build.log').write_text(build.stdout + build.stderr, encoding='utf-8'); build.check_returncode()
+        config_text = (ROOT / 'config/application.properties').read_text(encoding='utf-8')
+        (output / 'application.properties').write_text(config_text, encoding='utf-8')
+        for script in (Path(__file__), ROOT / 'scripts/benchmark.py'):
+            shutil.copyfile(script, output / script.name)
+        metadata = dict(seed=args.seed, repeats=args.repeats, java=version_text, python=sys.version, platform=platform.platform(),
+                        command=sys.argv, kind='behavior experiment; not a performance ranking',
+                        sha256={str(p.relative_to(output)): digest(p) for p in output.rglob('*') if p.is_file()})
+        (output / 'metadata.json').write_text(json.dumps(metadata, indent=2), encoding='utf-8')
         rows = run(args, output, classes, config_text)
     except Exception as exc:
         (output / 'validation.json').write_text(json.dumps(dict(passed=False, error=str(exc))), encoding='utf-8')
