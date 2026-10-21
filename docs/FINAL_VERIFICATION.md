@@ -40,8 +40,8 @@ Python 3.12. Chạy Java bằng JDK 21 thật, không chỉ biên dịch `releas
 | Bản xuất Git không có file ignored | PASS | Xuất toàn bộ index sang `.demo/final-index-20261021/`; chạy `check_reports.py --include-defense` và `defense_artifacts.py --verify ...` trong bản đó, đều PASS; không có results/JDK của máy tác giả |
 | Đúng source đã đo | PASS | Đối chiếu từng Java main hiện tại với ba frozen source snapshots, chỉ chuẩn hóa CRLF/LF: tất cả bằng nhau; config kết thúc trace=false; worktree c2d5f20 vẫn sạch |
 | Maven lifecycle trên máy này | NOT TESTED | Không có `mvn` trên PATH và đường Maven Temp cũ đã mất. Build/test độc lập bằng JDK đã chạy; không gán kết quả Maven lịch sử cho phiên bản này |
-| GitHub Actions Windows/Linux cho commit cuối | NOT TESTED | Đã rà cấu hình, chưa có run từ dịch vụ GitHub cho commit chưa push |
-| Linux/macOS, nhiều host, tải dài, LAN với máy khách riêng | NOT TESTED | Chỉ có kiểm tra HTTP từ IPv4 cục bộ không loopback; không gọi đó là phép đo nhiều máy |
+| GitHub Actions Windows/Linux | PASS | Commit `264d1c5`: cả `windows-latest` và `ubuntu-latest` success tại [run 39633008763](https://github.com/nguyenvanquanghjhj/reverse-proxy/actions/runs/39633008763); Maven clean verify, 24 Python tests, report/ZIP validation, diff check và homogeneous smoke đều thành công |
+| macOS, nhiều host, tải dài, LAN với máy khách riêng | NOT TESTED | Linux đã kiểm chứng bằng CI, chưa đo hiệu năng nhiều host; chỉ kiểm tra HTTP IPv4 cục bộ không loopback, không gọi đó là demo hai máy |
 
 Các lần FAIL trong quá trình kiểm tra đã sửa và chạy lại: script PowerShell bị
 ExecutionPolicy chặn khi gọi trực tiếp (dùng Bypass riêng tiến trình, không đổi
@@ -69,6 +69,13 @@ tra dấu phân cách gốc. Kết quả cuối Python cho hai ZIP tests là PAS
    snapshot dù cùng nội dung Git. Công cụ nay chạy đúng cặp frozen runner/validator
    của artifact, vẫn fail nếu validator thất bại; regression test và export thật
    đều PASS. Không sửa hash, bỏ validation hoặc thay raw.
+7. **Test đường dẫn tạm trên Windows CI:** run đầu `39632150698` có Ubuntu PASS
+   nhưng Windows FAIL ở Python. Assert so đường dẫn chưa chuẩn hóa với đường dẫn
+   đã resolve không phù hợp khi Windows dùng tên rút gọn/alias. Chuẩn hóa cả hai
+   phía, giữ nguyên test; thêm `scripts/ci_python_tests.py` chạy cùng discovery và
+   xuất traceback thành annotation khi lỗi. Sau đó run `39633008763` PASS cả hai
+   OS; không bỏ test, không thay kết quả đo. Log cũ không tải qua API công khai
+   (403); không sử dụng credential để vượt giới hạn đó.
 
 Không đổi RR/LC/ECT, trọng số phạt, admission, timeout hoặc workload. Không thêm
 pooling, retry, HTTP/2, TLS, WebSocket hoặc Kubernetes.
@@ -82,6 +89,7 @@ pooling, retry, HTTP/2, TLS, WebSocket hoặc Kubernetes.
 | Vừa | Admission chưa bảo đảm công bằng Slow, cold start cần học | Luôn xem lỗi theo loại; chưa thay fairness khi chưa có thử nghiệm ghép cặp |
 | Vừa | Trace chỉ giữ một quyết định, telemetry lấy mẫu | Không gán ảnh chụp hiện tại cho mọi lỗi lịch sử; không đo thời lượng state bằng số mẫu |
 | Thấp trong demo local | Tổng counter gồm polling, snapshot không đồng thời | Nhãn và hướng dẫn giải thích rõ; RPS dùng completed của backend |
+| Thấp, bảo trì CI | GitHub cảnh báo một số action hiện tại dùng phiên bản deprecated | Không gây lỗi trong run đã PASS; nên cập nhật action trong đợt bảo trì riêng |
 
 [Hướng dẫn bảo vệ](DEFENSE_GUIDE.md) và [phân tích bộ đo cuối](DEFENSE_PERFORMANCE.md)
 ghi các bước tự chạy, giải thích công thức và giới hạn bằng chứng.
@@ -93,7 +101,7 @@ ghi các bước tự chạy, giải thích công thức và giới hạn bằng
 |---|---|
 | Giao diện/HTTP | `DemoPage.java`, `server/MonitoringPage.java` (mới), `server/ReverseProxyServer.java` |
 | Java tests | `AdaptiveDecisionTest.java`, `LifecycleTest.java`, `ManagementListenerTest.java` |
-| Python validation/tests | `scripts/verify_benchmark.py`, `test_benchmark.py`, `test_presentation.py`, `test_defense_artifacts.py` (mới) |
+| Python validation/tests | `scripts/verify_benchmark.py`, `test_benchmark.py`, `test_presentation.py`, `test_defense_artifacts.py` và `ci_python_tests.py` (mới) |
 | Công cụ | `tools/generate_charts.py`; mới: `run_defense_matrix.py`, `check_local_demo.py`, `probe_slow.py`, `defense_artifacts.py`, `analyze_slow.py`, `check_reports.py` |
 | Cấu hình quy trình | `.github/workflows/ci.yml`, `.gitattributes`; application.properties kết thúc vẫn trace=false như trước đo |
 | Tài liệu | README; mới: FINAL_VERIFICATION, DEFENSE_GUIDE, DEFENSE_PERFORMANCE; cập nhật BENCHMARK_GUIDE, CODEBASE_REVIEW, DEMO, METRICS_REFERENCE, PERFORMANCE_ANALYSIS, VISUALIZATION_GUIDE |
