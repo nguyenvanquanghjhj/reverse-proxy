@@ -22,7 +22,7 @@ jobs:
           python-version: '3.12'
       - run: mvn -B -ntp clean verify
       - run: python -m pip install -r tools/requirements-charts.txt
-      - run: python -m unittest discover -s scripts -p "test_*.py"
+      - run: python scripts/ci_python_tests.py
       - run: python tools/check_reports.py --include-defense
       - run: python tools/defense_artifacts.py --verify benchmarks/defense/20261021
       - run: git diff --check

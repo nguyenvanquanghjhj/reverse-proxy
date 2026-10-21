@@ -98,7 +98,7 @@ class PresentationTest(unittest.TestCase):
             root=Path(directory); (root/'verify_benchmark.py').write_text('# captured verifier')
             with patch.object(charts.subprocess,'run',side_effect=subprocess.CalledProcessError(1,['frozen'])) as run:
                 with self.assertRaises(subprocess.CalledProcessError): charts.export_bundle(root,root/'bundle','mixed')
-                self.assertEqual(Path(run.call_args.args[0][1]),root/'verify_benchmark.py')
+                self.assertEqual(Path(run.call_args.args[0][1]),(root/'verify_benchmark.py').resolve())
                 self.assertTrue(run.call_args.kwargs['check'])
             self.assertFalse((root/'bundle').exists())
 
