@@ -1,19 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="300" viewBox="0 0 1120 300" role="img" aria-labelledby="title desc">
-  <title id="title">Adaptive decision flow</title>
-  <desc id="desc">Filter backend health and capacity, forecast route work and completion, apply resource penalties, select and reserve atomically.</desc>
+  <title id="title">Quy trình quyết định thích nghi</title>
+  <desc id="desc">Lọc sức khỏe, dự báo công việc và thời gian hoàn tất, tính hệ số phạt, chọn và giữ chỗ nguyên tử.</desc>
   <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 10 5 0 10" fill="#64748b"/></marker></defs>
   <rect width="1120" height="300" fill="white"/>
   <g font-family="system-ui,sans-serif" fill="#172033">
-    <text x="30" y="35" font-size="22" font-weight="600">Adaptive: explain one real decision</text>
+    <text x="30" y="35" font-size="22" font-weight="600">Thích nghi: giải thích một quyết định thật</text>
     <g fill="#f1f5f9" stroke="#cbd5e1"><rect x="30" y="75" width="190" height="120" rx="8"/><rect x="250" y="75" width="240" height="120" rx="8"/><rect x="520" y="75" width="240" height="120" rx="8"/><rect x="790" y="75" width="295" height="120" rx="8"/></g>
     <g stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"><path d="M220 135H245"/><path d="M490 135H515"/><path d="M760 135H785"/></g>
-    <g font-size="17" text-anchor="middle">
-      <text x="125" y="105" font-weight="600">1. Eligibility</text><text x="125" y="135">Health · circuit</text><text x="125" y="163">In-flight · slow start</text>
-      <text x="370" y="105" font-weight="600">2. Work forecast</text><text x="370" y="135">ECT = wait + route service</text><text x="370" y="163">Admission within budget</text>
-      <text x="640" y="105" font-weight="600">3. Ranking</text><text x="640" y="135">Score = ECT × penalty</text><text x="640" y="163">CPU · heap · error · age</text>
-      <text x="937" y="105" font-weight="600">4. Select + reserve</text><text x="937" y="135">Minimum / periodic exploration</text><text x="937" y="163">One atomic Dispatcher lock</text>
+    <g font-size="16" text-anchor="middle">
+      <text x="125" y="105" font-weight="600">1. Lọc điều kiện</text><text x="125" y="135">Sức khỏe · mạch bảo vệ</text><text x="125" y="163">Giữ chỗ · tăng tải dần</text>
+      <text x="370" y="105" font-weight="600">2. Dự báo công việc</text><text x="370" y="135">ECT = chờ + dịch vụ</text><text x="370" y="163">Kiểm tra ngân sách</text>
+      <text x="640" y="105" font-weight="600">3. Xếp hạng</text><text x="640" y="135">Điểm = ECT × hệ số phạt</text><text x="640" y="163">CPU · bộ nhớ · lỗi · tuổi mẫu</text>
+      <text x="937" y="105" font-weight="600">4. Chọn và giữ chỗ</text><text x="937" y="135">Điểm nhỏ nhất / thăm dò</text><text x="937" y="163">Trong cùng khóa Dispatcher</text>
     </g>
-    <text x="30" y="240" font-size="17">Explainability: /__proxy/decision — candidate scores, exclusions and selection reason</text>
-    <text x="30" y="272" font-size="15" fill="#475569">Heuristic estimate · bounded latest snapshot · tracing disabled during performance measurement</text>
+    <text x="30" y="240" font-size="17">/__proxy/decision: điểm ứng viên, điều kiện loại và lý do lựa chọn thực tế</text>
+    <text x="30" y="272" font-size="15" fill="#475569">Ước lượng kinh nghiệm · chỉ giữ ảnh chụp gần nhất · tắt ghi quyết định khi đo hiệu năng</text>
   </g>
 </svg>

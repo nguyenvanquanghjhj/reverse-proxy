@@ -9,6 +9,7 @@ import math
 import os
 from pathlib import Path
 import statistics
+import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -62,7 +63,15 @@ def numeric(row, key):
 
 def export_bundle(source, destination, scenario):
     # Never waive failed validation or mutate the raw experiment to make a chart.
-    verify_benchmark.verify(source)
+    frozen=source/'verify_benchmark.py'
+    if frozen.is_file():
+        # A different checkout/OS may have different runner bytes (even CRLF).
+        # Use the actual captured runner+validator pair, not today's imported runner.
+        subprocess.run([sys.executable,str(frozen.resolve()),str(source.resolve())],check=True)
+        validation='Frozen verify_benchmark.py passed before export'
+    else:
+        verify_benchmark.verify(source)
+        validation='verify_benchmark.verify passed before export'
     metadata = json.loads((source / 'metadata.json').read_text(encoding='utf-8'))
     rows = [r for r in read_csv(source / 'summary.csv') if r['scenario'] == scenario]
     require(bool(rows), f'Scenario absent: {scenario}')
@@ -74,7 +83,7 @@ def export_bundle(source, destination, scenario):
         write_csv(destination / name, table)
     write_json(destination / 'provenance.json', {
         'schema_version': 1, 'scenario': scenario, 'source_directory': source.name,
-        'source_validation': 'verify_benchmark.verify passed before export',
+        'source_validation': validation,
         'metadata': {k: metadata.get(k) for k in ('timestamp_utc', 'git_commit', 'git_dirty', 'java', 'platform',
                      'logical_cpus', 'requests', 'warmup_requests', 'offered_rps', 'concurrency', 'seed', 'repeats', 'quick')},
         'source_sha256': {name: digest(source / name) for name in ('metadata.json', 'complete.json', 'summary.csv', 'request_types.csv', 'backends.csv')},
@@ -217,7 +226,8 @@ def render(directory, output):
     sections = ''.join(f'<section><h2>{title}</h2><img src="{name}.svg" alt="{title}" loading="lazy"></section>' for name,title in figures)
     content = '<!doctype html><html lang="vi"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Báo cáo hiệu năng PBL4</title>'
     content += '<style>body{font:16px system-ui;color:#172033;max-width:1120px;margin:32px auto;padding:0 20px}h1,h2{font-weight:600}table{border-collapse:collapse;width:100%;font-size:14px}td,th{padding:10px;text-align:right;border-bottom:1px solid #ddd}td:first-child,th:first-child{text-align:left}img{width:100%;max-width:900px}section{margin:40px 0}p{line-height:1.6}</style>'
-    content += '<h1>Proxy ngược — so sánh hiệu năng</h1><p>' + html.escape(provenance['source_directory']) + ' · ' + html.escape(provenance['scenario']) + '</p><p>' + warning + '</p>'
+    scenario_label={'mixed':'Hỗn hợp','heterogeneous':'Máy chủ khác năng lực','homogeneous':'Máy chủ đồng nhất'}.get(provenance['scenario'],provenance['scenario'])
+    content += '<h1>Proxy ngược — so sánh hiệu năng</h1><p>' + html.escape(provenance['source_directory']) + ' · ' + html.escape(scenario_label) + '</p><p>' + warning + '</p>'
     meta = provenance['metadata']
     content += '<p>' + html.escape(f"Yêu cầu đo/lần: {meta.get('requests')}; làm nóng/lần: {meta.get('warmup_requests')}; tải gửi/giây: {meta.get('offered_rps')}; số lần lặp: {meta.get('repeats')}; hạt giống lịch gửi: {meta.get('seed')}; UTC: {meta.get('timestamp_utc')}") + '</p>'
     content += '<p>Số lượng cộng các lần lặp. Tốc độ và độ trễ thành công là trung vị của thống kê từng lần chạy, không phải phân vị gộp. Độ trễ gồm trễ lịch gửi ở máy khách; giữ toàn bộ lỗi. Báo cáo không cập nhật trực tiếp.</p>'

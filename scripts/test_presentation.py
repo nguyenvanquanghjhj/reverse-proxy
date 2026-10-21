@@ -1,4 +1,4 @@
-"""Presentation statistics and provenance invariants; no running proxy or plotting dependency."""
+"""Presentation statistics/provenance plus actual SVG/PNG rendering; no running proxy."""
 import json
 from pathlib import Path
 import sys
@@ -91,6 +91,16 @@ class PresentationTest(unittest.TestCase):
             manifest=json.loads((output/'manifest.json').read_text())
             for name,digest in manifest['files'].items(): self.assertEqual(charts.digest(output/name),digest)
             with self.assertRaises(FileExistsError): charts.render(bundle,output)
+
+    def test_export_uses_frozen_validator_and_never_waives_its_failure(self):
+        import subprocess
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory); (root/'verify_benchmark.py').write_text('# captured verifier')
+            with patch.object(charts.subprocess,'run',side_effect=subprocess.CalledProcessError(1,['frozen'])) as run:
+                with self.assertRaises(subprocess.CalledProcessError): charts.export_bundle(root,root/'bundle','mixed')
+                self.assertEqual(Path(run.call_args.args[0][1]),root/'verify_benchmark.py')
+                self.assertTrue(run.call_args.kwargs['check'])
+            self.assertFalse((root/'bundle').exists())
 
 
 if __name__=='__main__':

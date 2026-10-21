@@ -78,6 +78,16 @@ public final class AdaptiveDecisionTest {
         held.complete(10,true,false);
         check(guarded.acquire() == null && guarded.decisionJson().contains("CIRCUIT_UNAVAILABLE"),"healthy but open circuit explained");
         check(guarded.snapshots().getFirst().inFlight()==0,"excluded requests reserve nothing");
+        Properties rankedSettings = new Properties(); rankedSettings.putAll(on);
+        rankedSettings.setProperty("adaptive.exploration.interval","50");
+        var ranked = new Dispatcher(new ProxyConfig(rankedSettings,backends),clock::get);
+        backends.forEach(b->ranked.recordHealth(b,ranked.beginProbe(b),true));
+        var slower = ranked.acquire(URI.create("/work"));
+        check(slower.backend().equals(backends.getFirst()),"deterministic equal-prior tie"); slower.complete(500,false,false);
+        try (var minimum = ranked.acquire(URI.create("/work"))) {
+            check(minimum.backend().equals(backends.get(1)),"minimum chosen among two healthy candidates with unequal learned service");
+            check(ranked.decisionJson().contains("MINIMUM_SCORE") && ranked.decisionJson().contains("\"serviceMs\":500"),"minimum trace retains higher-scoring eligible alternative");
+        }
         System.out.println("AdaptiveDecisionTest PASS: scores, exclusions, exploration, admission, relearning, privacy, disabled mode");
     }
     private static void check(boolean condition,String message) { if(!condition)throw new AssertionError(message); }

@@ -1,5 +1,9 @@
 # Đánh giá codebase — 21/10/2026
 
+Đây là đánh giá lịch sử tại baseline ghi bên dưới. Một số hạn chế đã được xử lý
+ở các commit tiếp theo; trạng thái đã thực thi mới nhất nằm trong
+[FINAL_VERIFICATION](FINAL_VERIFICATION.md), không suy ra từ danh sách kế hoạch này.
+
 Baseline đọc: `aa7c176` trên `main`. Phạm vi gồm Java main/test, cấu hình,
 scripts build/demo/benchmark/validator và các tài liệu hiện có. Đây là đồ án PBL4
 HTTP/1.1 buffered; không đặt mục tiêu thay thế Nginx/HAProxy.

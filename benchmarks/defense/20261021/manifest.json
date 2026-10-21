@@ -1,0 +1,26 @@
+{
+  "plan": {
+    "commit": "c2d5f20335ecef34ad10c5ff5c2c8a48b7601e8d",
+    "loads": [
+      30,
+      60,
+      90
+    ],
+    "requests": 300,
+    "warmup_requests": 100,
+    "repeats": 3,
+    "seed": 20260927,
+    "concurrency": 64,
+    "scenarios": [
+      "mixed",
+      "heterogeneous"
+    ]
+  },
+  "files": {
+    "matrix.csv": "70bf20e8747c8edb2a18078eff227baeca5771b22d2e62c024dcdbee257edcbd",
+    "raw-artifacts.zip": "70c889a0b0274a7c2deabdea035df78a7dd5cee19a31870b0f8e7ad05e06f303",
+    "request-types.csv": "9635afdd43987d8ce8fc4616741635b7b82abc031b5fb3f3de68beea3ab00669",
+    "status-breakdown.csv": "adfe086511a11e9dec5490ffed01f52c62b5234961ed5a206ce63bd8c6368ce4"
+  },
+  "interpretation": "Counts sum repeats; RPS/latency median of per-run statistics; all outcomes retained; same host; no causal comparison to history"
+}

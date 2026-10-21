@@ -96,3 +96,18 @@ export NaN/Infinity. Chưa có latency histogram, nên không dùng quantile tr�
 Xem schema/reason tại [ADAPTIVE_EXPLAINED](ADAPTIVE_EXPLAINED.md). Candidate score
 là pre-reservation của một quyết định thực, khác snapshot current load có thể đã
 thay đổi. Tracing mặc định tắt, tối đa một snapshot và chỉ có dữ liệu bounded.
+
+## Trang giám sát cục bộ
+
+`GET /__proxy/dashboard` dùng cùng guard peer loopback và GET/HEAD như metrics,
+có trên cổng dữ liệu và listener quản lý nếu được bật. POST trả 405; truy cập từ
+LAN trả 403 dù giả `X-Forwarded-For`. Trang không chuyển tiếp yêu cầu tới backend.
+Liên kết trong trạm thử yêu cầu chỉ hiện khi truy cập proxy bằng địa chỉ loopback.
+
+Trang đọc metrics thật mỗi 2 giây; quyết định gần nhất là ảnh chụp riêng, không
+phải nhật ký của mọi yêu cầu. Tổng/thành công/thất bại ở cấp handler gồm cả polling;
+snapshot có thể thấy yêu cầu đọc hiện tại trong tổng nhưng chưa trong hoàn tất.
+Tốc độ hiển thị là `delta(sum(backend.completed)) / delta(thời gian monotonic)`,
+gồm mọi phản hồi upstream, không phải success RPS. Lần đầu, counter reset hoặc
+mất kết nối hiển thị `—`; dữ liệu quá 6 giây có nhãn cũ. Không tạo mẫu CPU/latency
+hoặc số lượng giả để lấp ô trống. Xem [hướng dẫn bảo vệ](DEFENSE_GUIDE.md).

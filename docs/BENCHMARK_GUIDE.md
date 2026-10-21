@@ -1,5 +1,9 @@
 # Benchmark: đo đúng, đọc đủ
 
+Bộ kiểm định cuối và lệnh chạy ma trận ba tải: [DEFENSE_PERFORMANCE](DEFENSE_PERFORMANCE.md).
+Raw đầy đủ được đóng ZIP trong `benchmarks/defense/20261021`, có công cụ xác minh
+độc lập sau khi clone; bộ mới không phụ thuộc thư mục results ignored của máy tác giả.
+
 Đây là thí nghiệm các JVM trên cùng host. Chạy đúng JDK 21; không cần Maven cho
 benchmark. Các Python script đo/verify chỉ dùng standard library. Matplotlib chỉ
 cần lúc tạo chart, không phải dependency của proxy.

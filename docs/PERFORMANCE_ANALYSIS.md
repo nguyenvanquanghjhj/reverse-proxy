@@ -1,4 +1,9 @@
-# Performance analysis — Mixed, 21/10/2026
+# Phân tích lịch sử — Mixed, 21/10/2026
+
+**Bộ lịch sử 10.800 mẫu, nguồn dirty:** giữ nguyên toàn bộ số liệu bên dưới.
+Bộ mới từ commit sạch, nhiều mức tải và raw archive trong Git được phân tích ở
+[DEFENSE_PERFORMANCE](DEFENSE_PERFORMANCE.md). Không ghép hai đợt thành phép đo
+trước/sau hoặc gán chênh lệch cho thay đổi thuật toán.
 
 ## Phạm vi và provenance
 
@@ -14,8 +19,9 @@ rate limiter tắt; circuit bật giống nhau cho RR/LC/Adaptive. Không đổi
 trọng số, timeout, capacity hoặc chọn lại run sau khi thấy kết quả.
 
 [Bundle CSV/provenance](../benchmarks/presentation/mixed-20261021/provenance.json)
-giữ phần dữ liệu cần cho chart trong Git. Full raw timings/telemetry/frozen source
-vẫn ở results ignored và cần được nộp riêng nếu muốn verify độc lập toàn bộ.
+giữ phần dữ liệu cần cho chart trong Git. Bản raw timings/telemetry/frozen source gốc vẫn ở results ignored; bản sao nguyên
+byte hiện được giữ dưới `history/` trong [ZIP kiểm định cuối](../benchmarks/defense/20261021/raw-artifacts.zip).
+Metadata lịch sử vẫn là dirty, không đổi nhãn thành nguồn sạch.
 
 ## Tổng quan
 
@@ -29,7 +35,7 @@ scheduling lag. Error rate gồm mọi non-2xx và lỗi client.
 | Least Connections | 3600 | 2507 | 1093 | 37.68 | 30.36 | 964.21 | 890.13 | 2568.29 | 3132.02 |
 | Adaptive | 3600 | 2668 | 932 | 37.25 | 25.89 | 518.31 | 58.25 | 2036.92 | 2638.75 |
 
-![Throughput and run ranges](assets/charts/mixed-20261021/throughput.svg)
+![Tốc độ và dao động các lần chạy](assets/charts/mixed-20261021/throughput.svg)
 
 Adaptive có nhiều success và ít lỗi tổng nhất trong lượt đo này. Median success
 RPS lại thấp hơn LC khoảng 1,2%; không thể kết luận Adaptive thắng throughput LC.
@@ -62,7 +68,7 @@ Load generator không hoàn toàn theo kịp lịch, nên latency chính gồm c
 | LC | 1553 / 2160 | 766 / 1080 | 188 / 360 | 47.78 |
 | Adaptive | 1676 / 2160 | 833 / 1080 | 159 / 360 | 55.83 |
 
-![Request-type failure rate](assets/charts/mixed-20261021/request-types.svg)
+![Lỗi theo loại yêu cầu](assets/charts/mixed-20261021/request-types.svg)
 
 Adaptive phục vụ light/CPU tốt hơn trong tổng ba repeats nhưng slow kém LC 29
 response thành công, error rate cao hơn khoảng **8,06 điểm phần trăm**. Đây là

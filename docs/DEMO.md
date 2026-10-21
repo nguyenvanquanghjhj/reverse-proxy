@@ -27,7 +27,7 @@ cd D:\PBL4\reverse-proxy-demo
 Set-ExecutionPolicy -Scope Process Bypass
 
 # JDK 21 hiện đã có trên máy kiểm tra; nếu chuyển máy hãy sửa đường dẫn này.
-$env:JAVA_HOME = 'C:\Users\admin\AppData\Local\Temp\pbl4-audit-tools\jdk21\jdk-21.0.12.1+1'
+$env:JAVA_HOME = "$PWD\.demo\tools\jdk21-presentation\jdk-21.0.12.1+1"
 $env:PATH = "$env:JAVA_HOME\bin;$env:PATH"
 java -version
 javac -version
@@ -37,11 +37,9 @@ javac -version
 
 # Build + test bằng Maven, nếu mvn đã có trên PATH:
 mvn verify
-# Hoặc Maven đã có sẵn trên máy kiểm tra:
-& 'C:\Users\admin\AppData\Local\Temp\pbl4-audit-tools\apache-maven-3.9.16\bin\mvn.cmd' verify
 ```
 
-Nên giữ JDK 21 trong vị trí ổn định trên máy trước buổi kiểm tra; đường dẫn Temp trên là vị trí thực đã dùng khi xác minh. Không tải gì trong giờ demo. `demo.ps1 start` tự build lại bằng JDK 21, nên có thể bỏ lệnh build riêng nếu chỉ chạy demo. Không cần Python cho bốn demo.
+Nên giữ JDK 21 trong vị trí ổn định trên máy trước buổi kiểm tra; đường dẫn trên là vị trí thực đã dùng khi xác minh cuối. Không tải gì trong giờ demo. `demo.ps1 start` tự build lại bằng JDK 21, nên có thể bỏ lệnh build riêng nếu chỉ chạy demo. Không cần Python cho bốn demo. Hướng dẫn mới có giám sát cục bộ và ghi quyết định ở [DEFENSE_GUIDE](DEFENSE_GUIDE.md).
 
 Đảm bảo port **8080, 9001, 9002, 9003** còn trống, không chạy benchmark hay script backend/proxy khác đồng thời. Không gửi request từ terminal/trình duyệt khác trong demo RR; chúng cũng làm bộ đếm vòng tiến lên. Tắt tải CPU nặng không liên quan.
 
