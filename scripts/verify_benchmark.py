@@ -3,6 +3,7 @@ import csv
 import hashlib
 import json
 import math
+import statistics
 from pathlib import Path
 import sys
 import benchmark
@@ -105,6 +106,8 @@ def verify(root):
     require(len(backends) == len(summaries) * 3, 'Wrong backend summary count')
     require((root / 'aggregate.csv').is_file() and (root / 'request_types.csv').is_file(), 'Incomplete aggregate outputs')
     require(len(read(root / 'aggregate.csv')) == len(metadata['scenarios']) * len(benchmark.STRATEGIES), 'Incomplete aggregates')
+    type_rows = read(root / 'request_types.csv')
+    expected_type_keys = set()
     total = 0
     for summary in summaries:
         run = root / f"{summary['repeat']}-{summary['scenario']}-{summary['strategy'].lower()}"
@@ -132,6 +135,19 @@ def verify(root):
                 require(math.isclose(max(0, sent-due), actual['client_lag_ms'], abs_tol=1e-5), 'Client lag mismatch')
         recomputed = benchmark.summarize(rows, metadata['offered_rps'])
         match(summary, {k: v for k, v in recomputed.items() if schema >= 2 or k in summary}, 'summary')
+        selected_types = [r for r in type_rows if all(r[k] == summary[k] for k in ('scenario', 'repeat', 'strategy'))]
+        kinds = {r['kind'] for r in rows}
+        require(len(selected_types) == len(kinds) and {r['kind'] for r in selected_types} == kinds,
+                'Missing/duplicate request type')
+        for kind in kinds:
+            expected_type_keys.add((summary['scenario'], summary['repeat'], summary['strategy'], kind))
+            subset = [r for r in rows if r['kind'] == kind]
+            good = [r['latency_ms'] for r in subset if 200 <= r['status'] < 300]
+            stored = next(r for r in selected_types if r['kind'] == kind)
+            match(stored, {'requests': len(subset), 'successes': len(good), 'error_rate': 1-len(good)/len(subset),
+                          'avg_ms': statistics.fmean(good) if good else None,
+                          'p50_ms': benchmark.percentile(good,.5), 'p95_ms': benchmark.percentile(good,.95),
+                          'p99_ms': benchmark.percentile(good,.99)}, 'request_type')
         warmup = read(run / 'warmup.csv')
         warm_plan = benchmark.schedule(summary['scenario'], metadata['warmup_requests'], metadata['offered_rps'], metadata['seed'] + int(summary['repeat']) - 1 + 10000)
         require(len(warmup) == len(warm_plan), 'Warmup count mismatch')
@@ -164,6 +180,22 @@ def verify(root):
             events = read(run / 'events.csv')
             require([e['healthy'] for e in events] == ['False', 'True'], 'Missing outage/recovery events')
         total += len(rows)
+    require(len(type_rows) == len(expected_type_keys) and
+            {(r['scenario'],r['repeat'],r['strategy'],r['kind']) for r in type_rows} == expected_type_keys,
+            'Unexpected request type rows')
+    aggregates = read(root / 'aggregate.csv')
+    for scenario in metadata['scenarios']:
+        for strategy in benchmark.STRATEGIES:
+            selected = [r for r in aggregates if r['scenario'] == scenario and r['strategy'] == strategy]
+            require(len(selected) == 1, 'Missing/duplicate aggregate')
+            group = [r for r in summaries if r['scenario'] == scenario and r['strategy'] == strategy]
+            expected = {'runs': len(group)}
+            for field in ('success_rps','avg_ms','p50_ms','p95_ms','p99_ms','error_rate','client_lag_p95_ms'):
+                values = [float(r[field]) for r in group if r[field] != '']
+                for suffix, operation in (('mean',statistics.fmean),('stddev',statistics.stdev),
+                                          ('median',statistics.median),('min',min),('max',max)):
+                    expected[field+'_'+suffix] = operation(values) if len(values) >= (2 if suffix == 'stddev' else 1) else None
+            match(selected[0], {k:v for k,v in expected.items() if schema >= 2 or k in selected[0]}, 'aggregate')
     print(f'PASS: {len(summaries)} matched runs, {total} requests; hashes, schedules, counters and statistics agree.')
 
 

@@ -185,8 +185,16 @@ class HardeningBenchmarkTest(unittest.TestCase):
             backends.extend(backend)
         b.csv_write(root / 'summary.csv', summaries)
         b.csv_write(root / 'backends.csv', backends)
-        b.csv_write(root / 'aggregate.csv', [dict(strategy=s) for s in b.STRATEGIES])
-        b.csv_write(root / 'request_types.csv', [dict(kind='light')])
+        aggregates=[]
+        for summary in summaries:
+            row=dict(scenario='homogeneous',strategy=summary['strategy'],runs=1)
+            for field in ('success_rps','avg_ms','p50_ms','p95_ms','p99_ms','error_rate','client_lag_p95_ms'):
+                for suffix in ('mean','median','min','max'):row[field+'_'+suffix]=summary[field]
+                row[field+'_stddev']=None
+            aggregates.append(row)
+        b.csv_write(root / 'aggregate.csv',aggregates)
+        b.csv_write(root / 'request_types.csv',[dict(scenario='homogeneous',repeat=1,strategy=s,kind='light',
+                    requests=2,successes=2,error_rate=0,avg_ms=10,p50_ms=10,p95_ms=10,p99_ms=10) for s in b.STRATEGIES])
         self.manifest(root)
 
     def test_verifier_good_output_and_corruptions(self):
@@ -210,7 +218,7 @@ class HardeningBenchmarkTest(unittest.TestCase):
             missing.write_bytes(original)
 
     def test_verifier_recomputes_even_with_updated_manifest(self):
-        for corruption in ('schedule', 'summary', 'counter', 'telemetry', 'missing_run'):
+        for corruption in ('schedule', 'summary', 'counter', 'telemetry', 'missing_run','request_type','aggregate'):
             with self.subTest(corruption=corruption), tempfile.TemporaryDirectory() as tmp:
                 root = Path(tmp)
                 self.artifact(root)
@@ -226,6 +234,11 @@ class HardeningBenchmarkTest(unittest.TestCase):
                     b.csv_write(run / 'boundaries.csv', rows)
                 elif corruption == 'telemetry':
                     (run / 'telemetry.csv').write_text('backend\n')
+                elif corruption in ('request_type','aggregate'):
+                    name='request_types.csv' if corruption=='request_type' else 'aggregate.csv'
+                    values=v.read(root/name)
+                    values[0]['avg_ms' if corruption=='request_type' else 'success_rps_median']=999
+                    b.csv_write(root/name,values)
                 else:
                     rows = v.read(root / 'summary.csv'); b.csv_write(root / 'summary.csv', rows[:-1])
                 self.manifest(root)

@@ -31,7 +31,7 @@ final class DemoPage {
         <html lang="vi">
         <head>
         <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>@@NAME@@ · PBL Request Studio</title>
+        <title>@@NAME@@ · Trạm thử yêu cầu PBL</title>
         <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23087f67'/%3E%3Cpath d='M8 10h16M8 16h16M8 22h10' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
         <style>
         /* Palette and typography */
@@ -65,54 +65,56 @@ final class DemoPage {
         <symbol id="icon-send" viewBox="0 0 24 24"><path d="m3 3 19 9-19 9 4-9-4-9Zm4 9h15"/></symbol>
         </defs></svg>
         <div class="shell">
-        <header><a href="/demo" class="brand"><span class="mark"><svg aria-hidden="true"><use href="#icon-proxy"/></svg></span>PBL <span class="muted">/</span> Request Studio <small>Reverse Proxy Demo</small></a><div class="header-meta"><span id="host"></span><span id="mode" class="badge mode"></span><span class="header-observation" id="header-backend">@@NAME@@</span><span class="header-observation" id="header-strategy">—</span><button class="button" id="theme" aria-pressed="false">Giao diện tối</button></div></header>
+        <header><a href="/demo" class="brand"><span class="mark"><svg aria-hidden="true"><use href="#icon-proxy"/></svg></span>PBL <span class="muted">/</span> Trạm thử yêu cầu <small>Thử nghiệm proxy ngược</small></a><div class="header-meta"><span id="host"></span><span id="mode" class="badge mode"></span><span class="header-observation" id="header-backend">@@NAME@@</span><span class="header-observation" id="header-strategy">—</span><button class="button" id="theme" aria-pressed="false">Giao diện tối</button></div></header>
         <main id="main">
-        <section class="intro"><div><div class="eyebrow">PBL4 / Network observability</div><h1>Theo dấu từng request.</h1><p>Gửi một tác vụ, quan sát đường đi và xác nhận backend thực sự xử lý.</p><div class="badges"><span class="badge">Trang: @@NAME@@ · :@@PORT@@</span><span class="badge">PID @@PID@@</span><span class="badge">Capacity @@CAPACITY@@</span><span class="badge">Delay @@DELAY@@ ms</span><span class="badge" id="overview-strategy">Strategy —</span></div></div><div class="origin"><small>PHẢN HỒI TRANG TỪ</small><strong>Backend @@NUMBER@@ / @@NAME@@</strong><a id="proxy-link" class="button" hidden>Đi qua Proxy ↗</a></div></section>
-        <section class="metrics" aria-label="Thống kê request trong lần mở trang này"><div class="metric"><small>Completed</small><strong id="finished">0</strong></div><div class="metric"><small>Success · HTTP 2xx</small><strong id="succeeded">0</strong></div><div class="metric"><small>Errors</small><strong id="error-count">0</strong></div><div class="metric"><small>Average latency · ms</small><strong id="average">—</strong></div><div class="metric"><small>Last status</small><strong class="word" id="last-status">—</strong></div><div class="metric"><small>Selected backend</small><strong class="word" id="selected-backend">@@NAME@@</strong></div><div class="metric"><small>Connection mode</small><strong class="word" id="metric-mode">—</strong></div></section>
+        <section class="intro"><div><div class="eyebrow">PBL4 / Giám sát mạng</div><h1>Theo dấu từng yêu cầu.</h1><p>Gửi một tác vụ, quan sát đường đi và xác nhận máy chủ thực sự xử lý.</p><div class="badges"><span class="badge">Trang: @@NAME@@ · :@@PORT@@</span><span class="badge">PID @@PID@@</span><span class="badge">Số luồng xử lý @@CAPACITY@@</span><span class="badge">Độ trễ @@DELAY@@ ms</span><span class="badge" id="overview-strategy">Chiến lược —</span></div></div><div class="origin"><small>PHẢN HỒI TRANG TỪ</small><strong>Máy chủ @@NUMBER@@ / @@NAME@@</strong><a id="proxy-link" class="button" hidden>Đi qua proxy ↗</a><a id="monitor-link" class="button" href="/__proxy/dashboard" hidden>Giám sát máy cục bộ ↗</a></div></section>
+        <section class="metrics" aria-label="Thống kê yêu cầu trong lần mở trang này"><div class="metric"><small>Đã hoàn tất</small><strong id="finished">0</strong></div><div class="metric"><small>Thành công · HTTP 2xx</small><strong id="succeeded">0</strong></div><div class="metric"><small>Thất bại</small><strong id="error-count">0</strong></div><div class="metric"><small>Độ trễ trung bình · ms</small><strong id="average">—</strong></div><div class="metric"><small>Trạng thái gần nhất</small><strong class="word" id="last-status">—</strong></div><div class="metric"><small>Máy chủ được chọn</small><strong class="word" id="selected-backend">@@NAME@@</strong></div><div class="metric"><small>Cách kết nối</small><strong class="word" id="metric-mode">—</strong></div></section>
         <div class="workspace">
-        <section class="panel" aria-labelledby="request-title"><div class="section-top"><h2 id="request-title">Request Studio</h2><span class="step">01 / GỬI REQUEST</span></div><p class="muted">Chọn công việc để quan sát cách định tuyến.</p>
+        <section class="panel" aria-labelledby="request-title"><div class="section-top"><h2 id="request-title">Trạm thử yêu cầu</h2><span class="step">01 / GỬI YÊU CẦU</span></div><p class="muted">Chọn công việc để quan sát cách định tuyến.</p>
         <div class="types" role="group" aria-label="Request thử tải">
-        <button class="type" data-kind="work" aria-pressed="true"><svg aria-hidden="true"><use href="#icon-work"/></svg><strong>Light / Work</strong><code>/work</code><small>Tác vụ nhẹ · quan sát phân phối request.</small></button>
-        <button class="type" data-kind="slow" aria-pressed="false"><svg aria-hidden="true"><use href="#icon-slow"/></svg><strong>Slow</strong><code>/slow</code><small>Chờ 2 giây · quan sát độ trễ phản hồi.</small></button>
-        <button class="type" data-kind="compute" aria-pressed="false"><svg aria-hidden="true"><use href="#icon-cpu"/></svg><strong>CPU / Compute</strong><code>/compute</code><small>Tính toán CPU · thử công việc nặng.</small></button>
+        <button class="type" data-kind="work" aria-pressed="true"><svg aria-hidden="true"><use href="#icon-work"/></svg><strong>Tác vụ nhẹ</strong><code>/work</code><small>Tác vụ nhẹ · quan sát phân phối yêu cầu.</small></button>
+        <button class="type" data-kind="slow" aria-pressed="false"><svg aria-hidden="true"><use href="#icon-slow"/></svg><strong>Tác vụ chậm</strong><code>/slow</code><small>Chờ 2 giây · quan sát độ trễ phản hồi.</small></button>
+        <button class="type" data-kind="compute" aria-pressed="false"><svg aria-hidden="true"><use href="#icon-cpu"/></svg><strong>Tính toán CPU</strong><code>/compute</code><small>Tính toán CPU · thử công việc nặng.</small></button>
         </div>
         <details class="more"><summary>Tác vụ ứng dụng <span class="muted">· 3 lựa chọn</span></summary><div class="types" role="group" aria-label="Tác vụ ứng dụng">
         <button class="type" data-kind="products" aria-pressed="false"><svg aria-hidden="true"><use href="#icon-server"/></svg><strong>Xem sản phẩm</strong><code>/products</code><small>GET JSON · đọc danh sách sản phẩm.</small></button>
         <button class="type" data-kind="download" aria-pressed="false"><svg aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 16v4h16v-4"/></svg><strong>Tải tệp</strong><code>/download</code><small>Tệp nhị phân · quan sát truyền dữ liệu.</small></button>
-        <button class="type" data-kind="orders" aria-pressed="false"><svg aria-hidden="true"><path d="M6 7h12l1 14H5L6 7Zm3 0V5a3 3 0 0 1 6 0v2M9 13l2 2 4-4"/></svg><strong>Đặt đơn thử</strong><code>/orders</code><small>POST form · kiểm tra gửi dữ liệu.</small></button>
+        <button class="type" data-kind="orders" aria-pressed="false"><svg aria-hidden="true"><path d="M6 7h12l1 14H5L6 7Zm3 0V5a3 3 0 0 1 6 0v2M9 13l2 2 4-4"/></svg><strong>Đặt đơn thử</strong><code>/orders</code><small>POST biểu mẫu · kiểm tra gửi dữ liệu.</small></button>
         </div></details>
         <div class="request-config"><p id="config-description"></p><label class="field" id="config-download" hidden>Kích thước tệp<select id="file-size"><option value="64">64 KiB</option><option value="256" selected>256 KiB</option><option value="768">768 KiB</option></select></label><label class="field" id="config-orders" hidden>Số lượng sổ tay<input id="quantity" type="number" min="1" max="10" step="1" required value="1"></label></div>
-        <div class="endpoint"><span class="method" id="method">GET</span><code id="endpoint">/work?cost=1</code></div><div class="send-row"><button class="send" id="send"><svg aria-hidden="true"><use href="#icon-send"/></svg><span id="send-label">Gửi request</span></button><span class="help" id="action-note">Chỉ gửi khi bạn bấm. Không tự retry hoặc polling.</span><span class="pending" id="pending" role="status" aria-live="polite">Sẵn sàng · một request mỗi lần</span></div>
-        <div class="decision"><h3>Giải thích định tuyến</h3><div class="decision-grid"><div><small>Chế độ</small><strong id="decision-mode">—</strong></div><div><small>Strategy từ response</small><strong id="decision-strategy">—</strong></div><div><small>Backend gần nhất</small><strong id="decision-backend">@@NAME@@ · phản hồi trang</strong></div><div><small>Request gần nhất</small><strong id="decision-type">Tải trang /demo</strong></div><div><small>Endpoint gần nhất</small><strong id="decision-endpoint">—</strong></div></div><p class="help" id="decision-note"></p></div>
+        <div class="endpoint"><span class="method" id="method">GET</span><code id="endpoint">/work?cost=1</code></div><div class="send-row"><button class="send" id="send"><svg aria-hidden="true"><use href="#icon-send"/></svg><span id="send-label">Gửi yêu cầu</span></button><span class="help" id="action-note">Chỉ gửi khi bạn bấm. Không tự gửi lại hoặc tự thăm dò.</span><span class="pending" id="pending" role="status" aria-live="polite">Sẵn sàng · một yêu cầu mỗi lần</span></div>
+        <div class="decision"><h3>Giải thích định tuyến</h3><div class="decision-grid"><div><small>Chế độ</small><strong id="decision-mode">—</strong></div><div><small>Chiến lược từ phản hồi</small><strong id="decision-strategy">—</strong></div><div><small>Máy chủ gần nhất</small><strong id="decision-backend">@@NAME@@ · phản hồi trang</strong></div><div><small>Yêu cầu gần nhất</small><strong id="decision-type">Tải trang /demo</strong></div><div><small>Đường dẫn gần nhất</small><strong id="decision-endpoint">—</strong></div></div><p class="help" id="decision-note"></p></div>
         </section>
-        <div class="stack"><section class="panel routing" aria-labelledby="routing-title"><div class="section-top"><h2 id="routing-title">Request đi đâu?</h2><span class="step">02 / ĐƯỜNG ĐI</span></div>
-        <div class="flow"><div class="node"><svg aria-hidden="true"><use href="#icon-client"/></svg><strong>Client</strong><small>Trình duyệt của bạn</small></div><span class="connector" aria-hidden="true">→</span><div class="node" id="proxy-node"><svg aria-hidden="true"><use href="#icon-proxy"/></svg><strong>Reverse Proxy</strong><small id="proxy-host"></small></div><span class="connector" id="proxy-connector" aria-hidden="true">→</span><div class="node selected-node" id="backend-node"><svg aria-hidden="true"><use href="#icon-server"/></svg><strong id="flow-backend">@@NAME@@</strong><small id="flow-port">Backend :@@PORT@@</small><span class="badge" id="flow-badge">Selected · trang</span></div></div>
-        <p class="route-note" id="strategy">Strategy sẽ xuất hiện khi có response từ proxy.</p>
-        <div class="servers" id="servers"></div><p class="help">Telemetry là snapshot của backend trả trang, không phải trạng thái trực tiếp. <time datetime="@@TIME@@" id="snapshot-time">@@TIME@@</time></p><p class="help" id="backend-links-note"></p>
+        <div class="stack"><section class="panel routing" aria-labelledby="routing-title"><div class="section-top"><h2 id="routing-title">Yêu cầu đi đâu?</h2><span class="step">02 / ĐƯỜNG ĐI</span></div>
+        <div class="flow"><div class="node"><svg aria-hidden="true"><use href="#icon-client"/></svg><strong>Máy khách</strong><small>Trình duyệt của bạn</small></div><span class="connector" aria-hidden="true">→</span><div class="node" id="proxy-node"><svg aria-hidden="true"><use href="#icon-proxy"/></svg><strong>Proxy ngược</strong><small id="proxy-host"></small></div><span class="connector" id="proxy-connector" aria-hidden="true">→</span><div class="node selected-node" id="backend-node"><svg aria-hidden="true"><use href="#icon-server"/></svg><strong id="flow-backend">@@NAME@@</strong><small id="flow-port">Máy chủ :@@PORT@@</small><span class="badge" id="flow-badge">Được chọn · tải trang</span></div></div>
+        <p class="route-note" id="strategy">Chiến lược sẽ xuất hiện khi có phản hồi từ proxy.</p>
+        <div class="servers" id="servers"></div><p class="help">Số liệu là ảnh chụp của máy chủ trả trang, không phải trạng thái trực tiếp. <time datetime="@@TIME@@" id="snapshot-time">@@TIME@@</time></p><p class="help" id="backend-links-note"></p>
         </section>
-        <section class="panel result-panel" id="result-panel" aria-labelledby="result-title"><div class="section-top"><h2 id="result-title">Kết quả phản hồi</h2><span id="result-meta" class="badge">03 / RESPONSE</span></div><div id="result" class="result-content" aria-live="polite" aria-atomic="true"><div class="placeholder"><svg aria-hidden="true"><use href="#icon-send"/></svg><p>Chưa có request nào.</p><small>Chọn tác vụ và gửi để xem response thật.</small></div></div><button id="copy" class="button" hidden>Copy response</button><span id="copy-status" class="help" role="status"></span></section></div>
+        <section class="panel result-panel" id="result-panel" aria-labelledby="result-title"><div class="section-top"><h2 id="result-title">Kết quả phản hồi</h2><span id="result-meta" class="badge">03 / PHẢN HỒI</span></div><div id="result" class="result-content" aria-live="polite" aria-atomic="true"><div class="placeholder"><svg aria-hidden="true"><use href="#icon-send"/></svg><p>Chưa có yêu cầu nào.</p><small>Chọn tác vụ và gửi để xem phản hồi thật.</small></div></div><button id="copy" class="button" hidden>Sao chép phản hồi</button><span id="copy-status" class="help" role="status"></span></section></div>
         </div>
-        <section class="panel log" aria-labelledby="log-title"><div class="section-top"><h2 id="log-title">Nhật ký request</h2><span class="help" id="history-note">6 request gần nhất · lưu trong tab/origin</span></div><div class="table-wrap" role="region" aria-label="Lịch sử request, có thể cuộn ngang" tabindex="0"><table><thead><tr><th scope="col">Kết quả</th><th scope="col">Tác vụ / thời điểm</th><th scope="col">Backend</th><th scope="col">Mode / strategy</th><th scope="col">Latency</th><th scope="col">Dữ liệu / lỗi</th></tr></thead><tbody id="log"></tbody></table></div><p class="help log-note">Metrics phía trên tính trong lần mở trang này. Latency gồm thời gian chờ và nhận hết response; trung bình chỉ tính request thành công. Lịch sử giữ tối đa 6 request hoàn tất, không gồm lượt tải trang.</p></section>
-        <details class="technical"><summary>Thông tin snapshot của trang</summary><p class="help">Backend @@NUMBER@@ · @@NAME@@ · port @@PORT@@ · PID @@PID@@ · Capacity @@CAPACITY@@ · Active @@ACTIVE@@ · Queued @@QUEUED@@ · Delay @@DELAY@@ ms · Request count @@REQUEST@@ · Heap @@HEAP@@ MiB. Snapshot lúc @@TIME@@. Các giá trị không tự cập nhật.</p></details>
-        </main><footer><span>PBL4 / Reverse Proxy &amp; Load Balancing</span><span>Không polling · Không tài nguyên ngoài · Đơn thử không thanh toán, không lưu bền</span></footer><noscript><p class="noscript">Bật JavaScript để gửi request. Trang được trả bởi @@NAME@@, port @@PORT@@.</p></noscript></div>
+        <section class="panel log" aria-labelledby="log-title"><div class="section-top"><h2 id="log-title">Nhật ký yêu cầu</h2><span class="help" id="history-note">6 yêu cầu gần nhất · lưu trong thẻ trình duyệt / địa chỉ gốc</span></div><div class="table-wrap" role="region" aria-label="Lịch sử yêu cầu, có thể cuộn ngang" tabindex="0"><table><thead><tr><th scope="col">Kết quả</th><th scope="col">Tác vụ / thời điểm</th><th scope="col">Máy chủ</th><th scope="col">Kết nối / chiến lược</th><th scope="col">Độ trễ</th><th scope="col">Dữ liệu / lỗi</th></tr></thead><tbody id="log"></tbody></table></div><p class="help log-note">Số liệu phía trên tính trong lần mở trang này. Độ trễ gồm thời gian chờ và nhận hết phản hồi; trung bình chỉ tính yêu cầu thành công. Lịch sử giữ tối đa 6 yêu cầu hoàn tất, không gồm lượt tải trang.</p></section>
+        <details class="technical"><summary>Thông tin ảnh chụp của trang</summary><p class="help">Máy chủ @@NUMBER@@ · @@NAME@@ · cổng @@PORT@@ · PID @@PID@@ · Số luồng xử lý @@CAPACITY@@ · Đang xử lý @@ACTIVE@@ · Đang chờ @@QUEUED@@ · Độ trễ @@DELAY@@ ms · Tổng yêu cầu @@REQUEST@@ · Bộ nhớ JVM @@HEAP@@ MiB. Chụp lúc @@TIME@@. Các giá trị không tự cập nhật.</p></details>
+        </main><footer><span>PBL4 / Proxy ngược &amp; Cân bằng tải</span><span>Không tự thăm dò · Không tài nguyên ngoài · Đơn thử không thanh toán, không lưu bền</span></footer><noscript><p class="noscript">Bật JavaScript để gửi yêu cầu. Trang được trả bởi @@NAME@@, port @@PORT@@.</p></noscript></div>
         <script>
         (() => {
           'use strict';
           const $ = id => document.getElementById(id);
+          $('monitor-link').hidden = !(@@VIA@@ && ['127.0.0.1','localhost','[::1]'].includes(location.hostname));
           const via = document.body.dataset.viaProxy === 'true', pagePort = document.body.dataset.backend;
           const local = ['127.0.0.1','localhost','[::1]'].includes(location.hostname);
-          const mode = via ? 'Through Proxy' : 'Direct Backend';
+          const mode = via ? 'Qua proxy' : 'Kết nối trực tiếp';
           const names = {'9001':'Aurora','9002':'Ember','9003':'Orbit'};
           const colors = {'9001':'var(--aurora)','9002':'var(--ember)','9003':'var(--orbit)'};
           const historyKey = 'pbl-request-studio-history-v1';
           let kind = 'work', pending = false, finished = 0, succeeded = 0, totalMs = 0, objectUrl = null, copyText = '', rows = [];
           const counts = {'9001':0,'9002':0,'9003':0};
-          const titles = {work:'Light / Work',slow:'Slow',compute:'CPU / Compute',products:'Xem sản phẩm',download:'Tải tệp',orders:'Đặt đơn thử'};
-          const descriptions = {work:'GET nhẹ, cost = 1. Thời gian xử lý phụ thuộc delay cấu hình của backend.',slow:'Backend chờ 2 giây. Theo dõi trạng thái đang gửi và độ trễ thực tế.',compute:'Backend tính CPU với cost = 8. Đây là công việc thật, không phải số CPU giả lập.',products:'Lấy danh sách 3 sản phẩm mẫu dưới dạng JSON.',download:'Nhận đủ tệp nhị phân vào bộ nhớ trước khi lưu, tối đa 768 KiB.',orders:'Đặt thử Sổ tay PBL · 49.000 đ/cuốn. Mỗi lần gửi tạo một đơn demo mới.'};
+          const strategyName = s => ({ROUND_ROBIN:'Luân phiên',LEAST_CONNECTIONS:'Ít kết nối nhất',ADAPTIVE:'Thích nghi'}[s] || s || '—');
+          const titles = {work:'Tác vụ nhẹ',slow:'Tác vụ chậm',compute:'Tính toán CPU',products:'Xem sản phẩm',download:'Tải tệp',orders:'Đặt đơn thử'};
+          const descriptions = {work:'GET nhẹ, cost = 1. Thời gian xử lý phụ thuộc độ trễ cấu hình của máy chủ.',slow:'Máy chủ chờ 2 giây. Theo dõi trạng thái đang gửi và độ trễ thực tế.',compute:'Máy chủ tính CPU với cost = 8. Đây là công việc thật, không phải số CPU giả lập.',products:'Lấy danh sách 3 sản phẩm mẫu dưới dạng JSON.',download:'Nhận đủ tệp nhị phân vào bộ nhớ trước khi lưu, tối đa 768 KiB.',orders:'Đặt thử Sổ tay PBL · 49.000 đ/cuốn. Mỗi lần gửi tạo một đơn thử mới.'};
           function element(tag, text, className) { const node = document.createElement(tag); if (text != null) node.textContent = text; if (className) node.className = className; return node; }
-          function backendName(port) { return Object.hasOwn(names, port) ? names[port] : port ? 'Backend :' + port : '—'; }
+          function backendName(port) { return Object.hasOwn(names, port) ? names[port] : port ? 'Máy chủ :' + port : '—'; }
           function bytesText(n) { return n < 1024 ? n + ' B' : (n / 1024).toFixed(1) + ' KiB'; }
-          function storageNotice() { $('history-note').textContent = '6 request gần nhất · không thể lưu sessionStorage'; }
+          function storageNotice() { $('history-note').textContent = '6 yêu cầu gần nhất · không thể lưu lịch sử trong thẻ'; }
           const shortText = (value, limit) => typeof value === 'string' && value.length <= limit;
           const validPort = value => typeof value === 'string' && String(Number(value)) === value && Number.isInteger(Number(value)) && Number(value) > 0 && Number(value) <= 65535;
           function validHistory(item) {
@@ -121,7 +123,7 @@ final class DemoPage {
               && Number.isFinite(item.ms) && item.ms >= 0 && typeof item.ok === 'boolean'
               && shortText(item.path,100) && item.path.startsWith('/' + item.kind)
               && item.method === (item.kind === 'orders' ? 'POST' : 'GET')
-              && ['Through Proxy','Direct Backend'].includes(item.mode)
+              && ['Qua proxy','Kết nối trực tiếp'].includes(item.mode)
               && (item.port === null || validPort(item.port))
               && (item.strategy === null || shortText(item.strategy,100))
               && (item.status == null || Number.isInteger(item.status) && item.status >= 100 && item.status <= 599)
@@ -129,38 +131,38 @@ final class DemoPage {
               && (item.bytes == null || Number.isSafeInteger(item.bytes) && item.bytes >= 0)
               && (item.message == null || shortText(item.message,500));
           }
-          try { const saved = JSON.parse(sessionStorage.getItem(historyKey) || '[]'); if (Array.isArray(saved)) rows = saved.filter(validHistory).slice(0,6); } catch (_) { storageNotice(); }
+          try { const saved = JSON.parse(sessionStorage.getItem(historyKey) || '[]'); if (Array.isArray(saved)) rows = saved.map(item => item && ({...item, mode:({'Through Proxy':'Qua proxy','Direct Backend':'Kết nối trực tiếp'}[item.mode] || item.mode)})).filter(validHistory).slice(0,6); } catch (_) { storageNotice(); }
           let dark = matchMedia('(prefers-color-scheme: dark)').matches;
           try { const saved = sessionStorage.getItem('pbl-theme'); if (saved === 'dark' || saved === 'light') dark = saved === 'dark'; } catch (_) { }
           function setTheme() { document.documentElement.dataset.theme = dark ? 'dark' : 'light'; $('theme').setAttribute('aria-pressed',String(dark)); $('theme').textContent = dark ? 'Giao diện sáng' : 'Giao diện tối'; }
           setTheme(); $('theme').addEventListener('click', () => { dark = !dark; setTheme(); try { sessionStorage.setItem('pbl-theme',dark ? 'dark' : 'light'); } catch (_) { } });
-          $('host').textContent = location.host; $('mode').textContent = mode; $('metric-mode').textContent = via ? 'Proxy' : 'Direct'; $('decision-mode').textContent = mode;
+          $('host').textContent = location.host; $('mode').textContent = mode; $('metric-mode').textContent = via ? 'Qua proxy' : 'Trực tiếp'; $('decision-mode').textContent = mode;
           $('decision-endpoint').textContent = location.origin + '/demo'; $('proxy-host').textContent = location.host;
           $('proxy-node').hidden = !via; $('proxy-connector').hidden = !via;
-          $('decision-note').textContent = via ? 'Proxy không expose score chi tiết trong response này.' : 'Request đi thẳng tới backend trên URL, không qua cân bằng tải.';
+          $('decision-note').textContent = via ? 'Xem điểm lựa chọn chi tiết tại trang giám sát cục bộ khi đã bật ghi quyết định.' : 'Yêu cầu đi thẳng tới máy chủ trong địa chỉ, không qua cân bằng tải.';
           $('snapshot-time').textContent = new Date('@@TIME@@').toLocaleString('vi-VN');
           if (!via) { const url = new URL('/demo',location.href); url.port = '8080'; $('proxy-link').href = url.href; $('proxy-link').hidden = false; }
-          $('backend-links-note').textContent = local ? 'Bấm tên backend để mở trực tiếp trên máy chủ.' : 'Backend nội bộ máy chủ; máy khách truy cập qua Proxy.';
-          const snapshot = [['PID','@@PID@@'],['Capacity','@@CAPACITY@@'],['Active / queued','@@ACTIVE@@ / @@QUEUED@@'],['Delay','@@DELAY@@ ms'],['Request count','@@REQUEST@@'],['Heap','@@HEAP@@ MiB']];
+          $('backend-links-note').textContent = local ? 'Bấm tên máy chủ để mở trực tiếp trên máy chủ.' : 'Máy chủ nằm trong mạng nội bộ; máy khách truy cập qua proxy.';
+          const snapshot = [['PID','@@PID@@'],['Số luồng xử lý','@@CAPACITY@@'],['Đang xử lý / chờ','@@ACTIVE@@ / @@QUEUED@@'],['Độ trễ','@@DELAY@@ ms'],['Tổng yêu cầu','@@REQUEST@@'],['Bộ nhớ JVM','@@HEAP@@ MiB']];
           const ports = Object.keys(names); if (!ports.includes(pagePort)) { ports.push(pagePort); names[pagePort] = '@@NAME@@'; colors[pagePort] = 'var(--accent)'; counts[pagePort] = 0; }
           ports.forEach((port,index) => {
             const card = element('article',null,'server'); card.dataset.server = port; card.style.setProperty('--server',colors[port]);
-            card.append(element('div','BACKEND ' + (index + 1).toString().padStart(2,'0'),'server-number'));
+            card.append(element('div','MÁY CHỦ ' + (index + 1).toString().padStart(2,'0'),'server-number'));
             const title = element('div',null,'server-name'), link = element('a',names[port]);
             if (local) { const url = new URL('/demo',location.href); url.port = port; link.href = url.href; }
-            title.append(link,element('small',' :' + port)); card.append(title,element('span','Not observed','badge'));
+            title.append(link,element('small',' :' + port)); card.append(title,element('span','Chưa quan sát','badge'));
             const dl = element('dl'); snapshot.forEach(([key,value]) => { const row = element('div'); row.append(element('dt',key),element('dd',port === pagePort ? value : '—')); dl.append(row); });
-            card.append(dl,element('p','0 response trong lần mở trang','observed')); $('servers').append(card);
+            card.append(dl,element('p','0 phản hồi trong lần mở trang','observed')); $('servers').append(card);
           });
           function routing(port, strategy, initial = false) {
             const name = backendName(port), color = colors[port] || 'var(--accent)';
             $('selected-backend').textContent = name; $('header-backend').textContent = name; $('flow-backend').textContent = name === '—' ? 'Chưa xác định' : name;
-            $('flow-port').textContent = port ? 'Backend :' + port : 'Không có header backend'; $('flow-badge').textContent = port ? 'Selected' + (initial ? ' · trang' : '') : 'Unknown';
+            $('flow-port').textContent = port ? 'Máy chủ :' + port : 'Không có tiêu đề máy chủ'; $('flow-badge').textContent = port ? 'Được chọn' + (initial ? ' · trang' : '') : 'Chưa xác định';
             $('backend-node').style.setProperty('--node-color',color); $('decision-backend').textContent = name + (initial ? ' · phản hồi trang' : '');
-            const strategyText = via ? strategy || '—' : 'Không áp dụng';
-            $('header-strategy').textContent = via ? strategyText : ''; $('overview-strategy').textContent = 'Strategy · ' + strategyText; $('decision-strategy').textContent = strategyText;
-            $('strategy').textContent = via ? strategy ? 'Strategy · ' + strategy + ' · từ response header' : 'Chưa có strategy trong response. Gửi request để quan sát header thật.' : 'Direct Backend · Client kết nối trực tiếp, không đi qua Proxy.';
-            document.querySelectorAll('[data-server]').forEach(card => { const p = card.dataset.server; card.dataset.selected = String(p === port); card.querySelector('.badge').textContent = p === port ? 'Selected' : p === pagePort ? 'Page snapshot' : counts[p] ? 'Observed' : 'Not observed'; card.querySelector('.observed').textContent = counts[p] + ' response trong lần mở trang'; });
+            const strategyText = via ? strategyName(strategy) : 'Không áp dụng';
+            $('header-strategy').textContent = via ? strategyText : ''; $('overview-strategy').textContent = 'Chiến lược · ' + strategyText; $('decision-strategy').textContent = strategyText;
+            $('strategy').textContent = via ? strategy ? 'Chiến lược · ' + strategyName(strategy) + ' · từ tiêu đề phản hồi' : 'Chưa có chiến lược trong phản hồi. Gửi yêu cầu để quan sát tiêu đề thật.' : 'Kết nối trực tiếp · Máy khách kết nối trực tiếp, không đi qua Proxy.';
+            document.querySelectorAll('[data-server]').forEach(card => { const p = card.dataset.server; card.dataset.selected = String(p === port); card.querySelector('.badge').textContent = p === port ? 'Được chọn' : p === pagePort ? 'Ảnh chụp khi tải trang' : counts[p] ? 'Đã quan sát' : 'Chưa quan sát'; card.querySelector('.observed').textContent = counts[p] + ' phản hồi trong lần mở trang'; });
             if (!initial) { $('backend-node').classList.remove('pulse'); void $('backend-node').offsetWidth; $('backend-node').classList.add('pulse'); }
           }
           routing(pagePort,null,true);
@@ -169,25 +171,25 @@ final class DemoPage {
             document.querySelectorAll('[data-kind]').forEach(button => button.setAttribute('aria-pressed',String(button.dataset.kind === kind)));
             $('config-description').textContent = descriptions[kind]; $('config-download').hidden = kind !== 'download'; $('config-orders').hidden = kind !== 'orders';
             const config = settings(); $('method').textContent = config.method; $('endpoint').textContent = config.path;
-            $('action-note').textContent = kind === 'orders' ? 'Đơn thử không lưu bền. Không tự gửi lại khi lỗi hoặc timeout.' : 'Chỉ gửi khi bạn bấm. Không tự retry hoặc polling.';
+            $('action-note').textContent = kind === 'orders' ? 'Đơn thử không lưu bền. Không tự gửi lại khi lỗi hoặc hết thời gian chờ.' : 'Chỉ gửi khi bạn bấm. Không tự gửi lại hoặc tự thăm dò.';
           }
           document.querySelectorAll('[data-kind]').forEach(button => button.addEventListener('click',() => {kind = button.dataset.kind; configure();})); $('file-size').addEventListener('change',configure); configure();
           function statusText(item) { return item.status ? 'HTTP ' + item.status : 'Lỗi mạng'; }
           function renderHistory() {
             $('log').replaceChildren();
-            if (!rows.length) { const tr = element('tr'), td = element('td','Chưa có request. Bắt đầu từ Request Studio phía trên.','empty'); td.colSpan = 6; tr.append(td); $('log').append(tr); }
+            if (!rows.length) { const tr = element('tr'), td = element('td','Chưa có yêu cầu. Bắt đầu từ Trạm thử yêu cầu phía trên.','empty'); td.colSpan = 6; tr.append(td); $('log').append(tr); }
             rows.forEach(item => {
               const tr = element('tr'); const cells = Array.from({length:6},() => element('td')); cells[0].append(element('span',(item.ok ? '✓ ' : '✕ ') + statusText(item),'status' + (item.ok ? '' : ' error')));
               cells[1].append(element('div',titles[item.kind]),element('small',new Date(item.time).toLocaleString('vi-VN')),element('small',item.path));
-              cells[2].textContent = backendName(item.port); cells[3].append(element('div',item.mode),element('small',item.mode === 'Direct Backend' ? 'Không áp dụng' : item.strategy || '—'));
+              cells[2].textContent = backendName(item.port); cells[3].append(element('div',item.mode),element('small',item.mode === 'Kết nối trực tiếp' ? 'Không áp dụng' : strategyName(item.strategy)));
               cells[4].textContent = item.ms.toFixed(1) + ' ms'; cells[5].textContent = item.bytes == null ? '—' : bytesText(item.bytes); if (item.message) cells[5].append(element('small',item.message,'error-text'));
               tr.append(...cells); $('log').append(tr);
             });
           }
           renderHistory();
           function update() {
-            $('send').disabled = pending; $('send-label').textContent = pending ? 'Đang gửi request…' : 'Gửi request'; $('send').setAttribute('aria-busy',String(pending));
-            $('pending').textContent = pending ? 'Đang chờ response · không gửi lặp' : 'Sẵn sàng · một request mỗi lần';
+            $('send').disabled = pending; $('send-label').textContent = pending ? 'Đang gửi yêu cầu…' : 'Gửi yêu cầu'; $('send').setAttribute('aria-busy',String(pending));
+            $('pending').textContent = pending ? 'Đang chờ phản hồi · không gửi lặp' : 'Sẵn sàng · một yêu cầu mỗi lần';
             $('finished').textContent = finished; $('succeeded').textContent = succeeded; $('error-count').textContent = finished - succeeded; $('average').textContent = succeeded ? (totalMs / succeeded).toFixed(1) : '—';
           }
           function releaseDownload() { if (objectUrl) { URL.revokeObjectURL(objectUrl); objectUrl = null; } }
@@ -198,15 +200,15 @@ final class DemoPage {
             $('result').replaceChildren(); $('copy-status').textContent = ''; $('copy').hidden = true;
             $('result-panel').dataset.state = item.ok ? 'success' : 'error'; $('result-meta').className = 'status' + (item.ok ? '' : ' error');
             $('result-meta').textContent = (item.ok ? '✓ Thành công · ' : '✕ ') + statusText(item);
-            const meta = element('div',null,'result-details'); meta.append(element('span',backendName(item.port)),element('span',item.mode),element('span',via ? item.strategy || 'Strategy —' : 'Strategy · Không áp dụng'),element('span',item.ms.toFixed(1) + ' ms'),element('code',item.method + ' ' + item.path)); $('result').append(meta);
-            if (!item.ok) { $('result').append(element('h3',item.status === 503 ? 'Backend / dịch vụ không sẵn sàng' : item.status ? item.status >= 400 ? 'HTTP error' : 'Response không hợp lệ' : 'Không nhận được response'),element('p',item.message,'error-text')); }
+            const meta = element('div',null,'result-details'); meta.append(element('span',backendName(item.port)),element('span',item.mode),element('span',via ? strategyName(item.strategy) : 'Chiến lược · Không áp dụng'),element('span',item.ms.toFixed(1) + ' ms'),element('code',item.method + ' ' + item.path)); $('result').append(meta);
+            if (!item.ok) { $('result').append(element('h3',item.status === 503 ? 'Máy chủ / dịch vụ không sẵn sàng' : item.status ? item.status >= 400 ? 'Lỗi HTTP' : 'Phản hồi không hợp lệ' : 'Không nhận được phản hồi'),element('p',item.message,'error-text')); }
             else if (item.kind === 'products') { const list = element('ul',null,'product-list'); data.products.forEach(product => {const li = element('li'); li.append(element('span',product.name),element('strong',Number(product.price).toLocaleString('vi-VN') + ' đ')); list.append(li);}); $('result').append(list); }
             else if (item.kind === 'orders') { $('result').append(element('p','Đã tạo đơn thử · ' + data.quantity + ' × ' + data.product),element('code',data.orderId),element('p','Tổng mô phỏng: ' + Number(data.total).toLocaleString('vi-VN') + ' đ'),element('p','Không thanh toán, không lưu bền.','help')); }
-            else if (item.kind === 'download') { $('result').append(element('p','Đã nhận đủ ' + bytesText(blob.size) + ' từ backend.')); objectUrl = URL.createObjectURL(blob); const save = element('a','Lưu tệp về máy ↓','save-file'); save.href = objectUrl; save.download = 'pbl4-demo-' + fileKiB + 'KiB.bin'; $('result').append(save,element('p','Lưu từ dữ liệu đã nhận, không gửi thêm HTTP request.','help')); }
+            else if (item.kind === 'download') { $('result').append(element('p','Đã nhận đủ ' + bytesText(blob.size) + ' từ máy chủ.')); objectUrl = URL.createObjectURL(blob); const save = element('a','Lưu tệp về máy ↓','save-file'); save.href = objectUrl; save.download = 'pbl4-demo-' + fileKiB + 'KiB.bin'; $('result').append(save,element('p','Lưu từ dữ liệu đã nhận, không gửi thêm yêu cầu HTTP.','help')); }
             copyText = raw || item.message || ''; if (raw) $('result').append(element('pre',raw));
             $('copy').hidden = !copyText || !navigator.clipboard?.writeText;
           }
-          $('copy').addEventListener('click',async () => { try { await navigator.clipboard.writeText(copyText); $('copy-status').textContent = ' Đã sao chép.'; } catch (_) { $('copy-status').textContent = ' Không thể sao chép; hãy chọn văn bản response.'; } });
+          $('copy').addEventListener('click',async () => { try { await navigator.clipboard.writeText(copyText); $('copy-status').textContent = ' Đã sao chép.'; } catch (_) { $('copy-status').textContent = ' Không thể sao chép; hãy chọn văn bản phản hồi.'; } });
           $('send').addEventListener('click',async () => {
             if (pending) return;
             if (kind === 'orders' && (!$('quantity').reportValidity() || !Number.isInteger(Number($('quantity').value)))) return;
@@ -229,12 +231,12 @@ final class DemoPage {
               if (item.kind === 'download') { if (buffer.byteLength !== fileKiB * 1024 || !response.headers.get('Content-Type')?.includes('application/octet-stream')) throw new Error('Dữ liệu tệp không đúng kích thước hoặc định dạng.'); blob = new Blob([buffer],{type:'application/octet-stream'}); }
               else {
                 data = JSON.parse(raw); raw = JSON.stringify(data,null,2);
-                if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('Response không chứa JSON object hợp lệ.');
-                if (item.kind === 'products' && (!Array.isArray(data.products) || !data.products.every(product => product && typeof product.name === 'string' && Number.isFinite(product.price) && product.price >= 0))) throw new Error('Response không chứa danh sách sản phẩm hợp lệ.');
-                if (item.kind === 'orders' && (typeof data.orderId !== 'string' || !data.orderId || data.demo !== true || typeof data.product !== 'string' || !Number.isInteger(data.quantity) || data.quantity < 1 || data.quantity > 10 || !Number.isFinite(data.total) || data.total < 0)) throw new Error('Response không chứa đơn demo hợp lệ.');
+                if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('Phản hồi không chứa đối tượng JSON hợp lệ.');
+                if (item.kind === 'products' && (!Array.isArray(data.products) || !data.products.every(product => product && typeof product.name === 'string' && Number.isFinite(product.price) && product.price >= 0))) throw new Error('Phản hồi không chứa danh sách sản phẩm hợp lệ.');
+                if (item.kind === 'orders' && (typeof data.orderId !== 'string' || !data.orderId || data.demo !== true || typeof data.product !== 'string' || !Number.isInteger(data.quantity) || data.quantity < 1 || data.quantity > 10 || !Number.isFinite(data.total) || data.total < 0)) throw new Error('Phản hồi không chứa đơn thử hợp lệ.');
               }
               item.ok = true; succeeded++; totalMs += item.ms;
-            } catch (error) { item.ms ??= performance.now() - start; item.message = error.name === 'AbortError' ? 'Quá 8 giây chờ ở trình duyệt. Backend có thể vẫn xử lý; không tự gửi lại đơn.' : String(error.message); }
+            } catch (error) { item.ms ??= performance.now() - start; item.message = error.name === 'AbortError' ? 'Quá 8 giây chờ ở trình duyệt. Máy chủ có thể vẫn xử lý; không tự gửi lại đơn.' : String(error.message); }
             finally {
               clearTimeout(timeout); pending = false; finished++; update(); $('last-status').textContent = statusText(item);
               rows.unshift(item); rows = rows.slice(0,6); try { sessionStorage.setItem(historyKey,JSON.stringify(rows)); } catch (_) { storageNotice(); }

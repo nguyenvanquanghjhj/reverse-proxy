@@ -62,7 +62,7 @@ class PresentationTest(unittest.TestCase):
         for result in charts.summarize(rows):
             self.assertIsNone(result['p99_ms_median'])
             self.assertEqual(result['error_percent'],100)
-        self.assertEqual(charts.display(None),'n/a')
+        self.assertEqual(charts.display(None),'Không có')
         with self.assertRaises(ValueError): charts.numeric(dict(value='NaN'),'value')
 
     def test_export_does_not_waive_failed_raw_validation(self):
@@ -72,6 +72,25 @@ class PresentationTest(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError,'hash mismatch'):
                     charts.export_bundle(root,root/'bundle','mixed')
             self.assertFalse((root/'bundle').exists())
+
+    def test_render_outputs_have_real_tables_images_and_manifest(self):
+        # Exercise the renderer, not just the existence of a hand-written image.
+        import xml.etree.ElementTree as ET
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory); bundle=root/'bundle'; bundle.mkdir(); self.fixture(bundle)
+            provenance=json.loads((bundle/'provenance.json').read_text())
+            provenance.update(metadata={'quick':True},source_directory='test-fixture',scenario='mixed')
+            charts.write_json(bundle/'provenance.json',provenance)
+            output=root/'charts'; charts.render(bundle,output)
+            for name in ('outcomes','throughput','errors','latency','request-types','backends'):
+                ET.parse(output/(name+'.svg'))
+                self.assertTrue((output/(name+'.png')).read_bytes().startswith(b'\x89PNG\r\n\x1a\n'))
+            summary=charts.read_csv(output/'overall-summary.csv')
+            self.assertEqual([int(r['successes']) for r in summary],[14]*3)
+            self.assertIn('Chỉ là phép chạy thử',(output/'index.html').read_text(encoding='utf-8'))
+            manifest=json.loads((output/'manifest.json').read_text())
+            for name,digest in manifest['files'].items(): self.assertEqual(charts.digest(output/name),digest)
+            with self.assertRaises(FileExistsError): charts.render(bundle,output)
 
 
 if __name__=='__main__':

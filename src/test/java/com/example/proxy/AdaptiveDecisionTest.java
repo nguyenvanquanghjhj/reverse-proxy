@@ -67,6 +67,17 @@ public final class AdaptiveDecisionTest {
         try { new ProxyConfig(p,backends); throw new AssertionError("invalid flag accepted"); }
         catch (IllegalArgumentException expected) { check(expected.getMessage().contains("adaptive.decision-trace.enabled"),"validation key"); }
         check(dispatcher.snapshots().stream().allMatch(s->s.inFlight()==0),"no trace lease leaks");
+        // A healthy backend may still be excluded by the circuit or its lease limit.
+        Properties protection = new Properties(); protection.putAll(on);
+        protection.setProperty("proxy.circuit-breaker.failure-threshold","1");
+        protection.setProperty("backend.max.inflight","1");
+        var guarded = new Dispatcher(new ProxyConfig(protection,List.of(backends.getFirst())),clock::get);
+        guarded.recordHealth(backends.getFirst(),guarded.beginProbe(backends.getFirst()),true);
+        var held = guarded.acquire(); check(held != null,"guarded lease");
+        check(guarded.acquire() == null && guarded.decisionJson().contains("INFLIGHT_LIMIT"),"lease exclusion explained");
+        held.complete(10,true,false);
+        check(guarded.acquire() == null && guarded.decisionJson().contains("CIRCUIT_UNAVAILABLE"),"healthy but open circuit explained");
+        check(guarded.snapshots().getFirst().inFlight()==0,"excluded requests reserve nothing");
         System.out.println("AdaptiveDecisionTest PASS: scores, exclusions, exploration, admission, relearning, privacy, disabled mode");
     }
     private static void check(boolean condition,String message) { if(!condition)throw new AssertionError(message); }

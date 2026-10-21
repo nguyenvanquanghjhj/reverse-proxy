@@ -89,7 +89,9 @@ public final class ReverseProxyServer implements AutoCloseable {
             }
             String body;
             int status = 200;
-            if (path.equals("/__proxy/metrics")) {
+            if (path.equals("/__proxy/dashboard")) {
+                body = MonitoringPage.HTML.replace("@@DATA_PORT@@", Integer.toString(getPort()));
+            } else if (path.equals("/__proxy/metrics")) {
                 String snapshot = dispatcher.snapshotJson();
                 body = snapshot.substring(0, snapshot.length() - 1) + "," + handler.countersJson()
                         + ",\"health_probe_failures\":" + healthChecker.healthFailures()
@@ -108,7 +110,8 @@ public final class ReverseProxyServer implements AutoCloseable {
                 body = "{\"ready\":" + ready + "}";
             } else { ProxyHandler.sendError(exchange, 404, "Unknown proxy endpoint"); return; }
             byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
-            exchange.getResponseHeaders().set("Content-Type", path.equals("/__proxy/prometheus") ? "text/plain; version=0.0.4; charset=utf-8" : "application/json; charset=utf-8");
+            exchange.getResponseHeaders().set("Content-Type", path.equals("/__proxy/dashboard") ? "text/html; charset=utf-8"
+                    : path.equals("/__proxy/prometheus") ? "text/plain; version=0.0.4; charset=utf-8" : "application/json; charset=utf-8");
             exchange.getResponseHeaders().set("Cache-Control", "no-store");
             if (exchange.getRequestMethod().equals("HEAD")) {
                 exchange.getResponseHeaders().set("Content-Length", Integer.toString(bytes.length));

@@ -89,6 +89,9 @@ public final class LifecycleTest {
                 try { return n.isUp(); } catch (SocketException e) { throw new UncheckedIOException(e); }
             }).flatMap(NetworkInterface::inetAddresses).filter(a -> a instanceof Inet4Address && !a.isLoopbackAddress()).findFirst();
             if (remote.isPresent()) {
+                var dashboard = f.client.send(HttpRequest.newBuilder(URI.create("http://" + remote.get().getHostAddress() + ":" + f.proxy.getPort() + "/__proxy/dashboard"))
+                        .header("X-Forwarded-For", "127.0.0.1").timeout(Duration.ofSeconds(3)).build(), HttpResponse.BodyHandlers.ofString());
+                check(dashboard.statusCode() == 403, "remote dashboard blocked despite spoofed forwarding header"); f.clean();
                 var response = f.client.send(HttpRequest.newBuilder(URI.create("http://" + remote.get().getHostAddress() + ":" + f.proxy.getPort() + "/__proxy/metrics"))
                         .header("X-Forwarded-For", "127.0.0.1").timeout(Duration.ofSeconds(3)).build(), HttpResponse.BodyHandlers.ofString());
                 check(response.statusCode() == 403, "remote management blocked despite spoofed forwarding header"); f.clean();

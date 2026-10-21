@@ -72,6 +72,20 @@ public final class ManagementListenerTest {
                         && decision.body().contains("MINIMUM_SCORE"), "enabled decision endpoint snapshot");
                 check(proxy.getDispatcher().snapshots().getFirst().dispatched() == dispatched, "decision read never dispatches");
                 await(() -> proxy.getManagementIngressTasks() == 0, "decision cleanup");
+                var dashboard = get(client, management, "/__proxy/dashboard");
+                check(dashboard.statusCode() == 200 && dashboard.headers().firstValue("Content-Type").orElse("").startsWith("text/html"), "dashboard is HTML");
+                check(dashboard.body().contains("lang=\"vi\"") && dashboard.body().contains("/__proxy/decision")
+                        && !dashboard.body().contains("@@DATA_PORT@@"), "Vietnamese live dashboard with resolved data port");
+                check(proxy.getDispatcher().snapshots().getFirst().dispatched() == dispatched, "dashboard never dispatches");
+                await(() -> proxy.getManagementIngressTasks() == 0, "dashboard cleanup");
+                var dashboardHead = client.send(HttpRequest.newBuilder(uri(management, "/__proxy/dashboard")).method("HEAD", HttpRequest.BodyPublishers.noBody())
+                        .timeout(Duration.ofSeconds(3)).build(), HttpResponse.BodyHandlers.ofString());
+                check(dashboardHead.statusCode() == 200 && dashboardHead.body().isEmpty(), "dashboard HEAD has no body");
+                await(() -> proxy.getManagementIngressTasks() == 0, "dashboard HEAD cleanup");
+                var dashboardPost = client.send(HttpRequest.newBuilder(uri(management, "/__proxy/dashboard")).POST(HttpRequest.BodyPublishers.noBody())
+                        .timeout(Duration.ofSeconds(3)).build(), HttpResponse.BodyHandlers.ofString());
+                check(dashboardPost.statusCode() == 405, "dashboard method guard");
+                await(() -> proxy.getManagementIngressTasks() == 0, "dashboard POST cleanup");
                 var head = client.send(HttpRequest.newBuilder(uri(management, "/__proxy/metrics")).method("HEAD", HttpRequest.BodyPublishers.noBody())
                         .timeout(Duration.ofSeconds(3)).build(), HttpResponse.BodyHandlers.ofString());
                 check(head.statusCode() == 200 && head.body().isEmpty(), "HEAD supported");

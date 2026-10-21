@@ -16,7 +16,7 @@ sys.path.insert(0, str(ROOT / 'scripts'))
 import verify_benchmark
 
 STRATEGIES = ('ROUND_ROBIN', 'LEAST_CONNECTIONS', 'ADAPTIVE')
-LABELS = ('Round Robin', 'Least Connections', 'Adaptive')
+LABELS = ('Luân phiên', 'Ít kết nối nhất', 'Thích nghi')
 COLORS = ('#475569', '#2563eb', '#0f766e')
 RUN_FIELDS = ('scenario', 'repeat', 'strategy', 'requests', 'successes', 'errors', 'error_rate',
               'offered_rps', 'measurement_seconds', 'success_rps', 'avg_ms', 'p50_ms', 'p95_ms', 'p99_ms',
@@ -127,7 +127,7 @@ def summarize(runs):
 
 
 def display(value):
-    return 'n/a' if value is None else f'{value:,.2f}' if isinstance(value, float) else str(value)
+    return 'Không có' if value is None else f'{value:,.2f}' if isinstance(value, float) else str(value)
 
 
 def table(headers, rows):
@@ -170,18 +170,18 @@ def render(directory, output):
         save(fig, name, title)
     fig, ax = plt.subplots(figsize=(8, 4))
     successes = [r['successes'] for r in summary]; errors = [r['errors'] for r in summary]
-    a = ax.bar(LABELS, successes, color='#0f766e', label='Successful')
-    b = ax.bar(LABELS, errors, bottom=successes, color='#dc2626', label='Failed')
+    a = ax.bar(LABELS, successes, color='#0f766e', label='Thành công')
+    b = ax.bar(LABELS, errors, bottom=successes, color='#dc2626', label='Thất bại')
     ax.bar_label(a, label_type='center'); ax.bar_label(b, labels=[str(v) if v else '' for v in errors], label_type='center')
-    ax.set(title='Request outcomes — counts summed across repeats', ylabel='Requests'); ax.legend(loc='upper center', bbox_to_anchor=(.5,-.12), ncol=2)
-    save(fig, 'outcomes', 'Request outcomes')
-    bars('throughput', 'Successful throughput — median with run min–max', 'success_rps_median', 'Successful requests / second')
-    bars('errors', 'Failure rate — every non-2xx outcome included', 'error_percent', 'Failed requests (%)')
+    ax.set(title='Kết quả yêu cầu — cộng các lần lặp', ylabel='Số yêu cầu'); ax.legend(loc='upper center', bbox_to_anchor=(.5,-.12), ncol=2)
+    save(fig, 'outcomes', 'Kết quả yêu cầu')
+    bars('throughput', 'Tốc độ thành công — trung vị và khoảng nhỏ nhất–lớn nhất', 'success_rps_median', 'Yêu cầu thành công / giây')
+    bars('errors', 'Tỷ lệ lỗi — gồm mọi phản hồi ngoài 2xx', 'error_percent', 'Yêu cầu thất bại (%)')
     fig, ax = plt.subplots(figsize=(8, 4))
-    for i, (field, label) in enumerate((('avg_ms_median','Average'),('p95_ms_median','p95'),('p99_ms_median','p99'))):
+    for i, (field, label) in enumerate((('avg_ms_median','Trung bình'),('p95_ms_median','p95'),('p99_ms_median','p99'))):
         ax.bar([x + (i-1)*.23 for x in range(3)], [r[field] if r[field] is not None else float('nan') for r in summary], width=.23, label=label)
-    ax.set_xticks(range(3), LABELS); ax.set(title='Successful latency — median of per-run statistics', ylabel='Arrival-to-completion latency (ms)'); ax.legend()
-    save(fig, 'latency', 'Successful latency')
+    ax.set_xticks(range(3), LABELS); ax.set(title='Độ trễ thành công — trung vị thống kê từng lần chạy', ylabel='Độ trễ từ lịch gửi đến hoàn tất (ms)'); ax.legend()
+    save(fig, 'latency', 'Độ trễ thành công')
     breakdown = []
     kinds = sorted({r['kind'] for r in types})
     fig, ax = plt.subplots(figsize=(9, 4))
@@ -198,35 +198,35 @@ def render(directory, output):
             breakdown.append(type_row)
             percentages.append(failure)
         ax.bar([x + (index-1)*.23 for x in range(len(kinds))], percentages, width=.23, color=COLORS[index], label=LABELS[index])
-    ax.set_xticks(range(len(kinds)), kinds); ax.set(title='Failure rate by request type', ylabel='Failed requests (%)'); ax.legend()
-    save(fig, 'request-types', 'Request-type fairness')
+    ax.set_xticks(range(len(kinds)), [{'light':'Nhẹ','slow':'Chậm','cpu':'CPU'}.get(k,k) for k in kinds]); ax.set(title='Tỷ lệ lỗi theo loại yêu cầu', ylabel='Yêu cầu thất bại (%)'); ax.legend()
+    save(fig, 'request-types', 'Công bằng theo loại yêu cầu')
     fig, ax = plt.subplots(figsize=(8, 4)); bottoms = [0]*3
     for backend in sorted({r['backend'] for r in backends}):
         values = [int(sum(numeric(r,'dispatched_requests') for r in backends if r['strategy']==s and r['backend']==backend)) for s in STRATEGIES]
-        ax.bar(LABELS, values, bottom=bottoms, label=backend); bottoms = [a+b for a,b in zip(bottoms,values)]
-    ax.set(title='Backend dispatches — counts summed across repeats', ylabel='Dispatched upstream requests'); ax.legend()
-    save(fig, 'backends', 'Per-backend distribution')
+        ax.bar(LABELS, values, bottom=bottoms, label=backend.replace('backend-','Máy chủ ')); bottoms = [a+b for a,b in zip(bottoms,values)]
+    ax.set(title='Phân phối tới máy chủ — cộng các lần lặp', ylabel='Số yêu cầu được cấp giữ chỗ'); ax.legend()
+    save(fig, 'backends', 'Phân phối theo máy chủ')
     write_csv(output / 'overall-summary.csv', summary); write_csv(output / 'request-type-summary.csv', breakdown)
-    headers = ('Algorithm','Total','Success','Failed','Success RPS','Error %','Avg ms','p50 ms','p95 ms','p99 ms')
+    headers = ('Thuật toán','Tổng','Thành công','Thất bại','Thành công/giây','Lỗi %','TB ms','p50 ms','p95 ms','p99 ms')
     rows = [[LABELS[i], r['requests'],r['successes'],r['errors'],display(r['success_rps_median']),display(r['error_percent']),
              display(r['avg_ms_median']),display(r['p50_ms_median']),display(r['p95_ms_median']),display(r['p99_ms_median'])] for i,r in enumerate(summary)]
     markdown = '| ' + ' | '.join(headers) + ' |\n|' + '|'.join(['---']*len(headers)) + '|\n'
     markdown += ''.join('| ' + ' | '.join(map(str,row)) + ' |\n' for row in rows)
     (output / 'overall-summary.md').write_text(markdown, encoding='utf-8')
-    warning = 'Smoke only; insufficient for a performance claim.' if provenance['metadata'].get('quick') else 'One local-host experiment; compare run ranges and request types before drawing conclusions.'
+    warning = 'Chỉ là phép chạy thử; chưa đủ để kết luận hiệu năng.' if provenance['metadata'].get('quick') else 'Thí nghiệm trên một máy; đọc khoảng dao động và từng loại yêu cầu trước khi kết luận.'
     sections = ''.join(f'<section><h2>{title}</h2><img src="{name}.svg" alt="{title}" loading="lazy"></section>' for name,title in figures)
-    content = '<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>PBL4 performance report</title>'
+    content = '<!doctype html><html lang="vi"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Báo cáo hiệu năng PBL4</title>'
     content += '<style>body{font:16px system-ui;color:#172033;max-width:1120px;margin:32px auto;padding:0 20px}h1,h2{font-weight:600}table{border-collapse:collapse;width:100%;font-size:14px}td,th{padding:10px;text-align:right;border-bottom:1px solid #ddd}td:first-child,th:first-child{text-align:left}img{width:100%;max-width:900px}section{margin:40px 0}p{line-height:1.6}</style>'
-    content += '<h1>Reverse proxy — performance comparison</h1><p>' + html.escape(provenance['source_directory']) + ' · ' + html.escape(provenance['scenario']) + '</p><p>' + warning + '</p>'
+    content += '<h1>Proxy ngược — so sánh hiệu năng</h1><p>' + html.escape(provenance['source_directory']) + ' · ' + html.escape(provenance['scenario']) + '</p><p>' + warning + '</p>'
     meta = provenance['metadata']
-    content += '<p>' + html.escape(f"Measured requests/run: {meta.get('requests')}; warmup/run: {meta.get('warmup_requests')}; offered RPS: {meta.get('offered_rps')}; repeats: {meta.get('repeats')}; seed: {meta.get('seed')}; UTC: {meta.get('timestamp_utc')}") + '</p>'
-    content += '<p>Counts are sums across repeats. RPS and successful latency statistics are medians of individual runs, not pooled percentiles. Latency includes client scheduling lag. Failures remain in counts and error rates. No live polling.</p>'
-    content += table(headers,rows) + sections + '<h2>Request type outcomes and successful latency</h2>' + table(('Algorithm','Type','Total','Success','Failed','Error %','Avg ms','p95 ms','p99 ms'),
-              [[r['strategy'],r['kind'],r['requests'],r['successes'],r['errors'],display(r['error_percent']),
+    content += '<p>' + html.escape(f"Yêu cầu đo/lần: {meta.get('requests')}; làm nóng/lần: {meta.get('warmup_requests')}; tải gửi/giây: {meta.get('offered_rps')}; số lần lặp: {meta.get('repeats')}; hạt giống lịch gửi: {meta.get('seed')}; UTC: {meta.get('timestamp_utc')}") + '</p>'
+    content += '<p>Số lượng cộng các lần lặp. Tốc độ và độ trễ thành công là trung vị của thống kê từng lần chạy, không phải phân vị gộp. Độ trễ gồm trễ lịch gửi ở máy khách; giữ toàn bộ lỗi. Báo cáo không cập nhật trực tiếp.</p>'
+    content += table(headers,rows) + sections + '<h2>Kết quả và độ trễ thành công theo loại yêu cầu</h2>' + table(('Thuật toán','Loại','Tổng','Thành công','Thất bại','Lỗi %','TB ms','p95 ms','p99 ms'),
+              [[LABELS[STRATEGIES.index(r['strategy'])],{'light':'Nhẹ','slow':'Chậm','cpu':'CPU'}.get(r['kind'],r['kind']),r['requests'],r['successes'],r['errors'],display(r['error_percent']),
                 display(r['avg_ms_median']),display(r['p95_ms_median']),display(r['p99_ms_median'])] for r in breakdown])
-    content += '<h2>Run variability and failed outcomes</h2>' + table(('Algorithm','RPS min–max','All-outcomes p95 median (ms)','Client lag p95 median (ms)'),
-              [[r['strategy'],display(r['success_rps_min'])+'–'+display(r['success_rps_max']),display(r['all_outcomes_p95_ms_median']),display(r['client_lag_p95_ms_median'])] for r in summary])
-    content += '<p>Raw repeat statistics: overall-summary.csv. Provenance and original experiment hashes: the benchmark presentation bundle. SVG/PNG files can be used directly in slides.</p></html>'
+    content += '<h2>Dao động và kết quả gồm cả lỗi</h2>' + table(('Thuật toán','Tốc độ nhỏ nhất–lớn nhất','p95 mọi kết quả (ms)','p95 trễ lịch gửi (ms)'),
+              [[LABELS[STRATEGIES.index(r['strategy'])],display(r['success_rps_min'])+'–'+display(r['success_rps_max']),display(r['all_outcomes_p95_ms_median']),display(r['client_lag_p95_ms_median'])] for r in summary])
+    content += '<p>Thống kê từng lần lặp: overall-summary.csv. Nguồn gốc và mã kiểm tra: bundle dữ liệu thí nghiệm. Có thể dùng SVG/PNG trực tiếp trong bài trình bày.</p></html>'
     (output / 'index.html').write_text(content,encoding='utf-8')
     write_json(output / 'manifest.json', {'bundle_provenance_sha256':digest(directory/'provenance.json'),
         'generator_sha256':digest(Path(__file__)), 'matplotlib_version':matplotlib.__version__,
