@@ -54,7 +54,12 @@ capacity=8
 
 Hai trường request là bắt buộc, không âm. CPU/memory là ratio [0,1], có thể thiếu hoặc `-1`/`NaN` khi unavailable. `capacity` trong telemetry phục vụ kiểm tra/benchmark; scheduler dùng capacity cấu hình, không tự tin giá trị do endpoint gửi về. Có thể gửi thêm host/process/heap metric để benchmark ghi lại. Endpoint ứng dụng vẫn UP khi telemetry thiếu hoặc lỗi.
 
-## Công thức adaptive thực tế
+## Score RTT/count nền tảng (không phải ranking ECT hiện tại)
+
+Quyết định hiện tại dùng `EstimatedWork` theo route và `ECT × resourcePenalty`, có
+work admission và relearning; xem [ADAPTIVE_EXPLAINED](ADAPTIVE_EXPLAINED.md). Công
+thức bên dưới vẫn xuất ra `scoreMs` để đối chiếu/suy ra penalty, không phải điểm
+của mọi request mới. Snapshot request-specific là `/__proxy/decision` khi bật trace.
 
 Với mỗi backend còn hoạt động và chưa chạm admission limit:
 
@@ -77,7 +82,11 @@ penalty = 1 + 0.35 × cpuPressure + 0.5 × memoryPressure
 scoreMs = latencyEWMA × (1 + (q + 1) / c) × penalty
 ```
 
-Chọn score thấp nhất, phá hòa bằng backend lâu nhất chưa được chọn. Mỗi 50 lần dispatch (cấu hình được), chọn backend hợp lệ lâu nhất chưa được chọn để thăm dò. Thăm dò vẫn tuân theo DOWN và giới hạn warm-up/inflight. Nó có thể tăng một ít tail latency nhưng tránh loại vĩnh viễn backend từng chậm. Với lưu lượng rất thấp, việc học lại cũng chậm: khoảng thăm dò được tính theo request, không phải thời gian.
+Adaptive hiện chọn `ECT × penalty` thấp nhất trong tập đã qua health, circuit,
+inflight và work admission; phá hòa theo backend lâu nhất chưa được chọn. Mỗi 50
+lần select không rỗng (cấu hình được), chọn candidate lâu nhất chưa được chọn để
+thăm dò. Nó có thể tăng tail latency; khoảng thăm dò tính theo request, không phải
+thời gian. RR/LC không có work admission.
 
 Các phần CPU, memory, error và uncertainty không có đơn vị. `q/c` là tỷ lệ lượng việc so với năng lực song song; latency cung cấp thang thời gian ms. `+1` tính cả request sắp giao. `scoreMs` là **điểm chi phí mang thang ms**, không phải dự báo thời gian đã được hiệu chuẩn hay xác suất thống kê.
 
@@ -118,7 +127,12 @@ Phần công thức score ở trên là baseline để đối chiếu. Quyết �
 
 Admission data-plane được giữ từ trước đọc body đến khi đóng exchange. `finally` trả permit; lease try-with-resources bảo đảm release một lần kể cả ngoại lệ chưa dự đoán. Lease kết thúc trước khi tải response xuống client. Socket đăng ký trước kiểm tra closed; schedule bị reject được chuyển thành IOException. Handler cũng đăng ký thread trước kiểm tra closed; shutdown interrupt thread còn chạy và đóng transport. Không xóa interrupt flag. Mỗi handler dùng virtual thread riêng.
 
-Deadline upload/download interrupt thread sở hữu I/O; deadline upstream đóng socket. Scheduler remove-on-cancel tránh tích lũy task. Mỗi pha có thể dùng đủ `proxy.request.timeout.ms`; connect/read còn chịu timeout nhỏ hơn. Tổng request có thể dài hơn một deadline pha. `HttpServer.stop(grace)` ngừng listener và đợi request hiện tại, sau đó handler/health/executor đóng; không giữ khóa Dispatcher trong I/O. Management có admission riêng 8 request và deadline để không thay đổi budget data-plane dùng trong benchmark.
+Deadline bắt đầu ở ingress và truyền qua RequestDeadline tới handler/transport;
+không cấp lại budget sau upload. Upload/download interrupt thread sở hữu I/O;
+deadline upstream đóng socket. Connect/read còn chịu timeout nhỏ hơn. Scheduler
+remove-on-cancel tránh tích lũy task. `HttpServer.stop(grace)` ngừng listener và đợi
+request hiện tại, sau đó handler/health/executor đóng. Management có admission
+riêng 8 request và deadline; không tiêu thụ data admission.
 
 Validation client diễn ra trước acquire lease: method/target/header/framing sai không làm backend DOWN. Upstream từ chối CL+TE, CL trùng/overflow, TE khác chunked, CL trên 1xx/204, header injection, EOF/truncated body, chunk terminator sai. Header byte/count budget gồm informational headers và trailers. JDK parser ingress có behavior/giới hạn riêng trước handler. Socket luôn đóng nên không có reuse sau framing không chắc chắn.
 
@@ -128,7 +142,11 @@ Một estimate vượt admission budget trước đây có thể ngăn mọi l�
 
 JSON dùng helper escape tập trung, số không hữu hạn thành null. Giữ field benchmark cũ, thêm counters handler/probe ở root. `/__proxy/prometheus` xuất request/error/timeout counters, handler in-flight và backend selection/in-flight. Admission không có hàng đợi nên không xuất queue_wait giả. `requests_total` gồm management; backend counters chỉ gồm lease. Snapshot các nhóm counter không nguyên tử cùng nhau. Log không chứa raw query/body/path động.
 
-Giới hạn giữ có chủ ý: không pooling để giữ parser/benchmark một socket/request kiểm chứng được; chưa RSS/GC pause/trace phân tán. JDK không cung cấp callback client disconnect trong lúc backend đang chạy; socket upstream đóng khi hoàn thành, lỗi hoặc timeout. Incomplete ingress header chưa vào handler không thuộc admission/deadline này; cần gateway TLS/auth/rate-limit ở biên khi deploy. Các endpoint quản lý đều loopback-only; không có backend discovery/config động.
+Giới hạn giữ có chủ ý: không pooling, chưa RSS/GC pause/trace phân tán. JDK không
+cung cấp callback client disconnect lúc backend đang chạy; upstream đóng khi hoàn
+thành/lỗi/timeout. Incomplete header đã được bounded executor và ingress deadline
+giới hạn trước handler; đây không phải giới hạn mọi TCP connection ở OS. Endpoint
+quản lý loopback-only; không có backend discovery/config động.
 ## Backend protection (2026-10-14)
 
 Each configured backend has an independent circuit breaker, guarded by the same

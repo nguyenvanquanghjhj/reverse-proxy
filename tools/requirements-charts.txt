@@ -1,0 +1,2 @@
+# Optional presentation tooling only; the Java proxy and benchmark runner do not need this.
+matplotlib>=3.8,<4

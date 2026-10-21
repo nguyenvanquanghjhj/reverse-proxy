@@ -19,6 +19,8 @@ public final class Dispatcher {
     private final Map<BackendServer, EstimatedWork> work = new LinkedHashMap<>();
     private final Map<BackendServer, CircuitBreaker> circuits = new LinkedHashMap<>();
     private long workRejected;
+    private long decisionSequence;
+    private AdaptiveDecision lastDecision;
     private volatile boolean draining;
     public void stopAccepting() {
         lock.lock();
@@ -42,18 +44,26 @@ public final class Dispatcher {
     public Lease acquire(URI uri) {
         lock.lock();
         try {
-            if (draining) return null;
+            if (draining) {
+                trace(EstimatedWork.Request.of(uri), "DRAINING", null, List.of());
+                return null;
+            }
             long now = clock.getAsLong();
             var request = EstimatedWork.Request.of(uri);
             boolean adaptive = algorithm instanceof AdaptiveLoadBalancer;
             Map<BackendServer, EstimatedWork.Forecast> forecasts = new LinkedHashMap<>();
             List<BackendMetrics.Snapshot> candidates = new ArrayList<>();
+            List<AdaptiveDecision.Candidate> explanation = config.isDecisionTraceEnabled() && adaptive ? new ArrayList<>() : null;
             int total = 0;
             boolean workLimited = false;
             for (BackendMetrics value : metrics.values()) {
                 var snapshot = value.snapshot(now, config);
                 total += snapshot.inFlight();
-                if (!snapshot.eligible() || !circuits.get(snapshot.backend()).eligible(now)) continue;
+                if (!snapshot.eligible() || !circuits.get(snapshot.backend()).eligible(now)) {
+                    if (explanation != null) explanation.add(explain(snapshot, !snapshot.alive() ? "DOWN"
+                            : !snapshot.eligible() ? "INFLIGHT_LIMIT" : "CIRCUIT_UNAVAILABLE", null));
+                    continue;
+                }
                 if (adaptive) {
                     var estimate = work.get(snapshot.backend());
                     estimate.generation(value.healthGeneration());
@@ -67,20 +77,45 @@ public final class Dispatcher {
                     boolean relearn = snapshot.inFlight() == 0 && external(snapshot) == 0
                             && now - snapshot.lastSelectedNanos() >= config.getRequestTimeoutMs() * 1_000_000L;
                     if (overBudget && !relearn) {
+                        if (explanation != null) explanation.add(explain(snapshot, "WORK_BUDGET", forecast));
                         workLimited = true;
                         continue;
                     }
+                    if (explanation != null) explanation.add(explain(snapshot, overBudget ? "RELEARNING_PROBE" : "ELIGIBLE", forecast));
                 }
                 candidates.add(snapshot);
             }
-            if (total >= config.getMaxInflight()) return null;
+            if (total >= config.getMaxInflight()) { trace(request, "MAX_INFLIGHT", null, explanation); return null; }
             var chosen = adaptive ? ((AdaptiveLoadBalancer) algorithm).select(candidates,
                     s -> forecasts.get(s.backend()).completionMs() * resourcePenalty(s)) : algorithm.select(candidates);
-            if (chosen == null) { if (workLimited) workRejected++; return null; }
+            if (chosen == null) {
+                if (workLimited) workRejected++;
+                trace(request, "NO_ELIGIBLE_BACKEND", null, explanation);
+                return null;
+            }
+            if (adaptive) trace(request, ((AdaptiveLoadBalancer) algorithm).selectionReason(), chosen.backend().getId(), explanation);
             EstimatedWork.Reservation reservation = adaptive ? work.get(chosen.backend()).reserve(request, now,
                     forecasts.get(chosen.backend()), Math.max(1, (int) Math.floor(chosen.effectiveCapacity())), external(chosen)) : null;
             metrics.get(chosen.backend()).reserve(now);
             return new Lease(chosen.backend(), reservation, circuits.get(chosen.backend()).reserve(now));
+        } finally { lock.unlock(); }
+    }
+    private static AdaptiveDecision.Candidate explain(BackendMetrics.Snapshot s, String eligibility, EstimatedWork.Forecast f) {
+        Double penalty = f == null ? null : resourcePenalty(s);
+        return new AdaptiveDecision.Candidate(s.backend().getId(), eligibility, s.inFlight(), s.effectiveCapacity(),
+                f == null ? null : f.serviceMs(), f == null ? null : f.waitMs(), f == null ? null : f.outstandingMs(),
+                penalty, f == null ? null : f.completionMs() * penalty);
+    }
+    private void trace(EstimatedWork.Request request, String reason, String backend, List<AdaptiveDecision.Candidate> candidates) {
+        if (config.isDecisionTraceEnabled() && algorithm instanceof AdaptiveLoadBalancer)
+            lastDecision = new AdaptiveDecision(++decisionSequence, request.route().name(), request.units(), completionBudgetMs(),
+                    reason, backend, candidates == null ? List.of() : candidates);
+    }
+    public String decisionJson() {
+        lock.lock();
+        try {
+            boolean enabled = config.isDecisionTraceEnabled() && algorithm instanceof AdaptiveLoadBalancer;
+            return "{\"enabled\":" + enabled + ",\"lastDecision\":" + (lastDecision == null ? "null" : lastDecision.json()) + "}";
         } finally { lock.unlock(); }
     }
     private static int external(BackendMetrics.Snapshot s) { return s.telemetryFresh() ? s.externalOutstanding() : 0; }

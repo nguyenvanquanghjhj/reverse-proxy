@@ -162,3 +162,24 @@ Circuit breaker, bounded peer-IP rate limiting, metrics and failure-isolation ex
 ### Same-day follow-up: isolated management and policy-error classification
 
 Reviewed the existing circuit/rate implementation without replacing it. Proxy body/header limits are now neutral for circuit state; cancelled half-open probes release their slot without claiming failure or recovery. Added an optional loopback management listener with independent bounded ingress, readiness/task metrics, and bind-failure rollback regression. Pooling remains deferred with an explicit disabled flag. The earlier audit is preserved; see [follow-up validation](BACKEND_PROTECTION_VALIDATION.md#follow-up-validation-before-commit-2026-10-14) for real failures and the final JDK 21 results.
+
+## 2026-10-21: PBL4 explainability and presentation
+
+Reviewed the baseline `aa7c176`, source/tests/scripts and historical docs. Findings
+and P0/P1/P2 priorities: [CODEBASE_REVIEW](CODEBASE_REVIEW.md). Added opt-in latest
+Adaptive decision trace with actual pre-reservation scores and exclusion reasons,
+without changing routing weights/admission or the existing UI. Documented 9 route
+groups, full request deadline, metric scope and the difference between legacy
+`scoreMs` and actual ECT ranking. Existing historical audit results are preserved.
+
+Full script build on Microsoft JDK 21: 12 Java test mains PASS; Python: 20 tests
+PASS. One fresh, complete Mixed experiment passed raw artifact verification: 9 runs,
+10,800 measured requests. Exported a checksum-checked presentation bundle, generated
+SVG/PNG charts and an offline HTML report, then regenerated them from the bundle.
+The older artifact rejected on runner hash mismatch was not modified or silently
+accepted. Current evidence shows less overall failure and lower successful latency
+for Adaptive, but median RPS below LC and worse slow-request failure than LC.
+See [PERFORMANCE_ANALYSIS](PERFORMANCE_ANALYSIS.md) for exact counts/ranges and
+[validation](BACKEND_PROTECTION_VALIDATION.md#presentation--explainability-follow-up--2026-10-21)
+for commands/artifact scope. No pooling, retry, new heavy Java dependency or fairness
+tuning was introduced.

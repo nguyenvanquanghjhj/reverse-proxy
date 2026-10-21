@@ -1,0 +1,6 @@
+# Preserve exact bytes covered by presentation provenance and output manifests.
+/benchmarks/presentation/** -text whitespace=cr-at-eol
+# Matplotlib emits CRLF and trailing spaces in generated SVG path data.
+/docs/assets/charts/** -text whitespace=-blank-at-eol,cr-at-eol
+# The generated manifest also records the chart generator's source hash.
+/tools/generate_charts.py text eol=lf

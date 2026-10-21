@@ -87,3 +87,35 @@ artifacts from the final source snapshot are in
 The completed source, tests, configuration and documentation are intended for a
 single backend commit after the final diff checks; commit/push status is reported
 separately in the task response. No UI changes or dependency additions are included.
+
+## Presentation / explainability follow-up — 2026-10-21
+
+The backend protection implementation is retained. Added an opt-in, bounded latest
+Adaptive decision snapshot and loopback GET/HEAD `/__proxy/decision`. It records
+pre-reservation candidate costs, eligibility, exploration and relearning reasons;
+no raw URI/query/client identifiers. Trace is disabled by default and during the
+performance experiment. The existing JSON/Prometheus fields and routing weights
+are preserved. Matplotlib is an optional chart-tool dependency, not an application
+dependency; the existing DemoPage/UI source is unchanged.
+
+Actually run on Microsoft JDK **21.0.12.1+1**: java/javac/jar version checks, full
+script build/test (**12 test mains PASS**, `target/presentation-java-final.log`).
+Tests include trace privacy, immutable reads, rejection/exploration/relearning,
+same choices/accounting with trace enabled/disabled, and HTTP management access
+without dispatch. Python suite: **20 tests PASS**, including presentation count,
+median/range, missing-latency and corruption/failed-validation cases.
+
+One complete Mixed experiment: **9 runs / 10,800 measured requests**, 1200 measured
+and 300 warmup per run, 3 repeats, rate 60, seed 20260927. Current validator PASS;
+no run filtered. Data, figures, limitations and the slow-request trade-off are in
+[PERFORMANCE_ANALYSIS](PERFORMANCE_ANALYSIS.md). The report can be regenerated from
+`benchmarks/presentation/mixed-20261021`; raw artifacts remain in the ignored
+`benchmarks/results/presentation-mixed-20261021` directory. Hash verification checks
+the exported bundle and generated report. This is a local-host experiment with
+substantial client lag and variance, not a general production-capacity claim.
+
+The current verifier rejected an older 27/09 artifact on runner hash mismatch;
+that artifact was left intact. A new full experiment was used rather than weakening
+validation. The first sandboxed build could not remove existing generated classes;
+the passing full build ran with the required filesystem access. No tests or parser
+checks were disabled to bypass either condition. Maven was unavailable in PATH.

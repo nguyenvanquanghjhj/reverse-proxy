@@ -1,5 +1,9 @@
 # Phương pháp benchmark công bằng
 
+Hướng dẫn bắt đầu: [BENCHMARK_GUIDE](BENCHMARK_GUIDE.md). Bộ trình bày 21/10/2026:
+[phân tích](PERFORMANCE_ANALYSIS.md), [chart/report](VISUALIZATION_GUIDE.md).
+Định nghĩa chỉ số và schema chi tiết bên dưới vẫn áp dụng; không đổi workload.
+
 **Nhiều JVM chạy trên cùng một máy; kết quả không đại diện cho các backend trên nhiều máy vật lý độc lập.** CPU budget không là quota, heap không là RSS. Ba workload gốc và hệ số routing giữ nguyên; hardening bổ sung guard học lại backend rảnh khi estimate cũ vượt budget. Không dùng kết quả cũ để điều chỉnh thuật toán.
 
 ## Workload được chốt trước khi đo

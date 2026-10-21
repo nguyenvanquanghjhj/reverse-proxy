@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "scenario": "mixed",
+  "source_directory": "presentation-mixed-20261021",
+  "source_validation": "verify_benchmark.verify passed before export",
+  "metadata": {
+    "timestamp_utc": "2026-10-21T14:02:49.569627+00:00",
+    "git_commit": "aa7c1764a8de5c09a0d8fd07fd27d02921b1aa85",
+    "git_dirty": true,
+    "java": "openjdk version \"21.0.12.1\" 2026-08-18 LTS\nOpenJDK Runtime Environment Microsoft-14941484 (build 21.0.12.1+1-LTS)\nOpenJDK 64-Bit Server VM Microsoft-14941484 (build 21.0.12.1+1-LTS, mixed mode, sharing)\n",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "logical_cpus": 16,
+    "requests": 1200,
+    "warmup_requests": 300,
+    "offered_rps": 60.0,
+    "concurrency": 64,
+    "seed": 20260927,
+    "repeats": 3,
+    "quick": false
+  },
+  "source_sha256": {
+    "metadata.json": "ad75af9e4c546a4a9dce360f3b3896e5affeef2d084bcfe123198dd9b3590c51",
+    "complete.json": "585833e0ba1417b64e00112cf3063905f9280e77c1f2221d3f60d71c04c7009b",
+    "summary.csv": "7e093ddc59036be49e0a436afa4483608d4650b43756e386c19ff8892a695c14",
+    "request_types.csv": "c0c9a68529ac88510cebcd7a4a5314685d8487cbdbbb069d021199921e1910b8",
+    "backends.csv": "c119159f4ad6be063653c7acd48a04a47dfacae1188886cccfadf35b8faabc7a"
+  },
+  "bundle_sha256": {
+    "backends.csv": "7596f843309580c8a14837980f7035d9ba2c6ede4d44dfd7af97b987d7fe1987",
+    "request_types.csv": "c0c9a68529ac88510cebcd7a4a5314685d8487cbdbbb069d021199921e1910b8",
+    "runs.csv": "5493598ad8c6eb0643c12a7d43023179980bb7158c2ce835c05265e919addcee"
+  },
+  "limitation": "Bundle supports offline presentation; full raw/snapshot validation needs the original result directory."
+}

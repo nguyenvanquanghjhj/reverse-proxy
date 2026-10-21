@@ -8,6 +8,7 @@ import java.util.function.ToDoubleFunction;
 public final class AdaptiveLoadBalancer implements LoadBalancer {
     private final int explorationInterval;
     private long dispatches;
+    private String selectionReason = "NONE";
     public AdaptiveLoadBalancer(int explorationInterval) { this.explorationInterval = explorationInterval; }
     public BackendMetrics.Snapshot select(List<BackendMetrics.Snapshot> candidates) {
         return select(candidates, BackendMetrics.Snapshot::scoreMs);
@@ -15,11 +16,14 @@ public final class AdaptiveLoadBalancer implements LoadBalancer {
     public BackendMetrics.Snapshot select(List<BackendMetrics.Snapshot> candidates,
                                           ToDoubleFunction<BackendMetrics.Snapshot> completionScore) {
         if (candidates.isEmpty()) return null;
-        Comparator<BackendMetrics.Snapshot> ordering = ++dispatches % explorationInterval == 0
+        boolean exploring = ++dispatches % explorationInterval == 0;
+        selectionReason = exploring ? "EXPLORATION" : "MINIMUM_SCORE";
+        Comparator<BackendMetrics.Snapshot> ordering = exploring
                 ? Comparator.comparingLong(BackendMetrics.Snapshot::lastSelectedNanos)
                 : Comparator.comparingDouble(completionScore)
                     .thenComparingLong(BackendMetrics.Snapshot::lastSelectedNanos);
         return candidates.stream().min(ordering).orElse(null);
     }
     public String getName() { return "ADAPTIVE"; }
+    String selectionReason() { return selectionReason; }
 }

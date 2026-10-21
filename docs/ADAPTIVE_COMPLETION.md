@@ -1,5 +1,10 @@
 # Adaptive: estimated completion time — Mixed
 
+> Tài liệu lịch sử của thí nghiệm 27/09/2026. Bốn nhóm route mô tả bên dưới là
+> phiên bản lúc đo; hiện có thêm PRODUCTS, ORDERS và ba cỡ FILE (tổng 9 nhóm).
+> Công thức hiện hành: [ADAPTIVE_EXPLAINED](ADAPTIVE_EXPLAINED.md). Kết quả mới,
+> có chart/bundle trong repo: [PERFORMANCE_ANALYSIS](PERFORMANCE_ANALYSIS.md).
+
 ## Giả thuyết chốt trước benchmark AFTER
 
 BEFORE là `benchmarks/results/official-20260927`, chỉ lấy Mixed, đủ 3 repetitions. Adaptive có error rate 19,08–24,25%, queue trung bình trên 9 backend/run là 10,51 request, queue max 28, heap trung bình 8,7%. Latency trước đây trộn cả ba loại request và thời gian chờ queue. Do đó cùng một inflight count chưa diễn tả số millisecond công việc còn lại.

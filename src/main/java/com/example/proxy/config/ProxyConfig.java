@@ -21,6 +21,7 @@ public final class ProxyConfig {
         getRecoverySuccesses(); getEwmaAlpha(); getInitialLatencyMs(); getExplorationInterval();
         getHealthCheckPath(); getMetricsPath(); getMaxHeaderCount(); getShutdownGraceSeconds(); getMaxHandlerTasks();
         isCircuitBreakerEnabled(); getCircuitFailureThreshold(); getCircuitOpenDurationMs(); getCircuitHalfOpenMaxProbes();
+        isDecisionTraceEnabled();
         isManagementEnabled(); getManagementPort(); getManagementMaxTasks();
         if (bool("proxy.connection-pool.enabled", false))
             throw new IllegalArgumentException("proxy.connection-pool.enabled=true is not supported; pooling is not implemented");
@@ -66,6 +67,7 @@ public final class ProxyConfig {
         return Boolean.parseBoolean(value);
     }
     public boolean isCircuitBreakerEnabled() { return bool("proxy.circuit-breaker.enabled", true); }
+    public boolean isDecisionTraceEnabled() { return bool("adaptive.decision-trace.enabled", false); }
     public boolean isManagementEnabled() { return bool("proxy.management.enabled", false); }
     public int getManagementPort() { return integer("proxy.management.port", 9090, 0, 65535); }
     public int getManagementMaxTasks() { return integer("proxy.management.max.handler.tasks", 16, 1, 1024); }

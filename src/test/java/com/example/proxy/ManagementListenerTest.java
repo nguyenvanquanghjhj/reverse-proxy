@@ -66,6 +66,12 @@ public final class ManagementListenerTest {
                 Files.writeString(Path.of("target/test-reports/management.prom"), prometheus.body());
                 check(prometheus.body().contains("# TYPE proxy_management_ingress_tasks gauge"), "management metrics");
                 await(() -> proxy.getManagementIngressTasks() == 0, "prometheus cleanup");
+                long dispatched = proxy.getDispatcher().snapshots().getFirst().dispatched();
+                var decision = get(client, management, "/__proxy/decision");
+                check(decision.statusCode() == 200 && decision.body().equals(proxy.getDispatcher().decisionJson())
+                        && decision.body().contains("MINIMUM_SCORE"), "enabled decision endpoint snapshot");
+                check(proxy.getDispatcher().snapshots().getFirst().dispatched() == dispatched, "decision read never dispatches");
+                await(() -> proxy.getManagementIngressTasks() == 0, "decision cleanup");
                 var head = client.send(HttpRequest.newBuilder(uri(management, "/__proxy/metrics")).method("HEAD", HttpRequest.BodyPublishers.noBody())
                         .timeout(Duration.ofSeconds(3)).build(), HttpResponse.BodyHandlers.ofString());
                 check(head.statusCode() == 200 && head.body().isEmpty(), "HEAD supported");
@@ -119,6 +125,7 @@ public final class ManagementListenerTest {
         p.setProperty("proxy.max.handler.tasks", "1"); p.setProperty("proxy.management.max.handler.tasks", "1");
         p.setProperty("proxy.request.timeout.ms", "2000"); p.setProperty("proxy.shutdown.grace.seconds", "0");
         p.setProperty("healthcheck.recovery.successes", "1"); p.setProperty("adaptive.warmup.ms", "0");
+        p.setProperty("adaptive.decision-trace.enabled", "true");
         p.setProperty("proxy.rate-limit.enabled", "true"); p.setProperty("proxy.rate-limit.burst", "1");
         p.setProperty("proxy.rate-limit.requests-per-second", "0.01"); p.setProperty("proxy.rate-limit.idle.ms", "100000");
         return p;

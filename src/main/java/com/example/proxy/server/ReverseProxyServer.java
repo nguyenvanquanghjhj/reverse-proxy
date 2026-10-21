@@ -96,6 +96,8 @@ public final class ReverseProxyServer implements AutoCloseable {
                         + ",\"data_ingress_tasks\":" + getDataIngressTasks()
                         + ",\"management_ingress_tasks\":" + getManagementIngressTasks()
                         + ",\"telemetry_probe_failures\":" + healthChecker.telemetryFailures() + "}";
+            } else if (path.equals("/__proxy/decision")) {
+                body = dispatcher.decisionJson();
             } else if (path.equals("/__proxy/prometheus")) {
                 body = handler.prometheus() + dispatcher.prometheus()
                         + "# TYPE proxy_data_ingress_tasks gauge\nproxy_data_ingress_tasks " + getDataIngressTasks() + "\n"
