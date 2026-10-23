@@ -48,6 +48,9 @@ public final class CircuitBreakerHttpTest {
                 check(proxy.getDispatcher().snapshotJson().contains("\"circuitFailures\":0"), "policy limit excluded from circuit");
                 check(proxy.getDispatcher().snapshotJson().contains("\"circuitState\":\"CLOSED\""), "policy limit cannot open circuit");
             }
+            String limitMetrics = get(client, url.resolve("/__proxy/metrics")).body();
+            check(limitMetrics.contains("\"upstream_limit_rejections\":4")
+                    && limitMetrics.contains("\"upstream_chunk_metadata_rejections\":0"), "body/header limit được đếm riêng, không giả thành chunk rejection");
             for (int code : new int[]{400, 401, 403, 404, 400, 401, 403, 404}) {
                 status.set(code); check(get(client, url).statusCode() == code, "client error forwarded");
                 check(proxy.getDispatcher().snapshotJson().contains("\"circuitFailures\":0"), "client error excluded");

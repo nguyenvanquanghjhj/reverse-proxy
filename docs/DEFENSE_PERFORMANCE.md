@@ -118,7 +118,7 @@ HTTP status/lỗi client theo tải, kịch bản, lần lặp, thuật toán v�
 
 ## Vì sao Slow lịch sử lỗi nhiều?
 
-[Bộ lịch sử](PERFORMANCE_ANALYSIS.md) có 360 Slow/thuật toán. Tính lại raw cho kết
+[Bộ lịch sử](history/PERFORMANCE_ANALYSIS.md) có 360 Slow/thuật toán. Tính lại raw cho kết
 quả:
 
 | Thuật toán | HTTP 200 | HTTP 503 | HTTP 504 | Lỗi Slow |

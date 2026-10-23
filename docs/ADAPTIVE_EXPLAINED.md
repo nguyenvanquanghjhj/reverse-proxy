@@ -109,4 +109,4 @@ tắt khi đo benchmark và bật lúc demo giải thích.
 
 `scoreMs` trong metrics là score RTT/count cũ dùng để suy ra resource penalty;
 **rankingScoreMs trong decision snapshot** mới là điểm của request được giải thích.
-Xem [kết quả và giới hạn dữ liệu](PERFORMANCE_ANALYSIS.md).
+Xem [kết quả và giới hạn dữ liệu](history/PERFORMANCE_ANALYSIS.md).

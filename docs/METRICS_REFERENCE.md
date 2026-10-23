@@ -25,6 +25,8 @@ là handler/request, không có backend lease và không tiêu thụ token clien
 | requests_rejected | Counter | HTTP >=400 chưa có X-Proxy-Backend; thường chưa dispatch |
 | upstream_errors | Counter | Exchange lỗi, gồm upstream HTTP >=400 |
 | upstream_response_errors | Counter | HTTP >=400, framing/body/header/EOF response lỗi |
+| upstream_limit_rejections | Counter | Upstream exchange bị chặn vì giới hạn body, header hoặc metadata chunk của proxy; không gồm upload bị 413/431 |
+| upstream_chunk_metadata_rejections | Counter | Tập con ở trên: tổng metadata response chunked vượt `proxy.max.chunk.metadata.bytes` |
 | upstream_connection_errors | Counter | IOException kết nối/transport khác response classification |
 | upstream_timeouts | Counter | Timeout upstream; có thể client deadline đóng trước khi gửi 504 |
 | estimatedWorkRejected | Counter | Adaptive không có candidate khi ít nhất một backend bị work-budget loại |
@@ -78,6 +80,7 @@ UNKNOWN/không áp dụng dùng null/trường vắng, không giả thành số 
 |---|---|
 | proxy_requests_total, proxy_requests_successful_total, proxy_requests_failed_total, proxy_requests_rejected_total | Counter, không label |
 | proxy_upstream_errors_total, proxy_upstream_response_errors_total, proxy_upstream_connection_errors_total, proxy_upstream_timeouts_total | Counter, không label |
+| proxy_upstream_limit_rejections_total, proxy_upstream_chunk_metadata_rejections_total | Counter, không label; chunk rejection là tập con của limit rejection |
 | proxy_rate_limit_rejected_total, proxy_rate_limit_capacity_rejected_total | Counter, không label |
 | proxy_rate_limit_clients, proxy_in_flight, proxy_data_ingress_tasks, proxy_management_ingress_tasks | Gauge, không label |
 | proxy_backend_selection_total | Counter, backend tĩnh |

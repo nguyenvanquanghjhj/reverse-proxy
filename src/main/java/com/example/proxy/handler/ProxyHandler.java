@@ -23,6 +23,7 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
     private final LongAdder requests = new LongAdder(), failed = new LongAdder(), rejected = new LongAdder();
     private final LongAdder timeouts = new LongAdder(), upstreamErrors = new LongAdder();
     private final LongAdder successful = new LongAdder(), connectionErrors = new LongAdder(), responseErrors = new LongAdder();
+    private final LongAdder limitRejections = new LongAdder(), chunkMetadataRejections = new LongAdder();
     private final ProxyConfig config;
     private final Dispatcher dispatcher;
     private final UpstreamTransport transport;
@@ -108,6 +109,7 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
                 + ",\"requests_rejected\":" + rejected.sum() + ",\"upstream_timeouts\":" + timeouts.sum()
                 + ",\"requests_successful\":" + successful.sum()
                 + ",\"upstream_connection_errors\":" + connectionErrors.sum() + ",\"upstream_response_errors\":" + responseErrors.sum()
+                + ",\"upstream_limit_rejections\":" + limitRejections.sum() + ",\"upstream_chunk_metadata_rejections\":" + chunkMetadataRejections.sum()
                 + ",\"upstream_errors\":" + upstreamErrors.sum() + ",\"in_flight\":" + owners.size() + "," + rateLimiter.json();
     }
     public String prometheus() {
@@ -116,6 +118,8 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
                 + metric("requests_successful_total", successful.sum(), "counter")
                 + metric("upstream_connection_errors_total", connectionErrors.sum(), "counter")
                 + metric("upstream_response_errors_total", responseErrors.sum(), "counter")
+                + metric("upstream_limit_rejections_total", limitRejections.sum(), "counter")
+                + metric("upstream_chunk_metadata_rejections_total", chunkMetadataRejections.sum(), "counter")
                 + metric("upstream_errors_total", upstreamErrors.sum(), "counter") + metric("in_flight", owners.size(), "gauge") + rateLimiter.prometheus();
     }
     private static String metric(String name, long value, String type) {
@@ -185,8 +189,12 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
                         log.warn("event=upstream_response_error request_id=" + exchange.getResponseHeaders().getFirst("X-Request-Id") + " status=" + response.status());
                     }
                     lease.complete(elapsedMs(start), response.status() >= 500 || response.status() == 429, false);
-                } catch (UpstreamTransport.BodyLimitException | UpstreamTransport.HeaderLimitException e) {
+                } catch (UpstreamTransport.BodyLimitException | UpstreamTransport.HeaderLimitException | UpstreamTransport.ChunkMetadataLimitException e) {
                     upstreamErrors.increment(); responseErrors.increment();
+                    limitRejections.increment();
+                    if (e instanceof UpstreamTransport.ChunkMetadataLimitException) chunkMetadataRejections.increment();
+                    log.warn("event=upstream_limit_rejected request_id=" + exchange.getResponseHeaders().getFirst("X-Request-Id")
+                            + " error_type=" + e.getClass().getSimpleName());
                     lease.completePolicyRejection(elapsedMs(start));
                     sendFailure(exchange, 502, "Backend response exceeds proxy limits");
                     return;

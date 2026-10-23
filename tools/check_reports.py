@@ -1,5 +1,6 @@
 """Check published numbers, manifests, SVG/PNG/HTML outputs and local Markdown links."""
 import argparse
+import hashlib
 from html.parser import HTMLParser
 import math
 import json
@@ -7,6 +8,7 @@ from pathlib import Path
 import re
 import urllib.parse
 import xml.etree.ElementTree as ET
+import zipfile
 import generate_charts as charts
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -51,7 +53,7 @@ def check_report(bundle,output):
 
 def check_links():
     broken=[]
-    for path in [ROOT/'README.md',*sorted((ROOT/'docs').rglob('*.md'))]:
+    for path in [ROOT/'README.md',*sorted((ROOT/'docs').rglob('*.md')),*sorted((ROOT/'benchmarks/history').glob('*.md'))]:
         text=re.sub(r'```.*?```','',path.read_text(encoding='utf-8'),flags=re.S)
         for target in re.findall(r'\]\(([^)]+)\)',text):
             target=target.split(' "')[0].strip('<>'); parsed=urllib.parse.urlsplit(target)
@@ -64,7 +66,7 @@ def check_links():
 def check_historical_analysis():
     _,runs,_,_=charts.load_bundle(ROOT/'benchmarks/presentation/mixed-20261021')
     summary=charts.summarize(runs)
-    lines=(ROOT/'docs/PERFORMANCE_ANALYSIS.md').read_text(encoding='utf-8').splitlines()
+    lines=(ROOT/'docs/history/PERFORMANCE_ANALYSIS.md').read_text(encoding='utf-8').splitlines()
     for label,row in zip(('Round Robin','Least Connections','Adaptive'),summary):
         candidates=[[v.strip() for v in line.strip('|').split('|')] for line in lines if line.startswith('| '+label+' |')]
         stored=next(v for v in candidates if len(v)==10)
@@ -78,6 +80,16 @@ def main():
     parser.add_argument('--include-defense',action='store_true'); args=parser.parse_args()
     check_report(ROOT/'benchmarks/presentation/mixed-20261021',ROOT/'docs/assets/charts/mixed-20261021')
     check_historical_analysis()
+    # Archive thay bản rời: luôn kiểm tra lại từng byte trong CI.
+    history=ROOT/'benchmarks/history'
+    manifest=json.loads((history/'20260927-manifest.json').read_text(encoding='utf-8'))
+    archive=history/manifest['archive']
+    charts.require(charts.digest(archive)==manifest['archive_sha256'],'Sai SHA256 archive lịch sử')
+    with zipfile.ZipFile(archive) as zipped:
+        charts.require(len(zipped.namelist())==len(set(zipped.namelist())) and
+                       set(zipped.namelist())==set(manifest['file_sha256']),'Tập file lịch sử không khớp')
+        for name,expected in manifest['file_sha256'].items():
+            charts.require(hashlib.sha256(zipped.read(name)).hexdigest()==expected,'Sai SHA256 file lịch sử: '+name)
     if args.include_defense:
         table=check_report(ROOT/'benchmarks/presentation/defense-20261021',ROOT/'docs/assets/charts/defense-20261021')
         readme=(ROOT/'README.md').read_text(encoding='utf-8')

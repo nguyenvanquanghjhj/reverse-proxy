@@ -165,7 +165,7 @@ python tools/generate_charts.py --bundle benchmarks/presentation/defense-2026102
 
 [Phân tích cuối](DEFENSE_PERFORMANCE.md) có đủ hai kịch bản × ba mức tải × ba
 thuật toán; [dữ liệu](../benchmarks/defense/20261021/matrix.csv) giữ cả ba lần lặp.
-Bộ cũ 10.800 yêu cầu vẫn ở [phân tích lịch sử](PERFORMANCE_ANALYSIS.md).
+Bộ cũ 10.800 yêu cầu vẫn ở [phân tích lịch sử](history/PERFORMANCE_ANALYSIS.md).
 
 Đọc ba thứ cùng nhau: số lượng thành công, tốc độ thành công/giây, độ trễ của
 những phản hồi thành công. Số lượng cộng các lần lặp; tốc độ và phân vị công bố là

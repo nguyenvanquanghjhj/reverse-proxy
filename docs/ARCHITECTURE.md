@@ -1,6 +1,6 @@
 # Kiến trúc và thuật toán để trình bày PBL4
 
-**Cập nhật Adaptive:** phần score theo latency/count dưới đây mô tả baseline và các metric tổng hợp vẫn xuất để đối chiếu. Quyết định Adaptive hiện dùng EWMA service theo route, estimated outstanding work và admission theo deadline, trong cùng Dispatcher/Lease; xem [thiết kế và benchmark Mixed trước/sau](ADAPTIVE_COMPLETION.md). Hệ số resource penalty và RR/LC giữ nguyên; lifecycle, transport và guard hardening được mô tả ở cuối tài liệu.
+**Cập nhật Adaptive:** phần score theo latency/count dưới đây mô tả baseline và các metric tổng hợp vẫn xuất để đối chiếu. Quyết định Adaptive hiện dùng EWMA service theo route, estimated outstanding work và admission theo deadline, trong cùng Dispatcher/Lease; xem [thiết kế và benchmark Mixed trước/sau](history/ADAPTIVE_COMPLETION.md). Hệ số resource penalty và RR/LC giữ nguyên; lifecycle, transport và guard hardening được mô tả ở cuối tài liệu.
 
 ## Luồng xử lý
 
@@ -135,6 +135,27 @@ request hiện tại, sau đó handler/health/executor đóng. Management có ad
 riêng 8 request và deadline; không tiêu thụ data admission.
 
 Validation client diễn ra trước acquire lease: method/target/header/framing sai không làm backend DOWN. Upstream từ chối CL+TE, CL trùng/overflow, TE khác chunked, CL trên 1xx/204, header injection, EOF/truncated body, chunk terminator sai. Header byte/count budget gồm informational headers và trailers. JDK parser ingress có behavior/giới hạn riêng trước handler. Socket luôn đóng nên không có reuse sau framing không chắc chắn.
+
+Response chunked còn có ngân sách riêng `proxy.max.chunk.metadata.bytes`, mặc định
+65.536 byte, hợp lệ từ 1.024 đến 16.777.216. Tổng này gồm mọi dòng chunk-size và
+extension, CRLF sau payload, last-chunk, toàn bộ trailer và CRLF cuối. Payload chịu
+`proxy.max.body.bytes` riêng; trailer đồng thời chịu ngân sách byte/count header
+cũ. Ngân sách tạo lại cho mỗi response, không cộng dồn giữa các request. Vì vậy
+nhiều chunk nhỏ hoặc extension dài không thể tiếp tục tiêu thụ framing chỉ nhờ
+body còn nhỏ; deadline và giới hạn dòng chunk 4.096 byte vẫn áp dụng.
+Một response hợp lệ nhưng chia quá nhiều chunk cũng có thể bị policy này chặn;
+cần tăng giới hạn theo đặc điểm backend nếu ứng dụng chủ động phân mảnh như vậy.
+
+Vượt ngân sách metadata trả JSON 502 và đóng socket ngay khi parser cần đọc quá
+giới hạn, không đợi backend đóng kết nối. Đây là policy rejection: không tăng hoặc
+reset số lỗi circuit; probe HALF_OPEN trả slot và giữ HALF_OPEN. Lease/in-flight,
+admission permit và timer vẫn được trả đúng một lần. Hai counter bổ sung là
+`upstream_limit_rejections` và tập con `upstream_chunk_metadata_rejections`, có
+bản Prometheus tương ứng; các counter lỗi cũ giữ nguyên nghĩa. Giới hạn mới chỉ
+áp dụng response upstream; parser request đầu vào thuộc JDK. Cách chặn metadata
+dựa trên nguyên tắc giới hạn extension trong
+[RFC 9112 §7.1.1](https://www.rfc-editor.org/rfc/rfc9112.html#section-7.1.1),
+không thêm khả năng xác thực chữ ký hoặc sử dụng nội dung extension.
 
 Health checker không restart sau stop; chỉ bắt lỗi HTTP/timeout/parse cụ thể và công bố failure counters. Lỗi telemetry để mẫu cũ hết hạn, không coi là CPU=0 và không đánh DOWN ứng dụng. Recovery tăng health generation để probe bắt đầu trước recovery không ghi đè state mới. Latency âm/nonfinite không được học nhưng lease vẫn được trả.
 

@@ -67,9 +67,10 @@ validator rồi trình bày như dữ liệu hiện tại. Hash là toàn vẹn,
 python tools/generate_charts.py --source benchmarks/results/my-mixed --scenario mixed --bundle-output benchmarks/presentation/my-mixed --output docs/assets/charts/my-mixed
 ```
 
-Lệnh verify trước khi export. Bundle nhỏ (CSV/provenance) có thể giữ trong Git để
-clone mới vẫn regenerate được chart. Full raw/frozen source/classes vẫn ở results
-ignored, cần lưu riêng nếu nộp toàn bộ artifact. Xem [VISUALIZATION_GUIDE](VISUALIZATION_GUIDE.md).
+Lệnh verify trước khi export. Bộ công bố đã có raw/frozen source/classes trong ZIP
+của `benchmarks/defense/`; dữ liệu 27/09 nằm ở [archive lịch sử](../benchmarks/history/README.md).
+`benchmarks/results/` chỉ dành cho lượt chạy cục bộ mới. Xem
+[VISUALIZATION_GUIDE](VISUALIZATION_GUIDE.md) về định dạng hình và báo cáo.
 
 ## Đọc nhận xét khi bảo vệ
 

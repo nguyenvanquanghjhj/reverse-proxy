@@ -7,7 +7,6 @@ __pycache__/
 .idea/
 .vscode/
 *.iml
-/benchmarks/results/**/classes/
-/benchmarks/results/**/source/
+# Kết quả cục bộ; dữ liệu công bố nằm ở defense/history/presentation.
 /benchmarks/results/
 *.log

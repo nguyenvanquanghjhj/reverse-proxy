@@ -7,6 +7,7 @@ import java.util.Properties;
 
 /** Validated immutable settings; telemetry values are ratios, not percentages. */
 public final class ProxyConfig { 
+    public static final int DEFAULT_MAX_CHUNK_METADATA_BYTES = 65536;
     private final Properties values = new Properties();
     private final List<BackendServer> backends;
     public ProxyConfig(Properties properties, List<BackendServer> backends) {
@@ -16,7 +17,7 @@ public final class ProxyConfig {
         if (backends.stream().map(BackendServer::getId).distinct().count() != backends.size())
             throw new IllegalArgumentException("Duplicate backend address");
         getProxyPort(); getConnectTimeoutMs(); getReadTimeoutMs(); getRequestTimeoutMs();
-        getMaxBodyBytes(); getMaxHeaderBytes(); getMaxInflight(); getHealthCheckIntervalMs();
+        getMaxBodyBytes(); getMaxHeaderBytes(); getMaxChunkMetadataBytes(); getMaxInflight(); getHealthCheckIntervalMs();
         getHealthCheckTimeoutMs(); getMetricsStaleMs(); getWarmupMs(); getBackendMaxInflight();
         getRecoverySuccesses(); getEwmaAlpha(); getInitialLatencyMs(); getExplorationInterval();
         getHealthCheckPath(); getMetricsPath(); getMaxHeaderCount(); getShutdownGraceSeconds(); getMaxHandlerTasks();
@@ -91,6 +92,7 @@ public final class ProxyConfig {
     public int getMaxBodyBytes() { return integer("proxy.max.body.bytes", 1048576, 1, 16777216); }
     public int getMaxHeaderBytes() { return integer("proxy.max.header.bytes", 32768, 1024, 262144); }
     public int getMaxHeaderCount() { return integer("proxy.max.header.count", 100, 1, 1000); }
+    public int getMaxChunkMetadataBytes() { return integer("proxy.max.chunk.metadata.bytes", DEFAULT_MAX_CHUNK_METADATA_BYTES, 1024, 16777216); }
     public int getShutdownGraceSeconds() { return integer("proxy.shutdown.grace.seconds", 2, 0, 30); }
     public int getMaxHandlerTasks() { return integer("proxy.max.handler.tasks", getMaxInflight() + 16, 1, 100016); }
     public int getMaxInflight() { return integer("proxy.max.inflight", 128, 1, 100000); }

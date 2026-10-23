@@ -15,7 +15,7 @@ không thay thuật toán hoặc cấu hình đo để làm đẹp kết quả.
 EstimatedWork, BackendMetrics, HealthChecker, ReverseProxyServer,
 BoundedRequestExecutor, ProxyConfig/ConfigLoader, RequestDeadline/Json, cấu hình,
 Java/Python tests, runner/validator, CI và các tài liệu kiến trúc/audit/benchmark.
-Các audit cũ giữ nguyên dưới phạm vi lịch sử; xem cả [CODEBASE_REVIEW](CODEBASE_REVIEW.md).
+Các audit cũ giữ nguyên dưới phạm vi lịch sử; xem cả [CODEBASE_REVIEW](history/CODEBASE_REVIEW.md).
 
 Máy kiểm tra: Windows 11, 16 CPU logic; Microsoft JDK **21.0.12.1+1**,
 Python 3.12. Chạy Java bằng JDK 21 thật, không chỉ biên dịch `release 21` bằng JDK mới.
@@ -110,3 +110,38 @@ ghi các bước tự chạy, giải thích công thức và giới hạn bằng
 
 Không xóa test/audit cũ, không reset working tree. Bộ historical CSV vẫn nguyên
 byte; mọi raw mới và bản sao historical nằm trong ZIP, không chỉ trong results ignored.
+
+## Bổ sung backend — 23/10/2026
+
+Đã tái hiện bằng socket thật: bản cũ chấp nhận response có metadata chunk vượt
+ngân sách thử nghiệm, dù payload nhỏ. Bổ sung `proxy.max.chunk.metadata.bytes`
+(mặc định 65.536 byte), validation cấu hình, JSON/Prometheus counter cho limit
+rejection và tập con chunk metadata. Chi tiết phạm vi/ngữ nghĩa tại
+[kiến trúc](ARCHITECTURE.md) và [metrics](METRICS_REFERENCE.md).
+
+- PASS: build JDK 21 và **13 Java test mains** bằng `scripts/test.ps1`. Test mới
+  `ChunkMetadataTest` kiểm đúng biên/vượt 1 byte, nhiều chunk nhỏ, extension của
+  last-chunk, trailer, ngân sách mặc định của constructor cũ và payload fixed/EOF.
+  Backend giữ kết nối mở; test yêu cầu đúng `ChunkMetadataLimitException`, không
+  coi timeout/EOF là đạt. Probe HALF_OPEN bị chặn trả slot; probe sau thành công
+  đóng circuit, các permit/lease/socket/timer đều được thu hồi.
+- PASS: `CircuitBreakerHttpTest` kiểm counter body/header riêng; metadata limit
+  không tăng hoặc reset failure threshold. Toàn bộ JSON/Prometheus counter cũ vẫn
+  được kiểm đúng cùng counter mới. Bản cuối của fixture cleanup được biên dịch và
+  chạy riêng lại; log tại `target/chunk-budget-final.stdout.log` và `.stderr.log`.
+- PASS: **24 Python tests** bằng `python -B -X utf8 scripts/ci_python_tests.py`;
+  render thật, kiểm corruption và frozen validator vẫn hoạt động.
+- PASS: `tools/check_reports.py --include-defense` và
+  `tools/defense_artifacts.py --verify benchmarks/defense/20261021`: bảng, hình,
+  SHA, archive lịch sử, raw validators và liên kết vẫn khớp.
+- PASS: `benchmark.py --quick --scenarios homogeneous` rồi
+  `verify_benchmark.py benchmarks/results/chunk-budget-smoke-20261023`: **3 runs,
+  360 yêu cầu đo, 0 lỗi**; có frozen source/config, SHA, lịch gửi, counters và thống
+  kê được đối chiếu. Dùng JDK 21, seed mặc định 20260927; metadata ghi rõ
+  `git_dirty=true`. Đây chỉ là smoke kiểm tra tương thích sau sửa, không dùng
+  kết luận tăng throughput hay thuật toán nào thắng. Artifact sinh tự động được
+  giữ tại đường dẫn trên (ignored).
+
+Giữ nguyên UI, RR/LC/Adaptive, health check, workload và dữ liệu công bố. Bộ 54 lần
+đo phía trên vẫn thuộc source `c2d5f20`, không coi đó là số đo lại của bản nâng cấp.
+Chưa commit/push; CI remote chưa chạy cho diff này. Pooling và retry vẫn chưa triển khai.

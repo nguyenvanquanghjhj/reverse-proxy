@@ -16,7 +16,7 @@ Chia đều số request chưa chắc chia đều công việc: slow giữ slot 
 - Round Robin, Least Connections, Adaptive theo estimated completion time (ECT).
 - Health check, telemetry freshness và slow start khi hồi phục.
 - Circuit breaker từng backend; token bucket theo peer IP có giới hạn bộ nhớ.
-- Deadline xuyên suốt, bounded ingress, giới hạn in-flight/body/header và graceful shutdown.
+- Deadline xuyên suốt, bounded ingress, giới hạn in-flight/body/header/metadata chunk và graceful shutdown.
 - JSON/Prometheus metrics, management listener loopback tùy chọn.
 - Ảnh chụp giải thích Adaptive; trạm thử yêu cầu tiếng Việt và giám sát cục bộ.
 - Benchmark seed/repeat/checksum/validator; report offline và chart SVG/PNG từ CSV thật.
@@ -113,6 +113,7 @@ Sửa [application.properties](config/application.properties), restart proxy. `b
 | proxy.connection-pool.enabled | false; true bị reject vì chưa triển khai |
 | proxy.request.timeout.ms | 5000; deadline xuyên suốt ingress/upload/upstream/downstream |
 | proxy.read.timeout.ms / proxy.connect.timeout.ms | 3000 / 500; timeout I/O upstream |
+| proxy.max.chunk.metadata.bytes | 65536; tổng framing/trailer của response chunked, tách khỏi payload |
 
 Bật tracing, gửi request rồi đọc `/__proxy/decision` để thấy candidate score, backend bị loại và reason minimum/exploration. Không lưu query/client ID. Trace tắt lúc đo.
 
@@ -152,7 +153,7 @@ Bộ nguồn sạch `c2d5f20`: **54 lần chạy, 16.200 yêu cầu đo**, Mixed
 ![Tốc độ thành công](docs/assets/charts/defense-20261021/throughput.svg)
 ![Tỷ lệ lỗi theo loại yêu cầu](docs/assets/charts/defense-20261021/request-types.svg)
 
-Adaptive không luôn thắng: ở Mixed 60, LC có ít lỗi hơn trong bộ ngắn này; ở máy chủ khác năng lực, Adaptive giảm độ trễ rõ hơn so với LC. Đọc [đủ hai kịch bản/ba tải, dao động và Slow](docs/DEFENSE_PERFORMANCE.md). [Bộ lịch sử 10.800 mẫu](docs/PERFORMANCE_ANALYSIS.md) giữ nguyên, không ghép thành so sánh trước/sau.
+Adaptive không luôn thắng: ở Mixed 60, LC có ít lỗi hơn trong bộ ngắn này; ở máy chủ khác năng lực, Adaptive giảm độ trễ rõ hơn so với LC. Đọc [đủ hai kịch bản/ba tải, dao động và Slow](docs/DEFENSE_PERFORMANCE.md). [Bộ lịch sử 10.800 mẫu](docs/history/PERFORMANCE_ANALYSIS.md) giữ nguyên, không ghép thành so sánh trước/sau.
 
 Mở [báo cáo ngoại tuyến](docs/assets/charts/defense-20261021/index.html) sau khi clone. Trên GitHub xem [bảng tổng](docs/assets/charts/defense-20261021/overall-summary.md), [kết quả yêu cầu](docs/assets/charts/defense-20261021/outcomes.svg), [độ trễ](docs/assets/charts/defense-20261021/latency.svg), [lỗi](docs/assets/charts/defense-20261021/errors.svg), [phân phối máy chủ](docs/assets/charts/defense-20261021/backends.svg).
 
@@ -176,10 +177,16 @@ src/test/java/                Plain Java test mains và runner timeout
 scripts/                      Build/run/demo/benchmark/validator/Python tests
 tools/                        Sinh chart, requirements tùy chọn
 benchmarks/presentation/      CSV bundle/provenance có trong Git
-benchmarks/results/           Full experiment artifacts, ignored
-docs/                         Review, thiết kế, metrics, guides, phân tích
+benchmarks/defense/           Raw và bảng của bộ đo dùng bảo vệ
+benchmarks/history/           Archive lịch sử nguyên byte, có SHA-256
+benchmarks/results/           Kết quả chạy cục bộ mới, được Git bỏ qua
+docs/                         Thiết kế, metrics, hướng dẫn, kiểm định hiện hành
+docs/history/                 Audit và báo cáo theo các phiên bản trước
 docs/assets/charts/           Report offline, SVG/PNG, summary tables
 ```
+
+Tài liệu trong `docs/history/` giữ bằng chứng của phiên bản cũ, không dùng làm mô tả
+mã hiện hành. Cách mở lại dữ liệu đo cũ: [benchmark lịch sử](benchmarks/history/README.md).
 
 ## Giới hạn và hướng phát triển
 

@@ -16,7 +16,7 @@ public final class UpstreamTransport implements AutoCloseable {
     private static final Set<String> HOP_HEADERS = Set.of("connection", "keep-alive", "proxy-connection",
             "proxy-authenticate", "proxy-authorization", "te", "trailer", "transfer-encoding", "upgrade");
     private final int connectTimeoutMs, readTimeoutMs, requestTimeoutMs, maxBodyBytes, maxHeaderBytes;
-    private final int maxHeaderCount;
+    private final int maxHeaderCount, maxChunkMetadataBytes;
     private final Set<Socket> activeSockets = ConcurrentHashMap.newKeySet();
     private final AtomicBoolean closed = new AtomicBoolean();
     private final ScheduledThreadPoolExecutor deadlines = new ScheduledThreadPoolExecutor(1,
@@ -24,15 +24,15 @@ public final class UpstreamTransport implements AutoCloseable {
 
     public UpstreamTransport(ProxyConfig config) {
         this(config.getConnectTimeoutMs(), config.getReadTimeoutMs(), config.getRequestTimeoutMs(),
-                config.getMaxBodyBytes(), config.getMaxHeaderBytes(), config.getMaxHeaderCount());
+                config.getMaxBodyBytes(), config.getMaxHeaderBytes(), config.getMaxHeaderCount(), config.getMaxChunkMetadataBytes());
     }
     public UpstreamTransport(int connectTimeoutMs, int readTimeoutMs, int requestTimeoutMs,
                              int maxBodyBytes, int maxHeaderBytes) {
-        this(connectTimeoutMs, readTimeoutMs, requestTimeoutMs, maxBodyBytes, maxHeaderBytes, 100);
+        this(connectTimeoutMs, readTimeoutMs, requestTimeoutMs, maxBodyBytes, maxHeaderBytes, 100, ProxyConfig.DEFAULT_MAX_CHUNK_METADATA_BYTES);
     }
     private UpstreamTransport(int connectTimeoutMs, int readTimeoutMs, int requestTimeoutMs,
-                              int maxBodyBytes, int maxHeaderBytes, int maxHeaderCount) {
-        if (connectTimeoutMs <= 0 || readTimeoutMs <= 0 || requestTimeoutMs <= 0 || maxBodyBytes <= 0 || maxHeaderBytes <= 0 || maxHeaderCount <= 0)
+                              int maxBodyBytes, int maxHeaderBytes, int maxHeaderCount, int maxChunkMetadataBytes) {
+        if (connectTimeoutMs <= 0 || readTimeoutMs <= 0 || requestTimeoutMs <= 0 || maxBodyBytes <= 0 || maxHeaderBytes <= 0 || maxHeaderCount <= 0 || maxChunkMetadataBytes <= 0)
             throw new IllegalArgumentException("Timeouts and limits must be positive");
         this.connectTimeoutMs = connectTimeoutMs;
         this.readTimeoutMs = readTimeoutMs;
@@ -40,6 +40,7 @@ public final class UpstreamTransport implements AutoCloseable {
         this.maxBodyBytes = maxBodyBytes;
         this.maxHeaderBytes = maxHeaderBytes;
         this.maxHeaderCount = maxHeaderCount;
+        this.maxChunkMetadataBytes = maxChunkMetadataBytes;
         deadlines.setRemoveOnCancelPolicy(true);
     }
     public record Response(int status, Map<String, List<String>> headers, byte[] body) { }
@@ -180,8 +181,10 @@ public final class UpstreamTransport implements AutoCloseable {
     }
     private byte[] readChunked(InputStream in, HeaderBudget budget) throws IOException {
         ByteArrayOutputStream body = new ByteArrayOutputStream();
+        // Chỉ đọc phần framing qua lớp đếm; payload vẫn chịu giới hạn body riêng.
+        InputStream metadata = new ChunkMetadataInput(in, maxChunkMetadataBytes);
         while (true) {
-            String line = readLine(in, Math.min(maxHeaderBytes, 4096), null);
+            String line = readLine(metadata, Math.min(maxHeaderBytes, 4096), null);
             if (!validHeaderValue(line)) throw new ProtocolException("Invalid chunk extension");
             String sizeText = line.split(";", 2)[0];
             if (!sizeText.matches("[0-9a-fA-F]+")) throw new ProtocolException("Invalid chunk size");
@@ -189,14 +192,14 @@ public final class UpstreamTransport implements AutoCloseable {
             try { size = Long.parseLong(sizeText, 16); }
             catch (NumberFormatException e) { throw new ProtocolException("Chunk size overflow"); }
             if (size == 0) {
-                Map<String, List<String>> trailers = readHeaders(in, budget);
+                Map<String, List<String>> trailers = readHeaders(metadata, budget);
                 if (trailers.containsKey("content-length") || trailers.containsKey("transfer-encoding") || trailers.containsKey("host"))
                     throw new ProtocolException("Forbidden framing trailer");
                 return body.toByteArray();
             }
             if (size > maxBodyBytes - body.size()) throw new BodyLimitException("Upstream body exceeds limit");
             copyExactly(in, body, (int) size);
-            if (in.read() != '\r' || in.read() != '\n') throw new ProtocolException("Invalid chunk terminator");
+            if (metadata.read() != '\r' || metadata.read() != '\n') throw new ProtocolException("Invalid chunk terminator");
         }
     }
     private byte[] readExactly(InputStream in, int length) throws IOException {
@@ -268,8 +271,21 @@ public final class UpstreamTransport implements AutoCloseable {
         void header() throws HeaderLimitException { if (--headers < 0) throw new HeaderLimitException("Too many upstream headers"); }
         void consume() throws HeaderLimitException { if (--remaining < 0) throw new HeaderLimitException("Upstream headers exceed limit"); }
     }
+    /** Một ngân sách cho toàn bộ size/extension, terminator và trailer của response. */
+    private static final class ChunkMetadataInput extends InputStream {
+        private final InputStream source;
+        private int remaining;
+        ChunkMetadataInput(InputStream source, int limit) { this.source = source; this.remaining = limit; }
+        @Override public int read() throws IOException {
+            if (remaining == 0) throw new ChunkMetadataLimitException("Metadata chunk của backend vượt giới hạn");
+            int next = source.read();
+            if (next >= 0) remaining--;
+            return next;
+        }
+    }
     public static final class BodyLimitException extends IOException { public BodyLimitException(String message) { super(message); } }
     public static final class HeaderLimitException extends IOException { public HeaderLimitException(String message) { super(message); } }
+    public static final class ChunkMetadataLimitException extends IOException { public ChunkMetadataLimitException(String message) { super(message); } }
     @Override public void close() {
         if (!closed.compareAndSet(false, true)) return;
         activeSockets.forEach(UpstreamTransport::closeQuietly);
