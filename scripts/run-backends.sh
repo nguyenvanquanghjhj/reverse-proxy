@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.."
+source scripts/java21.sh
+require_java21
 if [[ "${1:-}" == --no-build ]]; then shift; else bash scripts/build.sh; fi
 pids=()
 cleanup() {
@@ -10,9 +12,9 @@ cleanup() {
 trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
-java -cp target/classes com.example.backend.DemoBackendServer 9001 8 20 0 & pids+=("$!")
-java -cp target/classes com.example.backend.DemoBackendServer 9002 8 20 0 & pids+=("$!")
-java -cp target/classes com.example.backend.DemoBackendServer 9003 8 20 0 & pids+=("$!")
+"$java21_java" -cp target/reverse-proxy-demo.jar com.example.backend.DemoBackendServer 9001 8 20 0 & pids+=("$!")
+"$java21_java" -cp target/reverse-proxy-demo.jar com.example.backend.DemoBackendServer 9002 8 20 0 & pids+=("$!")
+"$java21_java" -cp target/reverse-proxy-demo.jar com.example.backend.DemoBackendServer 9003 8 20 0 & pids+=("$!")
 echo 'Backends: 9001, 9002, 9003 (each: 8 slots / 20 ms). Ctrl+C to stop.'
 while true; do
   for backend_pid in "${pids[@]}"; do

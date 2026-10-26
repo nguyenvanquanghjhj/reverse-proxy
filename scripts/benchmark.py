@@ -73,7 +73,7 @@ class Cluster:
         self.directory.mkdir(parents=True, exist_ok=True)
         self.specs, self.strategy = tuple(specs), strategy
         self.java = java or shutil.which('java') or 'java'
-        self.classes = Path(classes) if classes else ROOT / "target/classes"
+        self.classes = Path(classes) if classes else ROOT / "target/reverse-proxy-demo.jar"
         self.config_text = config_text
         self.processes, self.logs, self.backends = [], [], []
         self.ports = []
@@ -117,7 +117,7 @@ class Cluster:
 
     def __enter__(self):
         try:
-            if not (self.classes / "com/example/proxy/Main.class").exists():
+            if not (self.classes.is_file() or (self.classes / "com/example/proxy/Main.class").exists()):
                 raise RuntimeError("Build first: scripts/build.ps1 or scripts/build.sh")
             for index in range(len(self.specs)):
                 self.start_backend(index)
