@@ -6,6 +6,8 @@ import com.example.proxy.loadbalancer.Dispatcher;
 import com.example.proxy.metrics.BackendMetrics;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -57,8 +59,11 @@ public final class SchedulerParityTest {
             golden.append(d.snapshotJson()).append('\n').append(d.decisionJson()).append('\n');
         }
         String digest = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(golden.toString().getBytes(StandardCharsets.UTF_8)));
-        if (!digest.equals("f1b93fdb49772e638afad2906c6cb21383a39d3bc0fa7925dc7ee192c5dbbcfe"))
+        if (!digest.equals("f1b93fdb49772e638afad2906c6cb21383a39d3bc0fa7925dc7ee192c5dbbcfe")) {
+            Files.createDirectories(Path.of("target/test-reports"));
+            Files.writeString(Path.of("target/test-reports/scheduler-transcript.txt"), golden);
             throw new AssertionError("Scheduler baseline changed: " + digest);
+        }
         System.out.println("SchedulerParityTest PASS: 2700 deterministic states match 6550f5c baseline");
     }
 }

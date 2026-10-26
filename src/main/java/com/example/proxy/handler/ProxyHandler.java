@@ -13,17 +13,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.LongAdder;
 
 /** Admission, HTTP forwarding and exactly-once scheduler completion. */
 public final class ProxyHandler implements HttpHandler, AutoCloseable {
     private static final AppLogger log = AppLogger.of(ProxyHandler.class);
     private final AtomicBoolean closed = new AtomicBoolean();
     private final Map<Thread, String> owners = new ConcurrentHashMap<>();
-    private final LongAdder requests = new LongAdder(), failed = new LongAdder(), rejected = new LongAdder();
-    private final LongAdder timeouts = new LongAdder(), upstreamErrors = new LongAdder();
-    private final LongAdder successful = new LongAdder(), connectionErrors = new LongAdder(), responseErrors = new LongAdder();
-    private final LongAdder limitRejections = new LongAdder(), chunkMetadataRejections = new LongAdder();
+    private final ProxyRequestMetrics metrics = new ProxyRequestMetrics();
     private final ProxyConfig config;
     private final Dispatcher dispatcher;
     private final UpstreamTransport transport;
@@ -52,7 +48,7 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
         long started = System.nanoTime();
         String id = requestId(exchange);
         String error = "";
-        requests.increment();
+        metrics.requestStarted();
         owners.put(Thread.currentThread(), id);
         ClientDeadline deadline = null;
         log.info("event=request_started request_id=" + id);
@@ -78,9 +74,7 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
             if (deadline != null) deadline.close();
             owners.remove(Thread.currentThread());
             int status = exchange.getResponseCode();
-            if (status < 0 || status >= 400 || !error.isEmpty()) failed.increment();
-            else if (status >= 200 && status < 300) successful.increment();
-            if (status >= 400 && exchange.getResponseHeaders().getFirst("X-Proxy-Backend") == null) rejected.increment();
+            metrics.requestCompleted(status, !error.isEmpty(), exchange.getResponseHeaders().getFirst("X-Proxy-Backend") != null);
             if (error.isEmpty() && status >= 400) error = switch (status) {
                 case 502 -> "UpstreamFailure";
                 case 504 -> "UpstreamTimeout";
@@ -107,25 +101,10 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
         exchange.getResponseHeaders().set("X-Frame-Options", "DENY");
     }
     public String countersJson() {
-        return "\"requests_total\":" + requests.sum() + ",\"requests_failed\":" + failed.sum()
-                + ",\"requests_rejected\":" + rejected.sum() + ",\"upstream_timeouts\":" + timeouts.sum()
-                + ",\"requests_successful\":" + successful.sum()
-                + ",\"upstream_connection_errors\":" + connectionErrors.sum() + ",\"upstream_response_errors\":" + responseErrors.sum()
-                + ",\"upstream_limit_rejections\":" + limitRejections.sum() + ",\"upstream_chunk_metadata_rejections\":" + chunkMetadataRejections.sum()
-                + ",\"upstream_errors\":" + upstreamErrors.sum() + ",\"in_flight\":" + owners.size() + "," + rateLimiter.json();
+        return metrics.countersJson(owners::size, rateLimiter::json);
     }
     public String prometheus() {
-        return metric("requests_total", requests.sum(), "counter") + metric("requests_failed_total", failed.sum(), "counter")
-                + metric("requests_rejected_total", rejected.sum(), "counter") + metric("upstream_timeouts_total", timeouts.sum(), "counter")
-                + metric("requests_successful_total", successful.sum(), "counter")
-                + metric("upstream_connection_errors_total", connectionErrors.sum(), "counter")
-                + metric("upstream_response_errors_total", responseErrors.sum(), "counter")
-                + metric("upstream_limit_rejections_total", limitRejections.sum(), "counter")
-                + metric("upstream_chunk_metadata_rejections_total", chunkMetadataRejections.sum(), "counter")
-                + metric("upstream_errors_total", upstreamErrors.sum(), "counter") + metric("in_flight", owners.size(), "gauge") + rateLimiter.prometheus();
-    }
-    private static String metric(String name, long value, String type) {
-        return "# TYPE proxy_" + name + " " + type + "\nproxy_" + name + " " + value + "\n";
+        return metrics.prometheus(owners::size, rateLimiter::prometheus);
     }
     public record Diagnostics(int admissionAvailable, int activeHandlers, int deadlineTasks, int upstreamSockets, int upstreamDeadlineTasks) { }
     public Diagnostics diagnostics() {
@@ -166,30 +145,26 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
                 try {
                     response = transport.exchange(lease.backend(), exchange.getRequestMethod(), exchange.getRequestURI(), headers, body, expires);
                     if (response.status() >= 400) {
-                        responseErrors.increment(); upstreamErrors.increment();
+                        metrics.upstreamResponseError();
                         log.warn("event=upstream_response_error request_id=" + exchange.getResponseHeaders().getFirst("X-Request-Id") + " status=" + response.status());
                     }
                     lease.complete(elapsedMs(start), response.status() >= 500 || response.status() == 429, false);
                 } catch (UpstreamTransport.BodyLimitException | UpstreamTransport.HeaderLimitException | UpstreamTransport.ChunkMetadataLimitException e) {
-                    upstreamErrors.increment(); responseErrors.increment();
-                    limitRejections.increment();
-                    if (e instanceof UpstreamTransport.ChunkMetadataLimitException) chunkMetadataRejections.increment();
+                    metrics.upstreamLimitRejected(e instanceof UpstreamTransport.ChunkMetadataLimitException);
                     log.warn("event=upstream_limit_rejected request_id=" + exchange.getResponseHeaders().getFirst("X-Request-Id")
                             + " error_type=" + e.getClass().getSimpleName());
                     lease.completePolicyRejection(elapsedMs(start));
                     sendFailure(exchange, 502, "Backend response exceeds proxy limits");
                     return;
                 } catch (SocketTimeoutException e) {
-                    timeouts.increment(); upstreamErrors.increment();
+                    metrics.upstreamTimeout();
                     log.warn("event=upstream_timeout request_id=" + exchange.getResponseHeaders().getFirst("X-Request-Id"));
                     lease.complete(elapsedMs(start), true, true);
                     sendFailure(exchange, 504, "Backend timed out");
                     return;
                 } catch (IOException e) {
                     log.warn("event=upstream_error request_id=" + exchange.getResponseHeaders().getFirst("X-Request-Id") + " error_type=" + e.getClass().getSimpleName());
-                    upstreamErrors.increment();
-                    if (e instanceof java.net.ProtocolException || e instanceof EOFException) responseErrors.increment();
-                    else connectionErrors.increment();
+                    metrics.upstreamFailure(e);
                     lease.complete(elapsedMs(start), true, true);
                     sendFailure(exchange, 502, "Backend connection or HTTP response failed");
                     return;
