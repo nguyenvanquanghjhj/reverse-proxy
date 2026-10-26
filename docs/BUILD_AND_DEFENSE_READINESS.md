@@ -117,6 +117,15 @@ chỉ chuẩn hóa xuống dòng và bỏ khoảng trắng cuối dòng khi lưu
   và Ubuntu**: [run 40276448758](https://github.com/nguyenvanquanghjhj/reverse-proxy/actions/runs/40276448758),
   [bản ghi trạng thái](assets/readiness-20261026/ci-source-verification.json).
   Run này chưa có bundle ablation; kiểm định bundle được bật cho commit chứa bundle.
+- Run `2400ecb` đã **PASS cả hai hệ điều hành**, gồm bundle ablation:
+  [run 40278061451](https://github.com/nguyenvanquanghjhj/reverse-proxy/actions/runs/40278061451).
+  Trước đó run `ddca18a` có một lần standalone test Ubuntu thất bại với thông báo
+  `HTTP/1.1 503 Service Unavailable`; Windows PASS. Chưa tái hiện lỗi này trên máy
+  trình chiếu hoặc lần CI kế tiếp. Quyền tải log chi tiết qua API không khả dụng
+  (403 với credential Git; 401 với workflow token), nên chưa xác định được nguyên
+  nhân của lần lỗi đó. Không coi lần PASS sau là bằng chứng đã tìm ra nguyên nhân.
+  Test runner hiện công khai tên suite và stack trace trong CI annotations nếu
+  lỗi xuất hiện lại; mọi assertion vẫn giữ nguyên. Workflow chẩn đoán tạm đã bỏ.
 - Chín lượt ablation đã hoàn tất, raw/patch/hash/schedule và summary đều PASS.
   [Báo cáo ablation riêng](ADAPTIVE_ABLATION.md) có success/p95 từng workload,
   bảng từng lượt và cảnh báo client lag; không trộn vào benchmark lịch sử.
