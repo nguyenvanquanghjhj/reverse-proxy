@@ -6,6 +6,8 @@ Reverse proxy HTTP/1.1 viết bằng **Java 21, chỉ dùng thư viện JDK**. �
 
 [Kiểm định refactor 26/10/2026](docs/READABILITY_REFACTOR.md) ghi baseline, phạm vi thay đổi và kết quả kiểm thử riêng; số liệu benchmark công bố bên dưới vẫn thuộc snapshot lịch sử.
 
+[Build độc lập, Decision Explorer và ablation](docs/BUILD_AND_DEFENSE_READINESS.md) hướng dẫn xác minh source và giải thích lựa chọn bằng trace thật.
+
 [Chạy và bảo vệ](docs/DEFENSE_GUIDE.md) · [Thiết kế thích nghi](docs/ADAPTIVE_EXPLAINED.md) · [Kết quả cuối](docs/DEFENSE_PERFORMANCE.md) · [Báo cáo](docs/assets/charts/defense-20261021/index.html) · [Kiểm định](docs/FINAL_VERIFICATION.md)
 
 ## Bài toán và mục tiêu
@@ -99,7 +101,7 @@ powershell -ExecutionPolicy Bypass -File scripts/run-proxy.ps1 -NoBuild
 Linux/macOS/WSL: `bash scripts/build.sh`, rồi `bash scripts/run-backends.sh --no-build` và `bash scripts/run-proxy.sh --no-build`. Chạy trực tiếp:
 
 ```text
-java -cp target/classes com.example.backend.DemoBackendServer 9001 8 20 0
+java -cp target/reverse-proxy-demo.jar com.example.backend.DemoBackendServer 9001 8 20 0
 java -jar target/reverse-proxy-demo.jar config/application.properties
 ```
 
@@ -139,6 +141,8 @@ python scripts/verify_benchmark.py benchmarks/results/my-mixed
 ```
 
 Đặt `JAVA_HOME` tới JDK 21. Benchmark biên dịch frozen snapshot, không dùng class IDE. Output phải là thư mục mới, có raw requests, telemetry, config, seed/hash và manifest. TestSuite chạy mọi test main trong JVM riêng, assertions bật, timeout 60 giây/suite. Maven tùy chọn: `mvn -B -ntp clean verify` dùng cùng TestSuite; Surefire tắt có chủ đích.
+
+Build/test độc lập dùng `target/standalone/{classes,test-classes}`; không đọc/ghi output IDE/Maven `target/classes`. Run scripts dùng JAR mới. Các script yêu cầu đúng JDK 21; không tuyên bố hỗ trợ JDK 26. Kiểm tra build từ source mới, gồm hai clean build và chạy HTTP thật: `python tools/verify_clean_build.py --java "$env:JAVA_HOME/bin/java.exe" --output target/my-clean-build` (thư mục output phải mới).
 
 [BENCHMARK_GUIDE](docs/BENCHMARK_GUIDE.md) giải thích cách đo/đọc kết quả; [BENCHMARK](docs/BENCHMARK.md) mô tả schema. `benchmark_resilience.py` kiểm chứng behavior circuit/rate, không xếp hạng throughput.
 

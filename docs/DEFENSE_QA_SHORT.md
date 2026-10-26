@@ -23,3 +23,7 @@ thuộc snapshot cũ; [báo cáo refactor](READABILITY_REFACTOR.md) ghi kiểm t
 
 Đọc [walkthrough có trace](REQUEST_WALKTHROUGH.md) trước khi học công thức chi tiết
 ở [ADAPTIVE_EXPLAINED](ADAPTIVE_EXPLAINED.md).
+
+Kiểm chứng bổ sung: [ConcurrentLifecycleTest](../src/test/java/com/example/proxy/ConcurrentLifecycleTest.java)
+dùng 64 client HTTP thật, kiểm giới hạn không âm và thu hồi đầy đủ sau timeout;
+[build độc lập và Explorer](BUILD_AND_DEFENSE_READINESS.md) có cách tái hiện từ source.
