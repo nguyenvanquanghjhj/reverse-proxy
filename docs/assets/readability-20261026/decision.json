@@ -1,0 +1,49 @@
+{
+  "enabled": true,
+  "lastDecision": {
+    "sequence": 1,
+    "route": "LIGHT",
+    "units": 2,
+    "budgetMs": 3000.0,
+    "reason": "MINIMUM_SCORE",
+    "selectedBackend": "127.0.0.1:55597",
+    "candidates": [
+      {
+        "backend": "127.0.0.1:55597",
+        "eligibility": "ELIGIBLE",
+        "inFlight": 0,
+        "effectiveCapacity": 8.0,
+        "serviceMs": 100.0,
+        "waitMs": 0.0,
+        "completionMs": 100.0,
+        "outstandingMs": 0.0,
+        "resourcePenalty": 1.0,
+        "rankingScoreMs": 100.0
+      },
+      {
+        "backend": "127.0.0.1:55598",
+        "eligibility": "ELIGIBLE",
+        "inFlight": 0,
+        "effectiveCapacity": 8.0,
+        "serviceMs": 100.0,
+        "waitMs": 0.0,
+        "completionMs": 100.0,
+        "outstandingMs": 0.0,
+        "resourcePenalty": 1.0,
+        "rankingScoreMs": 100.0
+      },
+      {
+        "backend": "127.0.0.1:55599",
+        "eligibility": "ELIGIBLE",
+        "inFlight": 0,
+        "effectiveCapacity": 8.0,
+        "serviceMs": 100.0,
+        "waitMs": 0.0,
+        "completionMs": 100.0,
+        "outstandingMs": 0.0,
+        "resourcePenalty": 1.0,
+        "rankingScoreMs": 100.0
+      }
+    ]
+  }
+}

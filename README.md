@@ -2,6 +2,8 @@
 
 Reverse proxy HTTP/1.1 viết bằng **Java 21, chỉ dùng thư viện JDK**. Đồ án nghiên cứu cách phân phối request khi độ trễ, lượng công việc và tài nguyên backend thay đổi; so sánh **Round Robin, Least Connections và Adaptive** bằng benchmark có thể tái hiện. Phạm vi dành cho PBL4 3 tín chỉ, chưa phải proxy production.
 
+[Bắt đầu trong 5 phút](docs/START_HERE.md) · [Theo dấu một request](docs/REQUEST_WALKTHROUGH.md) · [15 câu hỏi bảo vệ](docs/DEFENSE_QA_SHORT.md) · [Demo 5 phút](docs/DEMO_5_MINUTES.md)
+
 [Chạy và bảo vệ](docs/DEFENSE_GUIDE.md) · [Thiết kế thích nghi](docs/ADAPTIVE_EXPLAINED.md) · [Kết quả cuối](docs/DEFENSE_PERFORMANCE.md) · [Báo cáo](docs/assets/charts/defense-20261021/index.html) · [Kiểm định](docs/FINAL_VERIFICATION.md)
 
 ## Bài toán và mục tiêu
