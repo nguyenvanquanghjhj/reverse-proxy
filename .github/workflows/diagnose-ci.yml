@@ -1,0 +1,28 @@
+name: Read prior Java CI failure
+on: [push]
+permissions:
+  actions: read
+  contents: read
+jobs:
+  prior-failure:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Expose the failing suite and stack from prior job
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          python - <<'PY'
+          import os, urllib.request
+          request = urllib.request.Request(
+              'https://api.github.com/repos/' + os.environ['REPOSITORY'] + '/actions/jobs/121423025232/logs',
+              headers={'User-Agent': 'PBL4-CI-diagnostics', 'Authorization': 'Bearer ' + os.environ['GH_TOKEN']})
+          with urllib.request.urlopen(request, timeout=30) as response:
+              lines = response.read().decode('utf-8', errors='replace').splitlines()
+          details = []
+          for index, line in enumerate(lines):
+              if 'FAIL com.example.proxy.' in line:
+                  details.extend(lines[index:index + 120])
+          text = '\n'.join(details)[-30000:] or 'No failing suite marker found'
+          print('::warning title=Prior failing Java suite::' + text.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A'))
+          PY
