@@ -28,6 +28,7 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
     private final Dispatcher dispatcher;
     private final UpstreamTransport transport;
     private final ClientRateLimiter rateLimiter;
+    private final IncomingRequestValidator validator;
     private final Semaphore admission;
     private final Semaphore managementAdmission = new Semaphore(8);
     private final ScheduledThreadPoolExecutor deadlines = new ScheduledThreadPoolExecutor(1,
@@ -35,6 +36,7 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
     public ProxyHandler(ProxyConfig config, Dispatcher dispatcher) {
         this.config = config;
         this.rateLimiter = new ClientRateLimiter(config);
+        this.validator = new IncomingRequestValidator(config);
         this.dispatcher = dispatcher;
         this.transport = new UpstreamTransport(config);
         this.admission = new Semaphore(config.getMaxInflight());
@@ -64,7 +66,7 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
                 boolean admitted = managementAdmission.tryAcquire();
                 try (exchange) {
                     if (!admitted) sendError(exchange, 503, "Proxy capacity exhausted");
-                    else if (validRequestFraming(exchange) && validRequestHeaders(exchange)) action.handle(exchange);
+                    else if (validRequest(exchange, true)) action.handle(exchange);
                 } finally {
                     if (admitted) managementAdmission.release();
                 }
@@ -136,28 +138,7 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
                 sendError(exchange, 503, "Proxy capacity exhausted");
                 return;
             }
-            if (exchange.getRequestMethod().equalsIgnoreCase("CONNECT") || exchange.getRequestHeaders().containsKey("Upgrade")) {
-                sendFailure(exchange, 501, "CONNECT and protocol upgrades are not supported");
-                return;
-            }
-            String path = exchange.getRequestURI().getPath();
-            if (!exchange.getRequestMethod().matches("[!#$%&'*+.^_`|~0-9A-Za-z-]+")
-                    || path == null || !path.startsWith("/")
-                    || exchange.getRequestURI().getRawFragment() != null
-                    || exchange.getRequestURI().toString().chars().anyMatch(c -> c <= 32 || c >= 127)) {
-                sendFailure(exchange, 400, "Invalid request method or target");
-                return;
-            }
-            if (isControlPath(path)) {
-                sendFailure(exchange, 403, "Backend control endpoints must be accessed directly");
-                return;
-            }
-            if (exchange.getRequestURI().isAbsolute() || exchange.getRequestURI().getRawAuthority() != null) {
-                sendFailure(exchange, 400, "Only origin-form request targets are supported");
-                return;
-            }
-            if (!validRequestFraming(exchange)) return;
-            if (!validRequestHeaders(exchange)) return;
+            if (!validRequest(exchange, false)) return;
             var rate = rateLimiter.acquire(exchange.getRemoteAddress().getAddress().getHostAddress());
             if (!rate.allowed()) {
                 exchange.getResponseHeaders().set("Retry-After", Long.toString(rate.retryAfterSeconds()));
@@ -238,48 +219,13 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
             if (admitted) admission.release();
         }
     }
-    private static boolean isControlPath(String path) {
-        Deque<String> parts = new ArrayDeque<>();
-        for (String part : path.replace('\\', '/').split("/")) {
-            part = part.split(";", 2)[0];
-            if (part.equals("..")) { if (!parts.isEmpty()) parts.removeLast(); }
-            else if (!part.isEmpty() && !part.equals(".")) parts.addLast(part);
-        }
-        return !parts.isEmpty() && Set.of("control", "down", "up").contains(parts.getFirst());
-    }
-    private boolean validRequestFraming(HttpExchange exchange) throws IOException {
-        List<String> lengths = exchange.getRequestHeaders().get("Content-Length");
-        List<String> transfer = exchange.getRequestHeaders().get("Transfer-Encoding");
-        if ((lengths != null && transfer != null) || (transfer != null && (transfer.size() != 1 || !transfer.getFirst().equalsIgnoreCase("chunked")))) {
-            sendFailure(exchange, 400, "Ambiguous request framing"); return false;
-        }
-        if (lengths != null) {
-            try {
-                if (lengths.size() != 1 || !lengths.getFirst().matches("[0-9]+")) throw new NumberFormatException();
-                if (Long.parseLong(lengths.getFirst()) > config.getMaxBodyBytes()) {
-                    sendFailure(exchange, 413, "Request body exceeds limit"); return false;
-                }
-            } catch (NumberFormatException e) { sendFailure(exchange, 400, "Invalid Content-Length"); return false; }
-        }
-        return true;
-    }
-    private boolean validRequestHeaders(HttpExchange exchange) throws IOException {
-        for (var entry : exchange.getRequestHeaders().entrySet()) {
-            if (!UpstreamTransport.validHeaderName(entry.getKey()) || entry.getValue().stream().anyMatch(v -> !UpstreamTransport.validHeaderValue(v))) {
-                sendFailure(exchange, 400, "Invalid request header"); return false;
-            }
-        }
-        if (exchange.getRequestHeaders().values().stream().mapToInt(List::size).sum() > config.getMaxHeaderCount()
-                || headerSize(exchange) > config.getMaxHeaderBytes()) {
-            sendFailure(exchange, 431, "Request headers exceed limit"); return false;
-        }
-        return true;
-    }
-    private static long headerSize(HttpExchange exchange) {
-        long size = exchange.getRequestMethod().length() + exchange.getRequestURI().toString().length() + 16;
-        for (Map.Entry<String, List<String>> entry : exchange.getRequestHeaders().entrySet())
-            for (String value : entry.getValue()) size += entry.getKey().length() + value.length() + 4;
-        return size;
+    private boolean validRequest(HttpExchange exchange, boolean management) throws IOException {
+        var rejection = management
+                ? validator.managementRequest(exchange.getRequestMethod(), exchange.getRequestURI(), exchange.getRequestHeaders())
+                : validator.forwardedRequest(exchange.getRequestMethod(), exchange.getRequestURI(), exchange.getRequestHeaders());
+        if (rejection == null) return true;
+        sendFailure(exchange, rejection.status(), rejection.message());
+        return false;
     }
     private static byte[] readBody(InputStream in, int limit) throws IOException {
         ByteArrayOutputStream body = new ByteArrayOutputStream();
