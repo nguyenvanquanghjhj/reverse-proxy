@@ -97,4 +97,30 @@ max−min tỷ lệ thành công giữa Light/Slow/CPU, không phải bảo đ�
 Không bỏ qua 503 chỉ vì phản hồi nhanh. Đây là thử nghiệm nhỏ trên một host,
 không trộn vào dữ liệu bảo vệ lịch sử và không suy rộng thành benchmark đa máy.
 
-Kết quả kiểm định phiên này và CI được ghi riêng sau khi thực thi.
+## Kết quả xác minh trên máy trình chiếu
+
+Người dùng xác nhận máy Windows hiện tại là máy bảo vệ. Lượt tổng duyệt dùng
+bản sao source mới, build JDK 21, chạy các lệnh trong [demo 5 phút](DEMO_5_MINUTES.md):
+Round Robin, Least Connections, Adaptive/trace, backend DOWN → WARMING → UP.
+Config được trả về nguyên byte; các cổng demo được giải phóng sau khi dừng.
+[Log tổng duyệt](assets/readiness-20261026/demo-rehearsal.txt) lưu diễn biến thực tế,
+chỉ chuẩn hóa xuống dòng và bỏ khoảng trắng cuối dòng khi lưu vào Git.
+
+- **16/16 Java test mains PASS**, gồm test 64 client đồng thời: 8 upstream timeout,
+  56 admission rejection, permit/lease không âm và trả hết, request tiếp theo thành công.
+- **27/27 Python tests PASS**; historical report/raw validators PASS.
+- Hai clean build từ source mới có class khớp byte, không có problem stub; khởi động
+  proxy/backend từ JAR mới và `/work?cost=2` trả 200. Canary output IDE không đổi.
+- Edge thật xác minh trace, freeze, exploration/rejection/exclusion, lỗi fetch và
+  listener quản lý. Ảnh/JSON thật liên kết ở phần Explorer phía trên.
+- CI của source commit `fbaf979b4338683ce4edbc350b319c956bae8d58` **PASS cả Windows
+  và Ubuntu**: [run 40276448758](https://github.com/nguyenvanquanghjhj/reverse-proxy/actions/runs/40276448758),
+  [bản ghi trạng thái](assets/readiness-20261026/ci-source-verification.json).
+  Run này chưa có bundle ablation; kiểm định bundle được bật cho commit chứa bundle.
+- Chín lượt ablation đã hoàn tất, raw/patch/hash/schedule và summary đều PASS.
+  [Báo cáo ablation riêng](ADAPTIVE_ABLATION.md) có success/p95 từng workload,
+  bảng từng lượt và cảnh báo client lag; không trộn vào benchmark lịch sử.
+
+JDK 26 bị script từ chối có chủ đích; phạm vi xác minh là Java 21. Chưa xác định
+PID gây ghi đè output cũ; việc dùng output standalone và JAR đã được kiểm chứng
+cách ly khỏi canary ở output IDE. Chưa thực hiện benchmark đa máy/VM.

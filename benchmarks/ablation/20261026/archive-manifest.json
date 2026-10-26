@@ -1,0 +1,8 @@
+{
+  "files": {
+    "plan.json": "1372c005c54acb08ccc03a6540c9ba12f131e17f5fb4f69072d42be857c3f52d",
+    "raw-artifacts.zip": "0c9a697129eb2e3e6754c285f5bd5765a1cfdbf682c9c23cfeebedf093e6a18f",
+    "summary.csv": "022b3ef462ddd6cde7495e2c65038a358dac429a9141fe428bff5d9e6fb6ddff"
+  },
+  "interpretation": "Independent small ablation; not merged with historical benchmarks"
+}

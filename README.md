@@ -8,6 +8,8 @@ Reverse proxy HTTP/1.1 viết bằng **Java 21, chỉ dùng thư viện JDK**. �
 
 [Build độc lập, Decision Explorer và ablation](docs/BUILD_AND_DEFENSE_READINESS.md) hướng dẫn xác minh source và giải thích lựa chọn bằng trace thật.
 
+[Ablation Adaptive 26/10/2026](docs/ADAPTIVE_ABLATION.md) lưu kết quả từng workload và raw riêng, kèm giới hạn của phép đo trên một máy.
+
 [Chạy và bảo vệ](docs/DEFENSE_GUIDE.md) · [Thiết kế thích nghi](docs/ADAPTIVE_EXPLAINED.md) · [Kết quả cuối](docs/DEFENSE_PERFORMANCE.md) · [Báo cáo](docs/assets/charts/defense-20261021/index.html) · [Kiểm định](docs/FINAL_VERIFICATION.md)
 
 ## Bài toán và mục tiêu

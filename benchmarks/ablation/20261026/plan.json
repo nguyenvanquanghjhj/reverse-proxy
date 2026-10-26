@@ -1,0 +1,73 @@
+{
+  "base_commit": "fbaf979b4338683ce4edbc350b319c956bae8d58",
+  "purpose": "Small matched Adaptive ablation; experimental source copies only",
+  "requests": 300,
+  "warmup_requests": 100,
+  "rate": 60,
+  "concurrency": 64,
+  "seed": 20260927,
+  "repeats": 3,
+  "scenario": "mixed",
+  "variants": [
+    "full",
+    "no-work-admission",
+    "no-exploration"
+  ],
+  "runs": [
+    {
+      "repeat": 1,
+      "variant": "full",
+      "position": 1,
+      "path": "runs/1-full"
+    },
+    {
+      "repeat": 1,
+      "variant": "no-work-admission",
+      "position": 2,
+      "path": "runs/1-no-work-admission"
+    },
+    {
+      "repeat": 1,
+      "variant": "no-exploration",
+      "position": 3,
+      "path": "runs/1-no-exploration"
+    },
+    {
+      "repeat": 2,
+      "variant": "no-work-admission",
+      "position": 1,
+      "path": "runs/2-no-work-admission"
+    },
+    {
+      "repeat": 2,
+      "variant": "no-exploration",
+      "position": 2,
+      "path": "runs/2-no-exploration"
+    },
+    {
+      "repeat": 2,
+      "variant": "full",
+      "position": 3,
+      "path": "runs/2-full"
+    },
+    {
+      "repeat": 3,
+      "variant": "no-exploration",
+      "position": 1,
+      "path": "runs/3-no-exploration"
+    },
+    {
+      "repeat": 3,
+      "variant": "full",
+      "position": 2,
+      "path": "runs/3-full"
+    },
+    {
+      "repeat": 3,
+      "variant": "no-work-admission",
+      "position": 3,
+      "path": "runs/3-no-work-admission"
+    }
+  ],
+  "limitations": "One host, short runs; success-only p95 is median of per-run percentiles; not a production guarantee"
+}
