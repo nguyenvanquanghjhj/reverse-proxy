@@ -73,6 +73,14 @@ public final class HttpTransportTest {
             check(page.headers().firstValue("Cache-Control").orElse("").equals("no-store"), "demo bypasses browser cache");
             check(page.body().contains("data-backend=\"" + backend.getPort() + "\"") && page.body().contains(Long.toString(ProcessHandle.current().pid())), "HTML contains real port and PID");
             check(page.body().contains("data-via-proxy=\"false\"") && !page.body().contains("@@"), "direct page renders all placeholders");
+            check(!page.body().contains("Ảnh chụp khi tải trang") && !page.body().contains("Thông tin ảnh chụp của trang")
+                    && !page.body().contains("Một lần bấm gửi 300 yêu cầu GET thật"), "removed confusing snapshot and batch copy");
+            var backendMetrics = get(client, direct + "/metrics");
+            check(backendMetrics.statusCode() == 200 && backendMetrics.body().contains("processId=")
+                    && backendMetrics.body().contains("heapUsedBytes=") && backendMetrics.body().contains("receivedRequests="),
+                    "backend exposes per-process runtime values");
+            check(page.body().contains("id=\"batch-panel\" hidden") && page.body().contains("$('batch-panel').hidden = !via")
+                    && page.body().contains("const total = 300"), "one-click 300-request panel is restricted to proxy pages");
             check(page.body().contains("data:image/svg+xml") && !page.body().contains("src=\"") && !page.body().contains("setInterval("), "page embeds assets and has no polling timer");
             check(get(client, direct + "/work?cost=1").headers().firstValue("Content-Type").orElse("").contains("application/json"), "existing workload remains JSON");
             Properties properties = new Properties();
@@ -86,10 +94,16 @@ public final class HttpTransportTest {
                 long until = System.nanoTime() + TimeUnit.SECONDS.toNanos(4);
                 while (!proxy.getDispatcher().hasAvailableBackend() && System.nanoTime() < until) Thread.sleep(10);
                 check(proxy.getDispatcher().hasAvailableBackend(), "demo backend ready through health checks");
+                long telemetryUntil = System.nanoTime() + TimeUnit.SECONDS.toNanos(3);
+                while (!proxy.getDispatcher().snapshots().getFirst().runtimeInfo().available() && System.nanoTime() < telemetryUntil) Thread.sleep(10);
+                check(proxy.getDispatcher().snapshots().getFirst().runtimeInfo().available(), "health polling captures backend PID and runtime stats");
                 long before = proxy.getDispatcher().snapshots().getFirst().dispatched();
                 String address = "http://127.0.0.1:" + proxy.getPort() + "/demo";
                 var forwarded = get(client, address);
                 check(forwarded.statusCode() == 200 && forwarded.body().contains("data-via-proxy=\"true\""), "HTML forwarded through real proxy");
+                check(forwarded.body().contains("id=\"batch-send\"") && forwarded.body().contains("/compute?cost=8"), "proxy demo exposes the mixed browser batch button");
+                check(forwarded.body().contains("refreshBackendStats()") && forwarded.body().contains("Độ trễ tác vụ nhẹ"),
+                        "proxy demo loads numeric stats for every backend");
                 check(forwarded.headers().firstValue("X-Proxy-Backend").orElse("").equals("127.0.0.1:" + backend.getPort()), "page identity matches proxy header");
                 check(forwarded.headers().firstValue("Cache-Control").orElse("").equals("no-store"), "proxy preserves page cache policy");
                 check(proxy.getDispatcher().snapshots().getFirst().dispatched() == before + 1, "one page equals one routed request");
@@ -97,6 +111,12 @@ public final class HttpTransportTest {
                 check(head.statusCode() == 200 && head.body().length == 0, "HEAD demo page has no response body");
                 check(forwarded.headers().firstValue("X-Proxy-Strategy").orElse("").equals("ADAPTIVE"), "response reports actual strategy");
                 String base = "http://127.0.0.1:" + proxy.getPort();
+                var runtimeSnapshot = get(client, base + "/__proxy/metrics");
+                check(runtimeSnapshot.body().contains("\"backendRuntime\":[{\"port\":" + backend.getPort()
+                        + ",\"backendPid\":" + ProcessHandle.current().pid())
+                        && runtimeSnapshot.body().contains("\"heapUsedBytes\":")
+                        && runtimeSnapshot.body().contains("\"backendReceivedRequests\":"),
+                        "proxy exposes runtime values for rendering all backend cards");
                 var products = get(client, base + "/products");
                 check(products.statusCode() == 200 && products.body().contains("\"products\":[") && products.body().contains("Sổ tay PBL"), "product data forwarded through proxy");
                 var orderRequest = HttpRequest.newBuilder(URI.create(base + "/orders"))

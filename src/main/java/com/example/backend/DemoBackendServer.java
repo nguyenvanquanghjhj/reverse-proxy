@@ -201,11 +201,12 @@ public final class DemoBackendServer implements AutoCloseable {
                 + "memoryLoad=%.6f%nheapUsedBytes=%d%nheapMaxBytes=%d%n"
                 + "hostCpuLoad=%.6f%nhostMemoryLoad=%.6f%nhostMemoryTotalBytes=%d%n"
                 + "activeRequests=%d%nqueuedRequests=%d%ncapacity=%d%nserviceTimeMs=%.3f%n"
-                + "healthy=%s%ndelayMs=%d%ncpuWorkers=%d%ncompletedRequests=%d%nreceivedRequests=%d%ncpuSamples=%d%n",
+                + "healthy=%s%ndelayMs=%d%ncpuWorkers=%d%ncompletedRequests=%d%nreceivedRequests=%d%nprocessId=%d%nheapUsedBytes=%d%ncpuSamples=%d%n",
                 cpuLoad, processCpuCores, cpuBudget, runtime.availableProcessors(),
                 clamp((double) heapUsed / runtime.maxMemory()), heapUsed, runtime.maxMemory(),
                 availableRatio(os.getCpuLoad()), hostTotal <= 0 ? -1 : clamp(1.0 - (double) hostFree / hostTotal), hostTotal,
-                active.get(), queued.get(), capacity, serviceTimeMs, healthy, delayMs, backgroundSize(), completed.get(), received.get(), cpuSamples);
+                active.get(), queued.get(), capacity, serviceTimeMs, healthy, delayMs, backgroundSize(),
+                completed.get(), received.get(), ProcessHandle.current().pid(), heapUsed, cpuSamples);
     }
     private synchronized int backgroundSize() { return background.size(); }
     private synchronized void setCpuWorkers(int count) {

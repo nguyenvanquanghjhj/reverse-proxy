@@ -29,6 +29,7 @@ public final class DispatcherTest {
         run("stale telemetry does not retain CPU or remote backlog penalties", DispatcherTest::staleTelemetry);
         run("external work is counted without counting proxy leases twice", DispatcherTest::externalWork);
         run("all strategies reserve atomically and respect both admission limits", DispatcherTest::concurrentAdmission);
+        run("algorithm changes atomically while old leases finish", DispatcherTest::strategyCycle);
         run("concurrent lease completion releases exactly once", DispatcherTest::idempotentRelease);
         run("unprobed and DOWN backends never receive a request", DispatcherTest::downRouting);
         run("recovery needs consecutive probes and ramps admission gradually", DispatcherTest::recoveryWarmup);
@@ -54,6 +55,24 @@ public final class DispatcherTest {
             check(f.snapshot(0).inFlight() == 0 && f.snapshot(1).inFlight() == 2,
                     "decision must differ from least-connections");
         }
+    }
+
+    private static void strategyCycle() {
+        Fixture f = new Fixture();
+        var oldAdaptiveLease = required(f.dispatcher.acquire(URI.create("/work")));
+        equal("ROUND_ROBIN", f.dispatcher.cycleStrategy(), "adaptive cycles to round robin");
+        try (var roundRobinLease = required(f.dispatcher.acquire(URI.create("/work")))) {
+            check(f.dispatcher.snapshotJson().contains("\"strategy\":\"ROUND_ROBIN\""), "snapshot reports active round robin");
+            roundRobinLease.complete(10, false, false);
+        }
+        oldAdaptiveLease.complete(12, false, false);
+        equal("LEAST_CONNECTIONS", f.dispatcher.cycleStrategy(), "round robin cycles to least connections");
+        equal("ADAPTIVE", f.dispatcher.cycleStrategy(), "least connections cycles to adaptive");
+        try (var adaptiveLease = required(f.dispatcher.acquire(URI.create("/work")))) {
+            check(adaptiveLease.backend() != null, "adaptive resumes dispatch after runtime changes");
+        }
+        check(f.dispatcher.snapshots().stream().mapToInt(BackendMetrics.Snapshot::inFlight).sum() == 0,
+                "leases created before and after changes all release");
     }
 
     private static void learningGuards() {
@@ -382,6 +401,11 @@ public final class DispatcherTest {
         var valid = parse("cpuLoad=0.7\nmemoryLoad=0.3\nactiveRequests=4\nqueuedRequests=2\n");
         near(0.7, valid.cpuLoad(), "CPU ratio preserved");
         check(valid.activeRequests() == 4 && valid.queuedRequests() == 2, "remote counters preserved");
+        var runtime = parse("cpuLoad=0.7\nmemoryLoad=0.3\nactiveRequests=4\nqueuedRequests=2\n"
+                + "processId=1234\ncapacity=8\ndelayMs=20\nserviceTimeMs=17.5\ncompletedRequests=10\nreceivedRequests=11\nheapUsedBytes=4194304\n");
+        check(runtime.runtimeInfo().processId() == 1234 && runtime.runtimeInfo().capacity() == 8
+                && runtime.runtimeInfo().receivedRequests() == 11 && runtime.runtimeInfo().heapUsedBytes() == 4194304,
+                "backend process and runtime metrics preserved");
         var missing = parse("activeRequests=0\nqueuedRequests=0\n");
         check(Double.isNaN(missing.cpuLoad()) && Double.isNaN(missing.memoryLoad()), "missing OS metrics remain unknown");
         var unavailable = parse("cpuLoad=-1\nmemoryLoad=NaN\nactiveRequests=0\nqueuedRequests=0\n");

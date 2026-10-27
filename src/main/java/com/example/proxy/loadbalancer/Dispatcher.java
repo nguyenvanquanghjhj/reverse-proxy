@@ -28,7 +28,7 @@ public final class Dispatcher {
         try { draining = true; } finally { lock.unlock(); }
     }
     private final ProxyConfig config;
-    private final LoadBalancer algorithm;
+    private LoadBalancer algorithm;
     private final LongSupplier clock;
     public Dispatcher(ProxyConfig config) { this(config, System::nanoTime); }
     public Dispatcher(ProxyConfig config, LongSupplier clock) {
@@ -40,6 +40,21 @@ public final class Dispatcher {
             circuits.put(b, new CircuitBreaker(config));
             work.put(b, new EstimatedWork(config.getInitialLatencyMs()));
         });
+    }
+    /** Cycles strategies atomically with dispatch selection; in-flight leases remain valid. */
+    public String cycleStrategy() {
+        lock.lock();
+        try {
+            String next = switch (algorithm.getName()) {
+                case "ADAPTIVE" -> "ROUND_ROBIN";
+                case "ROUND_ROBIN" -> "LEAST_CONNECTIONS";
+                case "LEAST_CONNECTIONS" -> "ADAPTIVE";
+                default -> throw new IllegalStateException("Unknown active strategy: " + algorithm.getName());
+            };
+            algorithm = LoadBalancerFactory.create(next, config.getExplorationInterval());
+            lastDecision = null;
+            return next;
+        } finally { lock.unlock(); }
     }
     public Lease acquire() { return acquire(URI.create("/")); }
     public Lease acquire(URI uri) {
@@ -128,6 +143,29 @@ public final class Dispatcher {
     private double completionBudgetMs() {
         // Conservatively treat the read deadline as a completion deadline for buffered responses.
         return Math.min(config.getReadTimeoutMs(), config.getRequestTimeoutMs());
+    }
+    /** Runtime-only backend details used by the demo UI; kept separate from scheduler snapshots. */
+    public String backendRuntimeJson() {
+        lock.lock();
+        try {
+            StringBuilder json = new StringBuilder("[");
+            boolean first = true;
+            for (var s : snapshots()) {
+                if (!first) json.append(',');
+                first = false;
+                var runtime = s.runtimeInfo();
+                json.append("{\"port\":").append(s.backend().port())
+                    .append(",\"backendPid\":").append(runtime.available() ? Long.toString(runtime.processId()) : "null")
+                    .append(",\"backendCapacity\":").append(runtime.available() ? Integer.toString(runtime.capacity()) : "null")
+                    .append(",\"configuredDelayMs\":").append(runtime.available() ? Integer.toString(runtime.delayMs()) : "null")
+                    .append(",\"backendServiceTimeMs\":").append(runtime.available() ? number(runtime.serviceTimeMs()) : "null")
+                    .append(",\"backendCompletedRequests\":").append(runtime.available() ? Long.toString(runtime.completedRequests()) : "null")
+                    .append(",\"backendReceivedRequests\":").append(runtime.available() ? Long.toString(runtime.receivedRequests()) : "null")
+                    .append(",\"heapUsedBytes\":").append(runtime.available() ? Long.toString(runtime.heapUsedBytes()) : "null")
+                    .append('}');
+            }
+            return json.append(']').toString();
+        } finally { lock.unlock(); }
     }
     public Probe beginProbe(BackendServer backend) {
         lock.lock();

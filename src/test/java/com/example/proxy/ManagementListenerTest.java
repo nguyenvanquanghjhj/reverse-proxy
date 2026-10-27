@@ -75,6 +75,7 @@ public final class ManagementListenerTest {
                 var dashboard = get(client, management, "/__proxy/dashboard");
                 check(dashboard.statusCode() == 200 && dashboard.headers().firstValue("Content-Type").orElse("").startsWith("text/html"), "dashboard is HTML");
                 check(dashboard.body().contains("lang=\"vi\"") && dashboard.body().contains("/__proxy/decision")
+                        && dashboard.body().contains("id=\"cycle-strategy\"")
                         && !dashboard.body().contains("@@DATA_PORT@@"), "Vietnamese live dashboard with resolved data port");
                 check(proxy.getDispatcher().snapshots().getFirst().dispatched() == dispatched, "dashboard never dispatches");
                 await(() -> proxy.getManagementIngressTasks() == 0, "dashboard cleanup");
@@ -86,6 +87,16 @@ public final class ManagementListenerTest {
                         .timeout(Duration.ofSeconds(3)).build(), HttpResponse.BodyHandlers.ofString());
                 check(dashboardPost.statusCode() == 405, "dashboard method guard");
                 await(() -> proxy.getManagementIngressTasks() == 0, "dashboard POST cleanup");
+                var missingAction = client.send(HttpRequest.newBuilder(uri(management, "/__proxy/strategy"))
+                        .POST(HttpRequest.BodyPublishers.noBody()).timeout(Duration.ofSeconds(3)).build(), HttpResponse.BodyHandlers.ofString());
+                check(missingAction.statusCode() == 403, "strategy change requires dashboard action header");
+                await(() -> proxy.getManagementIngressTasks() == 0, "rejected strategy action cleanup");
+                check(get(client, management, "/__proxy/metrics").body().contains("\"strategy\":\"ADAPTIVE\""),
+                        "rejected cross-origin style action leaves strategy unchanged");
+                await(() -> proxy.getManagementIngressTasks() == 0, "strategy check cleanup");
+                check(cycleStrategy(client, management).body().contains("\"strategy\":\"ROUND_ROBIN\""), "one click switches to round robin");
+                check(cycleStrategy(client, management).body().contains("\"strategy\":\"LEAST_CONNECTIONS\""), "second click switches to least connections");
+                check(cycleStrategy(client, management).body().contains("\"strategy\":\"ADAPTIVE\""), "third click returns to adaptive");
                 var head = client.send(HttpRequest.newBuilder(uri(management, "/__proxy/metrics")).method("HEAD", HttpRequest.BodyPublishers.noBody())
                         .timeout(Duration.ofSeconds(3)).build(), HttpResponse.BodyHandlers.ofString());
                 check(head.statusCode() == 200 && head.body().isEmpty(), "HEAD supported");
@@ -143,6 +154,13 @@ public final class ManagementListenerTest {
         p.setProperty("proxy.rate-limit.enabled", "true"); p.setProperty("proxy.rate-limit.burst", "1");
         p.setProperty("proxy.rate-limit.requests-per-second", "0.01"); p.setProperty("proxy.rate-limit.idle.ms", "100000");
         return p;
+    }
+    private static HttpResponse<String> cycleStrategy(HttpClient client, int port) throws Exception {
+        var response = client.send(HttpRequest.newBuilder(uri(port, "/__proxy/strategy"))
+                .header("X-Proxy-Action", "cycle-strategy")
+                .POST(HttpRequest.BodyPublishers.noBody()).timeout(Duration.ofSeconds(3)).build(), HttpResponse.BodyHandlers.ofString());
+        check(response.statusCode() == 200, "strategy action accepted");
+        return response;
     }
     private static ProxyConfig config(Properties p, int backend) { return new ProxyConfig(p, List.of(new BackendServer("127.0.0.1", backend, 4))); }
     private static Socket partial(int port) throws IOException {
