@@ -11,7 +11,7 @@ final class MonitoringPage {
         <style>
         :root{color-scheme:light;--bg:#eef1f6;--sf:#fff;--sf2:#f5f7fb;--tx:#142033;--mu:#586880;--bd:#dae2ed;--ac:#2457d6;--ok:#0a7d63;--warn:#9a5b0c;--bad:#c0293f;--c0:#087f67;--c1:#b94b1d;--c2:#7051c2;--sh:0 1px 2px #14203308,0 8px 24px #1420330a}
         :root[data-theme=dark]{color-scheme:dark;--bg:#0a111e;--sf:#121c2d;--sf2:#192537;--tx:#eaf1fb;--mu:#9db0c8;--bd:#2a3a54;--ac:#8fb0ff;--ok:#6fe0bb;--warn:#ffc27a;--bad:#ff9aab;--c0:#6fe0bb;--c1:#ffb98a;--c2:#c7b2ff;--sh:none}
-        *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.55 system-ui,'Segoe UI',Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+        *{box-sizing:border-box}[hidden]{display:none!important}body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.55 system-ui,'Segoe UI',Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
         h1,h2,p{margin:0}button,a{font:inherit}a{color:var(--ac)}.mono,.num,td,strong,code{font-variant-numeric:tabular-nums}code,pre,.mono{font-family:ui-monospace,Consolas,monospace}
         button{cursor:pointer;border:1px solid var(--bd);background:var(--sf);color:var(--tx);border-radius:8px;padding:7px 12px;font-weight:600}button:hover:not(:disabled){background:var(--sf2);border-color:var(--ac)}button:disabled{opacity:.5;cursor:not-allowed}button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
         .primary{background:var(--ac);border-color:var(--ac);color:#fff}:root[data-theme=dark] .primary{color:#0a111e}.primary:hover:not(:disabled){background:var(--ac);filter:brightness(1.1)}
@@ -38,14 +38,14 @@ final class MonitoringPage {
         @media(max-width:1000px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.k.wide{grid-column:span 1}#backends{grid-template-columns:1fr}}@media(max-width:560px){.bar,main{padding-left:14px;padding-right:14px}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.k strong{font-size:24px}}@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
         </style><body>
         <header><div class="bar"><div class="brand"><span class="mark"><svg viewBox="0 0 24 24"><path d="M4 12h16M8 5l4-3 4 3M12 2v20M8 19l4 3 4-3"/></svg></span><div><h1>Giám sát cân bằng tải</h1></div></div>
-        <p id="state" role="status">Đang kết nối…</p><span class="chip" id="strategy-chip" title="Chiến lược cân bằng tải"><span id="strategy">—</span></span><button id="theme" aria-pressed="false">Giao diện tối</button><button id="refresh" aria-label="Làm mới" title="Làm mới">↻</button></div></header>
+        <p id="state" role="status">Đang kết nối…</p><span class="chip" id="strategy-chip" title="Chiến lược cân bằng tải"><span id="strategy">—</span></span><button id="cycle-strategy" title="Mỗi lần bấm chuyển: Thích nghi → Luân phiên → Ít kết nối nhất → Thích nghi" aria-label="Đổi thuật toán theo thứ tự Thích nghi, Luân phiên, Ít kết nối nhất">Đổi thuật toán</button><button id="theme" aria-pressed="false">Giao diện tối</button><button id="refresh" aria-label="Làm mới" title="Làm mới">↻</button></div></header>
         <main>
-        <div class="chips"><span>Cập nhật <b id="updated" class="mono">—</b></span><span>· <a href="http://127.0.0.1:@@DATA_PORT@@/demo">Trạm thử ↗</a></span></div>
-        <div class="kpis"><article class="card k"><small>Tổng yêu cầu tại bộ xử lý</small><strong id="total">—</strong></article>
+        <div class="chips"><span>Cập nhật <b id="updated" class="mono">—</b></span><span>· <a href="http://127.0.0.1:@@DATA_PORT@@/demo">Trạm thử ↗</a></span><span class="sub">Nút “Đổi thuật toán” lần lượt chuyển: Thích nghi → Luân phiên → Ít kết nối nhất → Thích nghi.</span></div>
+        <div class="kpis" hidden><article class="card k"><small>Tổng yêu cầu tại bộ xử lý</small><strong id="total">—</strong></article>
         <article class="card k good"><small>Hoàn tất HTTP 2xx</small><strong id="success">—</strong></article><article class="card k" id="failed-card"><small>Thất bại tại bộ xử lý</small><strong id="failed">—</strong></article>
         <article class="card k wide"><small>Hoàn tất tới máy chủ / giây</small><strong id="rps">—</strong><svg class="spark" id="spark" viewBox="0 0 200 34" preserveAspectRatio="none" aria-hidden="true"></svg></article>
         <article class="card k"><small>Bị giới hạn tần suất</small><strong id="limited">—</strong></article><article class="card k"><small>Yêu cầu đang giữ chỗ</small><strong id="inflight">—</strong></article></div>
-        <details class="how"><summary>Cách đọc các số liệu</summary><p>Ba bộ đếm đầu gồm cả yêu cầu giám sát, không coi là lưu lượng nghiệp vụ riêng. Tốc độ tính từ chênh lệch tổng yêu cầu hoàn tất tới máy chủ và thời gian thực giữa hai lần đọc, gồm cả phản hồi lỗi; không phải tốc độ thành công.</p></details>
+        <details class="how" hidden><summary>Cách đọc các số liệu</summary><p>Ba bộ đếm đầu gồm cả yêu cầu giám sát, không coi là lưu lượng nghiệp vụ riêng. Tốc độ tính từ chênh lệch tổng yêu cầu hoàn tất tới máy chủ và thời gian thực giữa hai lần đọc, gồm cả phản hồi lỗi; không phải tốc độ thành công.</p></details>
         <section><div class="sec"><h2>Máy chủ phía sau</h2></div><div class="share" id="share"></div><div id="backends"></div></section>
         <section class="card"><div class="sec"><h2>Khám phá quyết định Adaptive</h2></div><div class="decide">
         <p class="sub">Điểm = ECT × hệ số phạt. ECT = chờ slot + dịch vụ dự báo.</p>
@@ -54,7 +54,7 @@ final class MonitoringPage {
         <p id="decision-note">Đang đọc…</p><div class="pick"><span id="decision-selection">—</span><span id="decision-explanation"></span></div><p id="decision-formula"></p>
         <div class="tw"><table><thead><tr><th>Máy chủ</th><th>Điều kiện</th><th>Dịch vụ (ms)</th><th>Chờ (ms)</th><th>ECT (ms)</th><th>Hệ số phạt</th><th>Điểm (ms)</th></tr></thead><tbody id="candidates"></tbody></table></div>
         <p class="sub">Chỉ giữ quyết định gần nhất; trace không chứa request ID.</p>
-        <details class="raw"><summary>JSON trace nguyên bản</summary><pre id="decision-json">—</pre></details></div></section>
+        <details class="raw" hidden><summary>JSON trace nguyên bản</summary><pre id="decision-json">—</pre></details></div></section>
         </main>
         <script>
         const el=id=>document.getElementById(id), number=v=>typeof v==='number'&&Number.isFinite(v)?v.toLocaleString('vi-VN'):'—';
@@ -116,6 +116,13 @@ final class MonitoringPage {
           if(!decisionFrozen)try{const snapshot=await read('/__proxy/decision');if(!decisionFrozen)decision(snapshot);}catch(e){if(!decisionFrozen)clearDecision('Không đọc được quyết định: '+e.message);}
         }catch(e){previous=null;el('rps').textContent='—';connection('Mất kết nối — dữ liệu hiển thị đã cũ. '+e.message,false);}finally{busy=false;}}
         el('refresh').addEventListener('click',poll);poll();setInterval(poll,2000);
+        let changingStrategy=false;
+        el('cycle-strategy').addEventListener('click',async()=>{if(changingStrategy)return;changingStrategy=true;el('cycle-strategy').disabled=true;
+          try{const response=await fetch('/__proxy/strategy',{method:'POST',cache:'no-store',headers:{'X-Proxy-Action':'cycle-strategy'},signal:AbortSignal.timeout(3500)});
+            const result=await response.json();if(!response.ok)throw new Error(result.error||'HTTP '+response.status);
+            el('strategy').textContent=strategy(result.strategy);connection('Đã đổi thuật toán: '+strategy(result.strategy),true);await poll();
+          }catch(e){connection('Không đổi được thuật toán: '+e.message,false);}
+          finally{changingStrategy=false;el('cycle-strategy').disabled=false;}});
         el('decision-freeze').addEventListener('click',()=>freeze(!decisionFrozen));
         el('decision-send').disabled=Number(location.port||80)!==@@DATA_PORT@@;
         if(el('decision-send').disabled)el('decision-request').textContent='Listener quản lý chỉ đọc. Mở dashboard trên cổng dữ liệu từ liên kết trạm thử yêu cầu để gửi workload.';

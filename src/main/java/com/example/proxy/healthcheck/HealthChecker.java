@@ -104,7 +104,23 @@ public final class HealthChecker implements AutoCloseable {
         Properties p = new Properties();
         p.load(new StringReader(new String(body, StandardCharsets.UTF_8)));
         return new BackendMetrics.Telemetry(ratio(p, "cpuLoad"), ratio(p, "memoryLoad"),
-                Integer.parseInt(required(p, "activeRequests")), Integer.parseInt(required(p, "queuedRequests")));
+                Integer.parseInt(required(p, "activeRequests")), Integer.parseInt(required(p, "queuedRequests")),
+                new BackendMetrics.RuntimeInfo(optionalLong(p, "processId"), optionalInt(p, "capacity"),
+                        optionalInt(p, "delayMs"), optionalDouble(p, "serviceTimeMs"),
+                        optionalLong(p, "completedRequests"), optionalLong(p, "receivedRequests"),
+                        optionalLong(p, "heapUsedBytes")));
+    }
+    private static long optionalLong(Properties p, String key) {
+        String value = p.getProperty(key);
+        return value == null ? -1 : Long.parseLong(value.trim());
+    }
+    private static int optionalInt(Properties p, String key) {
+        String value = p.getProperty(key);
+        return value == null ? -1 : Integer.parseInt(value.trim());
+    }
+    private static double optionalDouble(Properties p, String key) {
+        String value = p.getProperty(key);
+        return value == null ? -1 : Double.parseDouble(value.trim());
     }
     private static String required(Properties p, String key) {
         String value = p.getProperty(key);

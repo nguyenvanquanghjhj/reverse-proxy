@@ -20,6 +20,7 @@ public final class BackendMetrics {
     private int remoteActive, remoteQueued, externalOutstanding;
     private long telemetryNanos;
     private boolean telemetryReceived;
+    private RuntimeInfo runtimeInfo = RuntimeInfo.unknown();
 
     public BackendMetrics(BackendServer backend, double initialLatencyMs) {
         this.backend = backend;
@@ -73,6 +74,7 @@ public final class BackendMetrics {
         memoryLoad = smoothAvailable(memoryLoad, sample.memoryLoad(), alpha);
         remoteActive = sample.activeRequests();
         remoteQueued = sample.queuedRequests();
+        if (sample.runtimeInfo().available()) runtimeInfo = sample.runtimeInfo();
         // Approximation of other clients' work. Local leases are added live after this snapshot.
         externalOutstanding = Math.max(0, remoteActive + remoteQueued - inFlightAtProbeStart);
         telemetryNanos = now;
@@ -102,21 +104,41 @@ public final class BackendMetrics {
         double score = latencyEwmaMs * (1 + (outstanding + 1) / effectiveCapacity) * penalty;
         return new Snapshot(backend, alive, inFlight, dispatched, completed, errors, latencyEwmaMs,
                 errorEwma, cpuLoad, memoryLoad, ageMs, fresh, effectiveCapacity, score, warmup,
-                remoteActive, remoteQueued, externalOutstanding, lastSelectedNanos, limit);
+                remoteActive, remoteQueued, externalOutstanding, lastSelectedNanos, limit, runtimeInfo);
     }
-    public record Telemetry(double cpuLoad, double memoryLoad, int activeRequests, int queuedRequests) {
+    public record RuntimeInfo(long processId, int capacity, int delayMs, double serviceTimeMs,
+            long completedRequests, long receivedRequests, long heapUsedBytes) {
+        public RuntimeInfo {
+            if ((processId != -1 && processId <= 0) || capacity < -1 || delayMs < -1 || completedRequests < -1
+                    || receivedRequests < -1 || heapUsedBytes < -1
+                    || (!Double.isFinite(serviceTimeMs) && serviceTimeMs != -1)
+                    || serviceTimeMs < -1)
+                throw new IllegalArgumentException("Invalid backend runtime information");
+            if (processId > 0 && (capacity < 0 || delayMs < 0 || serviceTimeMs < 0
+                    || completedRequests < 0 || receivedRequests < 0 || heapUsedBytes < 0))
+                throw new IllegalArgumentException("Incomplete backend runtime information");
+        }
+        public static RuntimeInfo unknown() { return new RuntimeInfo(-1, -1, -1, -1, -1, -1, -1); }
+        public boolean available() { return processId > 0; }
+    }
+    public record Telemetry(double cpuLoad, double memoryLoad, int activeRequests, int queuedRequests,
+            RuntimeInfo runtimeInfo) {
+        public Telemetry(double cpuLoad, double memoryLoad, int activeRequests, int queuedRequests) {
+            this(cpuLoad, memoryLoad, activeRequests, queuedRequests, RuntimeInfo.unknown());
+        }
         public Telemetry {
             if ((!Double.isNaN(cpuLoad) && (!Double.isFinite(cpuLoad) || cpuLoad < 0 || cpuLoad > 1))
                     || (!Double.isNaN(memoryLoad) && (!Double.isFinite(memoryLoad) || memoryLoad < 0 || memoryLoad > 1))
                     || activeRequests < 0 || queuedRequests < 0 || activeRequests > 1_000_000 || queuedRequests > 1_000_000)
                 throw new IllegalArgumentException("Invalid backend telemetry");
+            if (runtimeInfo == null) throw new IllegalArgumentException("Missing backend runtime information");
         }
     }
     public record Snapshot(BackendServer backend, boolean alive, int inFlight, long dispatched,
             long completed, long errors, double latencyEwmaMs, double errorEwma, double cpuLoad,
             double memoryLoad, long telemetryAgeMs, boolean telemetryFresh, double effectiveCapacity,
             double scoreMs, double warmup, int remoteActiveRequests, int remoteQueuedRequests,
-            int externalOutstanding, long lastSelectedNanos, int inFlightLimit) {
+            int externalOutstanding, long lastSelectedNanos, int inFlightLimit, RuntimeInfo runtimeInfo) {
         public boolean eligible() { return alive && inFlight < inFlightLimit; }
         public String state() { return !alive ? "DOWN" : warmup < 1 ? "WARMING" : "UP"; }
     }

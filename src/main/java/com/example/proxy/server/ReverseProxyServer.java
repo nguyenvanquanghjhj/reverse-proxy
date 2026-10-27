@@ -83,32 +83,50 @@ public final class ReverseProxyServer implements AutoCloseable {
                 ProxyHandler.sendError(exchange, 403, "Monitoring is loopback-only"); return;
             }
             String path = exchange.getRequestURI().getPath();
-            if (!exchange.getRequestMethod().equals("GET") && !exchange.getRequestMethod().equals("HEAD")) {
-                exchange.getResponseHeaders().set("Allow", "GET, HEAD");
-                ProxyHandler.sendError(exchange, 405, "Method not allowed"); return;
-            }
             String body;
             int status = 200;
-            if (path.equals("/__proxy/dashboard")) {
-                body = MonitoringPage.HTML.replace("@@DATA_PORT@@", Integer.toString(getPort()));
-            } else if (path.equals("/__proxy/metrics")) {
-                String snapshot = dispatcher.snapshotJson();
-                body = snapshot.substring(0, snapshot.length() - 1) + "," + handler.countersJson()
-                        + ",\"health_probe_failures\":" + healthChecker.healthFailures()
-                        + ",\"data_ingress_tasks\":" + getDataIngressTasks()
-                        + ",\"management_ingress_tasks\":" + getManagementIngressTasks()
-                        + ",\"telemetry_probe_failures\":" + healthChecker.telemetryFailures() + "}";
-            } else if (path.equals("/__proxy/decision")) {
-                body = dispatcher.decisionJson();
-            } else if (path.equals("/__proxy/prometheus")) {
-                body = handler.prometheus() + dispatcher.prometheus()
-                        + "# TYPE proxy_data_ingress_tasks gauge\nproxy_data_ingress_tasks " + getDataIngressTasks() + "\n"
-                        + "# TYPE proxy_management_ingress_tasks gauge\nproxy_management_ingress_tasks " + getManagementIngressTasks() + "\n";
-            } else if (path.equals("/__proxy/health")) {
-                boolean ready = dispatcher.hasAvailableBackend() && handler.diagnostics().admissionAvailable() > 0 && executor.hasCapacity();
-                status = ready ? 200 : 503;
-                body = "{\"ready\":" + ready + "}";
-            } else { ProxyHandler.sendError(exchange, 404, "Unknown proxy endpoint"); return; }
+            if (path.equals("/__proxy/strategy")) {
+                if (!exchange.getRequestMethod().equals("POST")) {
+                    exchange.getResponseHeaders().set("Allow", "POST");
+                    ProxyHandler.sendError(exchange, 405, "Method not allowed"); return;
+                }
+                if (!"cycle-strategy".equals(exchange.getRequestHeaders().getFirst("X-Proxy-Action"))) {
+                    ProxyHandler.sendError(exchange, 403, "Strategy changes require the dashboard action header"); return;
+                }
+                String contentLength = exchange.getRequestHeaders().getFirst("Content-Length");
+                if (exchange.getRequestHeaders().containsKey("Transfer-Encoding")
+                        || (contentLength != null && !contentLength.equals("0"))) {
+                    ProxyHandler.sendError(exchange, 400, "Strategy action does not accept a request body"); return;
+                }
+                String strategy = dispatcher.cycleStrategy();
+                body = "{\"strategy\":\"" + strategy + "\"}";
+            } else {
+                if (!exchange.getRequestMethod().equals("GET") && !exchange.getRequestMethod().equals("HEAD")) {
+                    exchange.getResponseHeaders().set("Allow", "GET, HEAD");
+                    ProxyHandler.sendError(exchange, 405, "Method not allowed"); return;
+                }
+                if (path.equals("/__proxy/dashboard")) {
+                    body = MonitoringPage.HTML.replace("@@DATA_PORT@@", Integer.toString(getPort()));
+                } else if (path.equals("/__proxy/metrics")) {
+                    String snapshot = dispatcher.snapshotJson();
+                    body = snapshot.substring(0, snapshot.length() - 1) + ",\"backendRuntime\":" + dispatcher.backendRuntimeJson()
+                        + "," + handler.countersJson()
+                            + ",\"health_probe_failures\":" + healthChecker.healthFailures()
+                            + ",\"data_ingress_tasks\":" + getDataIngressTasks()
+                            + ",\"management_ingress_tasks\":" + getManagementIngressTasks()
+                            + ",\"telemetry_probe_failures\":" + healthChecker.telemetryFailures() + "}";
+                } else if (path.equals("/__proxy/decision")) {
+                    body = dispatcher.decisionJson();
+                } else if (path.equals("/__proxy/prometheus")) {
+                    body = handler.prometheus() + dispatcher.prometheus()
+                            + "# TYPE proxy_data_ingress_tasks gauge\nproxy_data_ingress_tasks " + getDataIngressTasks() + "\n"
+                            + "# TYPE proxy_management_ingress_tasks gauge\nproxy_management_ingress_tasks " + getManagementIngressTasks() + "\n";
+                } else if (path.equals("/__proxy/health")) {
+                    boolean ready = dispatcher.hasAvailableBackend() && handler.diagnostics().admissionAvailable() > 0 && executor.hasCapacity();
+                    status = ready ? 200 : 503;
+                    body = "{\"ready\":" + ready + "}";
+                } else { ProxyHandler.sendError(exchange, 404, "Unknown proxy endpoint"); return; }
+            }
             byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
             exchange.getResponseHeaders().set("Content-Type", path.equals("/__proxy/dashboard") ? "text/html; charset=utf-8"
                     : path.equals("/__proxy/prometheus") ? "text/plain; version=0.0.4; charset=utf-8" : "application/json; charset=utf-8");
