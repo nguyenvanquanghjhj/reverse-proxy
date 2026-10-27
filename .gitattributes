@@ -7,3 +7,5 @@
 /docs/assets/charts/** -text whitespace=-blank-at-eol,cr-at-eol
 # The generated manifest also records the chart generator's source hash.
 /tools/generate_charts.py text eol=lf
+/scripts/*.sh text eol=lf
+/benchmarks/ablation/** -text whitespace=cr-at-eol

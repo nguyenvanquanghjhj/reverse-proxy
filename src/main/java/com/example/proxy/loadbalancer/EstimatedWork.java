@@ -8,7 +8,10 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.PriorityQueue;
 
-/** Bounded route learning and a virtual FIFO server. Access only under Dispatcher's lock. */
+/** Bounded route learning and a virtual FIFO server. Access only under Dispatcher's lock.
+ * Illustrative arithmetic: with one slot holding 2000ms of SLOW work, LIGHT at 20ms/unit
+ * and cost=2 has service=40ms, wait=2000ms, ECT=2040ms at the same instant.
+ * This model supplies forecasts; AdaptiveLoadBalancer chooses and Dispatcher owns the state boundary. */
 final class EstimatedWork {
     enum Route { LIGHT, SLOW, CPU, PRODUCTS, ORDERS, FILE_SMALL, FILE_MEDIUM, FILE_LARGE, OTHER }
     record Request(Route route, int units) {

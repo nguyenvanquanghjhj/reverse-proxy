@@ -13,21 +13,18 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.LongAdder;
 
 /** Admission, HTTP forwarding and exactly-once scheduler completion. */
 public final class ProxyHandler implements HttpHandler, AutoCloseable {
     private static final AppLogger log = AppLogger.of(ProxyHandler.class);
     private final AtomicBoolean closed = new AtomicBoolean();
     private final Map<Thread, String> owners = new ConcurrentHashMap<>();
-    private final LongAdder requests = new LongAdder(), failed = new LongAdder(), rejected = new LongAdder();
-    private final LongAdder timeouts = new LongAdder(), upstreamErrors = new LongAdder();
-    private final LongAdder successful = new LongAdder(), connectionErrors = new LongAdder(), responseErrors = new LongAdder();
-    private final LongAdder limitRejections = new LongAdder(), chunkMetadataRejections = new LongAdder();
+    private final ProxyRequestMetrics metrics = new ProxyRequestMetrics();
     private final ProxyConfig config;
     private final Dispatcher dispatcher;
     private final UpstreamTransport transport;
     private final ClientRateLimiter rateLimiter;
+    private final IncomingRequestValidator validator;
     private final Semaphore admission;
     private final Semaphore managementAdmission = new Semaphore(8);
     private final ScheduledThreadPoolExecutor deadlines = new ScheduledThreadPoolExecutor(1,
@@ -35,6 +32,7 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
     public ProxyHandler(ProxyConfig config, Dispatcher dispatcher) {
         this.config = config;
         this.rateLimiter = new ClientRateLimiter(config);
+        this.validator = new IncomingRequestValidator(config);
         this.dispatcher = dispatcher;
         this.transport = new UpstreamTransport(config);
         this.admission = new Semaphore(config.getMaxInflight());
@@ -50,7 +48,7 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
         long started = System.nanoTime();
         String id = requestId(exchange);
         String error = "";
-        requests.increment();
+        metrics.requestStarted();
         owners.put(Thread.currentThread(), id);
         ClientDeadline deadline = null;
         log.info("event=request_started request_id=" + id);
@@ -64,7 +62,7 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
                 boolean admitted = managementAdmission.tryAcquire();
                 try (exchange) {
                     if (!admitted) sendError(exchange, 503, "Proxy capacity exhausted");
-                    else if (validRequestFraming(exchange) && validRequestHeaders(exchange)) action.handle(exchange);
+                    else if (validRequest(exchange, true)) action.handle(exchange);
                 } finally {
                     if (admitted) managementAdmission.release();
                 }
@@ -76,9 +74,7 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
             if (deadline != null) deadline.close();
             owners.remove(Thread.currentThread());
             int status = exchange.getResponseCode();
-            if (status < 0 || status >= 400 || !error.isEmpty()) failed.increment();
-            else if (status >= 200 && status < 300) successful.increment();
-            if (status >= 400 && exchange.getResponseHeaders().getFirst("X-Proxy-Backend") == null) rejected.increment();
+            metrics.requestCompleted(status, !error.isEmpty(), exchange.getResponseHeaders().getFirst("X-Proxy-Backend") != null);
             if (error.isEmpty() && status >= 400) error = switch (status) {
                 case 502 -> "UpstreamFailure";
                 case 504 -> "UpstreamTimeout";
@@ -105,25 +101,10 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
         exchange.getResponseHeaders().set("X-Frame-Options", "DENY");
     }
     public String countersJson() {
-        return "\"requests_total\":" + requests.sum() + ",\"requests_failed\":" + failed.sum()
-                + ",\"requests_rejected\":" + rejected.sum() + ",\"upstream_timeouts\":" + timeouts.sum()
-                + ",\"requests_successful\":" + successful.sum()
-                + ",\"upstream_connection_errors\":" + connectionErrors.sum() + ",\"upstream_response_errors\":" + responseErrors.sum()
-                + ",\"upstream_limit_rejections\":" + limitRejections.sum() + ",\"upstream_chunk_metadata_rejections\":" + chunkMetadataRejections.sum()
-                + ",\"upstream_errors\":" + upstreamErrors.sum() + ",\"in_flight\":" + owners.size() + "," + rateLimiter.json();
+        return metrics.countersJson(owners::size, rateLimiter::json);
     }
     public String prometheus() {
-        return metric("requests_total", requests.sum(), "counter") + metric("requests_failed_total", failed.sum(), "counter")
-                + metric("requests_rejected_total", rejected.sum(), "counter") + metric("upstream_timeouts_total", timeouts.sum(), "counter")
-                + metric("requests_successful_total", successful.sum(), "counter")
-                + metric("upstream_connection_errors_total", connectionErrors.sum(), "counter")
-                + metric("upstream_response_errors_total", responseErrors.sum(), "counter")
-                + metric("upstream_limit_rejections_total", limitRejections.sum(), "counter")
-                + metric("upstream_chunk_metadata_rejections_total", chunkMetadataRejections.sum(), "counter")
-                + metric("upstream_errors_total", upstreamErrors.sum(), "counter") + metric("in_flight", owners.size(), "gauge") + rateLimiter.prometheus();
-    }
-    private static String metric(String name, long value, String type) {
-        return "# TYPE proxy_" + name + " " + type + "\nproxy_" + name + " " + value + "\n";
+        return metrics.prometheus(owners::size, rateLimiter::prometheus);
     }
     public record Diagnostics(int admissionAvailable, int activeHandlers, int deadlineTasks, int upstreamSockets, int upstreamDeadlineTasks) { }
     public Diagnostics diagnostics() {
@@ -136,28 +117,7 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
                 sendError(exchange, 503, "Proxy capacity exhausted");
                 return;
             }
-            if (exchange.getRequestMethod().equalsIgnoreCase("CONNECT") || exchange.getRequestHeaders().containsKey("Upgrade")) {
-                sendFailure(exchange, 501, "CONNECT and protocol upgrades are not supported");
-                return;
-            }
-            String path = exchange.getRequestURI().getPath();
-            if (!exchange.getRequestMethod().matches("[!#$%&'*+.^_`|~0-9A-Za-z-]+")
-                    || path == null || !path.startsWith("/")
-                    || exchange.getRequestURI().getRawFragment() != null
-                    || exchange.getRequestURI().toString().chars().anyMatch(c -> c <= 32 || c >= 127)) {
-                sendFailure(exchange, 400, "Invalid request method or target");
-                return;
-            }
-            if (isControlPath(path)) {
-                sendFailure(exchange, 403, "Backend control endpoints must be accessed directly");
-                return;
-            }
-            if (exchange.getRequestURI().isAbsolute() || exchange.getRequestURI().getRawAuthority() != null) {
-                sendFailure(exchange, 400, "Only origin-form request targets are supported");
-                return;
-            }
-            if (!validRequestFraming(exchange)) return;
-            if (!validRequestHeaders(exchange)) return;
+            if (!validRequest(exchange, false)) return;
             var rate = rateLimiter.acquire(exchange.getRemoteAddress().getAddress().getHostAddress());
             if (!rate.allowed()) {
                 exchange.getResponseHeaders().set("Retry-After", Long.toString(rate.retryAfterSeconds()));
@@ -185,30 +145,26 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
                 try {
                     response = transport.exchange(lease.backend(), exchange.getRequestMethod(), exchange.getRequestURI(), headers, body, expires);
                     if (response.status() >= 400) {
-                        responseErrors.increment(); upstreamErrors.increment();
+                        metrics.upstreamResponseError();
                         log.warn("event=upstream_response_error request_id=" + exchange.getResponseHeaders().getFirst("X-Request-Id") + " status=" + response.status());
                     }
                     lease.complete(elapsedMs(start), response.status() >= 500 || response.status() == 429, false);
                 } catch (UpstreamTransport.BodyLimitException | UpstreamTransport.HeaderLimitException | UpstreamTransport.ChunkMetadataLimitException e) {
-                    upstreamErrors.increment(); responseErrors.increment();
-                    limitRejections.increment();
-                    if (e instanceof UpstreamTransport.ChunkMetadataLimitException) chunkMetadataRejections.increment();
+                    metrics.upstreamLimitRejected(e instanceof UpstreamTransport.ChunkMetadataLimitException);
                     log.warn("event=upstream_limit_rejected request_id=" + exchange.getResponseHeaders().getFirst("X-Request-Id")
                             + " error_type=" + e.getClass().getSimpleName());
                     lease.completePolicyRejection(elapsedMs(start));
                     sendFailure(exchange, 502, "Backend response exceeds proxy limits");
                     return;
                 } catch (SocketTimeoutException e) {
-                    timeouts.increment(); upstreamErrors.increment();
+                    metrics.upstreamTimeout();
                     log.warn("event=upstream_timeout request_id=" + exchange.getResponseHeaders().getFirst("X-Request-Id"));
                     lease.complete(elapsedMs(start), true, true);
                     sendFailure(exchange, 504, "Backend timed out");
                     return;
                 } catch (IOException e) {
                     log.warn("event=upstream_error request_id=" + exchange.getResponseHeaders().getFirst("X-Request-Id") + " error_type=" + e.getClass().getSimpleName());
-                    upstreamErrors.increment();
-                    if (e instanceof java.net.ProtocolException || e instanceof EOFException) responseErrors.increment();
-                    else connectionErrors.increment();
+                    metrics.upstreamFailure(e);
                     lease.complete(elapsedMs(start), true, true);
                     sendFailure(exchange, 502, "Backend connection or HTTP response failed");
                     return;
@@ -238,48 +194,13 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
             if (admitted) admission.release();
         }
     }
-    private static boolean isControlPath(String path) {
-        Deque<String> parts = new ArrayDeque<>();
-        for (String part : path.replace('\\', '/').split("/")) {
-            part = part.split(";", 2)[0];
-            if (part.equals("..")) { if (!parts.isEmpty()) parts.removeLast(); }
-            else if (!part.isEmpty() && !part.equals(".")) parts.addLast(part);
-        }
-        return !parts.isEmpty() && Set.of("control", "down", "up").contains(parts.getFirst());
-    }
-    private boolean validRequestFraming(HttpExchange exchange) throws IOException {
-        List<String> lengths = exchange.getRequestHeaders().get("Content-Length");
-        List<String> transfer = exchange.getRequestHeaders().get("Transfer-Encoding");
-        if ((lengths != null && transfer != null) || (transfer != null && (transfer.size() != 1 || !transfer.getFirst().equalsIgnoreCase("chunked")))) {
-            sendFailure(exchange, 400, "Ambiguous request framing"); return false;
-        }
-        if (lengths != null) {
-            try {
-                if (lengths.size() != 1 || !lengths.getFirst().matches("[0-9]+")) throw new NumberFormatException();
-                if (Long.parseLong(lengths.getFirst()) > config.getMaxBodyBytes()) {
-                    sendFailure(exchange, 413, "Request body exceeds limit"); return false;
-                }
-            } catch (NumberFormatException e) { sendFailure(exchange, 400, "Invalid Content-Length"); return false; }
-        }
-        return true;
-    }
-    private boolean validRequestHeaders(HttpExchange exchange) throws IOException {
-        for (var entry : exchange.getRequestHeaders().entrySet()) {
-            if (!UpstreamTransport.validHeaderName(entry.getKey()) || entry.getValue().stream().anyMatch(v -> !UpstreamTransport.validHeaderValue(v))) {
-                sendFailure(exchange, 400, "Invalid request header"); return false;
-            }
-        }
-        if (exchange.getRequestHeaders().values().stream().mapToInt(List::size).sum() > config.getMaxHeaderCount()
-                || headerSize(exchange) > config.getMaxHeaderBytes()) {
-            sendFailure(exchange, 431, "Request headers exceed limit"); return false;
-        }
-        return true;
-    }
-    private static long headerSize(HttpExchange exchange) {
-        long size = exchange.getRequestMethod().length() + exchange.getRequestURI().toString().length() + 16;
-        for (Map.Entry<String, List<String>> entry : exchange.getRequestHeaders().entrySet())
-            for (String value : entry.getValue()) size += entry.getKey().length() + value.length() + 4;
-        return size;
+    private boolean validRequest(HttpExchange exchange, boolean management) throws IOException {
+        var rejection = management
+                ? validator.managementRequest(exchange.getRequestMethod(), exchange.getRequestURI(), exchange.getRequestHeaders())
+                : validator.forwardedRequest(exchange.getRequestMethod(), exchange.getRequestURI(), exchange.getRequestHeaders());
+        if (rejection == null) return true;
+        sendFailure(exchange, rejection.status(), rejection.message());
+        return false;
     }
     private static byte[] readBody(InputStream in, int limit) throws IOException {
         ByteArrayOutputStream body = new ByteArrayOutputStream();

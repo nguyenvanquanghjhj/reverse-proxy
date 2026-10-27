@@ -1,10 +1,12 @@
 param([switch]$NoBuild)
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
+. (Join-Path $PSScriptRoot 'java21.ps1')
+$java21 = Get-Java21Tools
 $repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 if (-not $NoBuild) { & (Join-Path $PSScriptRoot 'build.ps1') }
-$javaExecutable = (Get-Command java -ErrorAction Stop).Source
-$classesPath = Join-Path $repoRoot 'target/classes'
+$javaExecutable = $java21.Java
+$classesPath = Join-Path $repoRoot 'target/reverse-proxy-demo.jar'
 $logPath = Join-Path $repoRoot 'target/logs'
 New-Item -ItemType Directory -Path $logPath -Force | Out-Null
 $processes = @()

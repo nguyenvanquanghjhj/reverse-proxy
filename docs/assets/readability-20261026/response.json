@@ -1,0 +1,18 @@
+{
+  "status": 200,
+  "headers": {
+    "X-request-uri": "/work?cost=2",
+    "X-frame-options": "DENY",
+    "X-proxy-backend": "127.0.0.1:55597",
+    "X-request-method": "GET",
+    "Date": "Mon, 26 Oct 2026 04:44:43 GMT",
+    "Content-type": "application/json; charset=utf-8",
+    "X-backend": "backend-55597",
+    "X-request-id": "readability-work-2",
+    "X-proxy-strategy": "ADAPTIVE",
+    "Content-length": "62",
+    "X-content-type-options": "nosniff",
+    "Cache-control": "no-store"
+  },
+  "body": "{\"server\":\"backend-55597\",\"cost\":2,\"capacity\":8,\"requestNo\":9}"
+}

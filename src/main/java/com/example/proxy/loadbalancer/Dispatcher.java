@@ -1,5 +1,6 @@
 package com.example.proxy.loadbalancer;
 
+import static com.example.proxy.loadbalancer.AdaptiveCandidateScorer.external;
 import com.example.proxy.backend.BackendServer;
 import com.example.proxy.config.ProxyConfig;
 import com.example.proxy.metrics.BackendMetrics;
@@ -44,6 +45,7 @@ public final class Dispatcher {
     public Lease acquire(URI uri) {
         lock.lock();
         try {
+            // 1. Check draining before touching selection state.
             if (draining) {
                 trace(EstimatedWork.Request.of(uri), "DRAINING", null, List.of());
                 return null;
@@ -56,6 +58,7 @@ public final class Dispatcher {
             List<AdaptiveDecision.Candidate> explanation = config.isDecisionTraceEnabled() && adaptive ? new ArrayList<>() : null;
             int total = 0;
             boolean workLimited = false;
+            // 2. Snapshot eligible backends in configuration order, under this same lock.
             for (BackendMetrics value : metrics.values()) {
                 var snapshot = value.snapshot(now, config);
                 total += snapshot.inFlight();
@@ -65,6 +68,7 @@ public final class Dispatcher {
                     continue;
                 }
                 if (adaptive) {
+                    // 3. Apply Adaptive work budget to each eligible snapshot; keep generation/probe state here.
                     var estimate = work.get(snapshot.backend());
                     estimate.generation(value.healthGeneration());
                     var forecast = estimate.forecast(request, now, snapshot.effectiveCapacity(), external(snapshot));
@@ -85,15 +89,18 @@ public final class Dispatcher {
                 }
                 candidates.add(snapshot);
             }
+            // 4. Select a candidate; EstimatedWork predicts, AdaptiveLoadBalancer only chooses.
             if (total >= config.getMaxInflight()) { trace(request, "MAX_INFLIGHT", null, explanation); return null; }
             var chosen = adaptive ? ((AdaptiveLoadBalancer) algorithm).select(candidates,
-                    s -> forecasts.get(s.backend()).completionMs() * resourcePenalty(s)) : algorithm.select(candidates);
+                    s -> AdaptiveCandidateScorer.score(s, forecasts.get(s.backend()))) : algorithm.select(candidates);
             if (chosen == null) {
                 if (workLimited) workRejected++;
                 trace(request, "NO_ELIGIBLE_BACKEND", null, explanation);
                 return null;
             }
+            // 5. Record the pre-reservation trace at its original position (still under the lock).
             if (adaptive) trace(request, ((AdaptiveLoadBalancer) algorithm).selectionReason(), chosen.backend().getId(), explanation);
+            // 6. Reserve work, in-flight and the circuit ticket atomically before returning the lease.
             EstimatedWork.Reservation reservation = adaptive ? work.get(chosen.backend()).reserve(request, now,
                     forecasts.get(chosen.backend()), Math.max(1, (int) Math.floor(chosen.effectiveCapacity())), external(chosen)) : null;
             metrics.get(chosen.backend()).reserve(now);
@@ -101,7 +108,7 @@ public final class Dispatcher {
         } finally { lock.unlock(); }
     }
     private static AdaptiveDecision.Candidate explain(BackendMetrics.Snapshot s, String eligibility, EstimatedWork.Forecast f) {
-        Double penalty = f == null ? null : resourcePenalty(s);
+        Double penalty = f == null ? null : AdaptiveCandidateScorer.resourcePenalty(s);
         return new AdaptiveDecision.Candidate(s.backend().getId(), eligibility, s.inFlight(), s.effectiveCapacity(),
                 f == null ? null : f.serviceMs(), f == null ? null : f.waitMs(), f == null ? null : f.outstandingMs(),
                 penalty, f == null ? null : f.completionMs() * penalty);
@@ -118,14 +125,9 @@ public final class Dispatcher {
             return "{\"enabled\":" + enabled + ",\"lastDecision\":" + (lastDecision == null ? "null" : lastDecision.json()) + "}";
         } finally { lock.unlock(); }
     }
-    private static int external(BackendMetrics.Snapshot s) { return s.telemetryFresh() ? s.externalOutstanding() : 0; }
     private double completionBudgetMs() {
         // Conservatively treat the read deadline as a completion deadline for buffered responses.
         return Math.min(config.getReadTimeoutMs(), config.getRequestTimeoutMs());
-    }
-    private static double resourcePenalty(BackendMetrics.Snapshot s) {
-        // Preserve the existing dimensionless CPU/memory/error/uncertainty weights exactly.
-        return s.scoreMs() / (s.latencyEwmaMs() * (1 + (s.inFlight() + external(s) + 1.0) / s.effectiveCapacity()));
     }
     public Probe beginProbe(BackendServer backend) {
         lock.lock();

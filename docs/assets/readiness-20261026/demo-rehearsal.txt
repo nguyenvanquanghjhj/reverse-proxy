@@ -1,0 +1,172 @@
+No recorded demo processes.
+Built D:\PBL4\reverse-proxy-demo\target\readiness-demo-final\target\reverse-proxy-demo.jar (Java 21 bytecode).
+Strategy: ROUND_ROBIN (proxy restarted; all backends UP)
+Proxy http://127.0.0.1:8080 | ROUND_ROBIN
+Listen: 127.0.0.1:8080
+backend-1 port=9001: UP      inflight=0 latencyEWMA=50.0ms warmup=100%
+backend-2 port=9002: UP      inflight=0 latencyEWMA=50.0ms warmup=100%
+backend-3 port=9003: UP      inflight=0 latencyEWMA=50.0ms warmup=100%
+Ready. Processes stay running. Stop with: .\scripts\demo.ps1 stop
+Logs/PIDs: D:\PBL4\reverse-proxy-demo\target\readiness-demo-final\.demo
+Strategy: ROUND_ROBIN (proxy restarted; all backends UP)
+Request 1 -> backend-1 (port 9001) HTTP 200
+Request 2 -> backend-2 (port 9002) HTTP 200
+Request 3 -> backend-3 (port 9003) HTTP 200
+Request 4 -> backend-1 (port 9001) HTTP 200
+Request 5 -> backend-2 (port 9002) HTTP 200
+Request 6 -> backend-3 (port 9003) HTTP 200
+PASS: B1 -> B2 -> B3 -> B1 -> B2 -> B3
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+
+  0      0   0      0   0      0      0      0                              0
+100     61 100     61   0      0   1142      0                              0
+100     61 100     61   0      0   1136      0                              0
+100     61 100     61   0      0   1128      0                              0
+HTTP/1.1 200 OK
+X-request-uri: /work?cost=2
+X-frame-options: DENY
+X-proxy-backend: 127.0.0.1:9001
+X-request-method: GET
+Date: Mon, 26 Oct 2026 05:45:15 GMT
+Content-type: application/json; charset=utf-8
+X-backend: backend-9001
+X-request-id: c0d657e6-d3e9-4622-a3f2-d5f6d5f42d11
+X-proxy-strategy: ROUND_ROBIN
+Content-length: 61
+X-content-type-options: nosniff
+Cache-control: no-store
+
+{"server":"backend-9001","cost":2,"capacity":8,"requestNo":3}Strategy: LEAST_CONNECTIONS (proxy restarted; all backends UP)
+Proxy http://127.0.0.1:8080 | LEAST_CONNECTIONS
+Listen: 127.0.0.1:8080
+backend-1 port=9001: UP      inflight=0 latencyEWMA=50.0ms warmup=100%
+backend-2 port=9002: UP      inflight=0 latencyEWMA=50.0ms warmup=100%
+backend-3 port=9003: UP      inflight=0 latencyEWMA=50.0ms warmup=100%
+
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+
+  0      0   0      0   0      0      0      0                              0
+100     61 100     61   0      0   1069      0                              0
+100     61 100     61   0      0   1064      0                              0
+100     61 100     61   0      0   1056      0                              0
+HTTP/1.1 200 OK
+X-request-uri: /work?cost=2
+X-frame-options: DENY
+X-proxy-backend: 127.0.0.1:9002
+X-request-method: GET
+Date: Mon, 26 Oct 2026 05:45:24 GMT
+Content-type: application/json; charset=utf-8
+X-backend: backend-9002
+X-request-id: b3e12cfb-3173-48f0-a67f-06c7865a97e5
+X-proxy-strategy: LEAST_CONNECTIONS
+Content-length: 61
+X-content-type-options: nosniff
+Cache-control: no-store
+
+{"server":"backend-9002","cost":2,"capacity":8,"requestNo":3}id             inFlight
+--             --------
+127.0.0.1:9001        1
+{"server":"backend-9001","cost":1,"capacity":8,"requestNo":4}
+Strategy: ADAPTIVE (proxy restarted; all backends UP)
+Proxy http://127.0.0.1:8080 | ADAPTIVE
+Listen: 127.0.0.1:8080
+backend-1 port=9001: UP      inflight=0 latencyEWMA=50.0ms warmup=100%
+backend-2 port=9002: UP      inflight=0 latencyEWMA=50.0ms warmup=100%
+backend-3 port=9003: UP      inflight=0 latencyEWMA=50.0ms warmup=100%
+cpuLoad=0.000000
+processCpuCores=0.000000
+cpuBudget=8.000
+availableProcessors=16
+memoryLoad=0.098750
+heapUsedBytes=13254064
+heapMaxBytes=134217728
+hostCpuLoad=0.195937
+hostMemoryLoad=0.795031
+hostMemoryTotalBytes=16312205312
+activeRequests=0
+queuedRequests=0
+capacity=8
+serviceTimeMs=43.375
+healthy=true
+delayMs=240
+cpuWorkers=0
+completedRequests=3
+receivedRequests=3
+cpuSamples=148
+{"server":"backend-9001","cost":2,"capacity":8,"requestNo":5}{"server":"backend-9001","cost":2,"capacity":8,"requestNo":6}{"server":"backend-9001","cost":2,"capacity":8,"requestNo":7}{"server":"backend-9001","cost":2,"capacity":8,"requestNo":8}{"server":"backend-9001","cost":2,"capacity":8,"requestNo":9}{"server":"backend-9001","cost":2,"capacity":8,"requestNo":10}{"server":"backend-9001","cost":2,"capacity":8,"requestNo":11}{"server":"backend-9001","cost":2,"capacity":8,"requestNo":12}{"server":"backend-9001","cost":2,"capacity":8,"requestNo":13}{"server":"backend-9001","cost":2,"capacity":8,"requestNo":14}{"server":"backend-9001","cost":2,"capacity":8,"requestNo":15}{"server":"backend-9001","cost":2,"capacity":8,"requestNo":16}  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+
+  0      0   0      0   0      0      0      0                              0
+100     62 100     62   0      0   1069      0                              0
+100     62 100     62   0      0   1064      0                              0
+100     62 100     62   0      0   1059      0                              0
+HTTP/1.1 200 OK
+X-request-uri: /work?cost=2
+X-frame-options: DENY
+X-proxy-backend: 127.0.0.1:9001
+X-request-method: GET
+Date: Mon, 26 Oct 2026 05:45:37 GMT
+Content-type: application/json; charset=utf-8
+X-backend: backend-9001
+X-request-id: 6c44b91f-59bc-4242-8e61-5c5de5ab3a6f
+X-proxy-strategy: ADAPTIVE
+Content-length: 62
+X-content-type-options: nosniff
+Cache-control: no-store
+
+{"server":"backend-9001","cost":2,"capacity":8,"requestNo":17}  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+
+  0      0   0      0   0      0      0      0                              0
+100    895 100    895   0      0  44956      0                              0
+100    895 100    895   0      0  44295      0                              0
+100    895 100    895   0      0  43684      0                              0
+{"enabled":true,"lastDecision":{"sequence":13,"route":"LIGHT","units":2,"budgetMs":3000.0,"reason":"MINIMUM_SCORE","selectedBackend":"127.0.0.1:9001","candidates":[{"backend":"127.0.0.1:9001","eligibility":"ELIGIBLE","inFlight":0,"effectiveCapacity":8.0,"serviceMs":49.22164192667238,"waitMs":0.0,"completionMs":49.22164192667238,"outstandingMs":0.0,"resourcePenalty":1.000332103623608,"rankingScoreMs":49.237988612316165},{"backend":"127.0.0.1:9002","eligibility":"ELIGIBLE","inFlight":0,"effectiveCapacity":8.0,"serviceMs":100.0,"waitMs":0.0,"completionMs":100.0,"outstandingMs":0.0,"resourcePenalty":1.000176593888213,"rankingScoreMs":100.0176593888213},{"backend":"127.0.0.1:9003","eligibility":"ELIGIBLE","inFlight":0,"effectiveCapacity":8.0,"serviceMs":100.0,"waitMs":0.0,"completionMs":100.0,"outstandingMs":0.0,"resourcePenalty":1.0001807268724159,"rankingScoreMs":100.01807268724158}]}}cpuLoad=0.000000
+processCpuCores=0.000000
+cpuBudget=8.000
+availableProcessors=16
+memoryLoad=0.104064
+heapUsedBytes=13967176
+heapMaxBytes=134217728
+hostCpuLoad=0.186715
+hostMemoryLoad=0.794853
+hostMemoryTotalBytes=16312205312
+activeRequests=0
+queuedRequests=0
+capacity=8
+serviceTimeMs=43.375
+healthy=true
+delayMs=20
+cpuWorkers=0
+completedRequests=3
+receivedRequests=3
+cpuSamples=159
+Strategy: ROUND_ROBIN (proxy restarted; all backends UP)
+DEMO D: stop backend-2 process; wait for health checker (no traffic during detection).
+backend-2: UP
+backend-2: DOWN
+Traffic must now use only backend-1/backend-3:
+Request 1 -> backend-1 (port 9001) HTTP 200
+Request 2 -> backend-3 (port 9003) HTTP 200
+Request 3 -> backend-1 (port 9001) HTTP 200
+Request 4 -> backend-3 (port 9003) HTTP 200
+Request 5 -> backend-1 (port 9001) HTTP 200
+Request 6 -> backend-3 (port 9003) HTTP 200
+backend-2: DOWN
+backend-2: WARMING
+backend-2: UP
+Request 1 -> backend-1 (port 9001) HTTP 200
+Request 2 -> backend-2 (port 9002) HTTP 200
+Request 3 -> backend-3 (port 9003) HTTP 200
+Request 4 -> backend-1 (port 9001) HTTP 200
+Request 5 -> backend-2 (port 9002) HTTP 200
+Request 6 -> backend-3 (port 9003) HTTP 200
+PASS: DOWN excluded; WARMING/UP recovery; backend-2 receives traffic again.
+Proxy http://127.0.0.1:8080 | ROUND_ROBIN
+Listen: 127.0.0.1:8080
+backend-1 port=9001: UP      inflight=0 latencyEWMA=31.7ms warmup=100%
+backend-2 port=9002: UP      inflight=0 latencyEWMA=49.1ms warmup=100%
+backend-3 port=9003: UP      inflight=0 latencyEWMA=25.6ms warmup=100%
+Stopped recorded demo processes. Logs and CSV kept.

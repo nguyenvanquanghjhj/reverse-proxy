@@ -4,7 +4,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.function.ToDoubleFunction;
 
-/** Estimated completion cost, with bounded exploration of previously slow backends. */
+/** Chooses by a supplied score or bounded exploration; does not forecast or learn service time.
+ * EstimatedWork predicts, and Dispatcher serializes selection with reservations and completion. */
 public final class AdaptiveLoadBalancer implements LoadBalancer {
     private final int explorationInterval;
     private long dispatches;

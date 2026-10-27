@@ -6,6 +6,11 @@ không trình bày Adaptive như thuật toán luôn tốt nhất.
 
 ## 1. Chuẩn bị trước buổi bảo vệ
 
+Sau refactor, build/test độc lập dùng `target/standalone`, run scripts dùng JAR để
+tránh chung output với IDE. Xem [kiểm tra clean build và Decision Explorer](BUILD_AND_DEFENSE_READINESS.md)
+trước khi tổng duyệt; chỉ JDK 21 thuộc môi trường được kiểm chứng. Không lấy class
+hoặc JAR cũ thay cho việc build source hiện tại.
+
 Mở PowerShell tại `D:\PBL4\reverse-proxy-demo`. Cần JDK **21**, gồm `java`,
 `javac`, `jar`; không chỉ JRE. Python chỉ cần khi kiểm tra dữ liệu hoặc vẽ lại biểu đồ.
 

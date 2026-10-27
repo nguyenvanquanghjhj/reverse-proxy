@@ -1,0 +1,29 @@
+{
+  "id": 40276448758,
+  "html_url": "https://github.com/nguyenvanquanghjhj/reverse-proxy/actions/runs/40276448758",
+  "head_sha": "fbaf979b4338683ce4edbc350b319c956bae8d58",
+  "head_branch": "refactor/defense-readability",
+  "status": "completed",
+  "conclusion": "success",
+  "created_at": "2026-10-26T05:50:53Z",
+  "updated_at": "2026-10-26T05:53:48Z",
+  "jobs": [
+    {
+      "name": "verify (ubuntu-latest)",
+      "html_url": "https://github.com/nguyenvanquanghjhj/reverse-proxy/actions/runs/40276448758/job/121420102308",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-26T05:50:56Z",
+      "completed_at": "2026-10-26T05:53:00Z"
+    },
+    {
+      "name": "verify (windows-latest)",
+      "html_url": "https://github.com/nguyenvanquanghjhj/reverse-proxy/actions/runs/40276448758/job/121420102629",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-26T05:50:56Z",
+      "completed_at": "2026-10-26T05:53:48Z"
+    }
+  ],
+  "scope": "Source commit; ablation archive was not yet present. Latest branch run must also verify the published bundle."
+}

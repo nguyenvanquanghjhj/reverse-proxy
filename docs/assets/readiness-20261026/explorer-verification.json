@@ -1,0 +1,13 @@
+{
+  "live_http": true,
+  "synthetic_render_states": [
+    "exploration",
+    "admission rejection",
+    "DOWN/null",
+    "trace disabled"
+  ],
+  "frozen_snapshot": true,
+  "fetch_error_clears_old_values": true,
+  "management_read_only": true,
+  "page_errors": []
+}
