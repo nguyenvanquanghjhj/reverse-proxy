@@ -119,7 +119,7 @@ public final class Dispatcher {
             EstimatedWork.Reservation reservation = adaptive ? work.get(chosen.backend()).reserve(request, now,
                     forecasts.get(chosen.backend()), Math.max(1, (int) Math.floor(chosen.effectiveCapacity())), external(chosen)) : null;
             metrics.get(chosen.backend()).reserve(now);
-            return new Lease(chosen.backend(), reservation, circuits.get(chosen.backend()).reserve(now));
+            return new Lease(chosen.backend(), algorithm.getName(), reservation, circuits.get(chosen.backend()).reserve(now));
         } finally { lock.unlock(); }
     }
     private static AdaptiveDecision.Candidate explain(BackendMetrics.Snapshot s, String eligibility, EstimatedWork.Forecast f) {
@@ -274,11 +274,15 @@ public final class Dispatcher {
 
     public final class Lease implements AutoCloseable {
         private final BackendServer backend;
+        private final String strategy;
         private final EstimatedWork.Reservation reservation;
         private boolean released;
         private final long circuitTicket;
-        private Lease(BackendServer backend, EstimatedWork.Reservation reservation, long circuitTicket) { this.backend = backend; this.reservation = reservation; this.circuitTicket = circuitTicket; }
+        private Lease(BackendServer backend, String strategy, EstimatedWork.Reservation reservation, long circuitTicket) {
+            this.backend = backend; this.strategy = strategy; this.reservation = reservation; this.circuitTicket = circuitTicket;
+        }
         public BackendServer backend() { return backend; }
+        public String strategy() { return strategy; }
         public void complete(double latencyMs, boolean error, boolean transportFailure) {
             complete(latencyMs, error, transportFailure, true);
         }

@@ -111,6 +111,13 @@ public final class HttpTransportTest {
                 check(head.statusCode() == 200 && head.body().length == 0, "HEAD demo page has no response body");
                 check(forwarded.headers().firstValue("X-Proxy-Strategy").orElse("").equals("ADAPTIVE"), "response reports actual strategy");
                 String base = "http://127.0.0.1:" + proxy.getPort();
+                for (String expectedStrategy : List.of("ROUND_ROBIN", "LEAST_CONNECTIONS", "ADAPTIVE")) {
+                    check(proxy.getDispatcher().cycleStrategy().equals(expectedStrategy), "switches to " + expectedStrategy);
+                    var strategyProbe = get(client, base + "/work?cost=1");
+                    check(strategyProbe.statusCode() == 200
+                            && strategyProbe.headers().firstValue("X-Proxy-Strategy").orElse("").equals(expectedStrategy),
+                            "response identifies the active " + expectedStrategy + " strategy");
+                }
                 var runtimeSnapshot = get(client, base + "/__proxy/metrics");
                 check(runtimeSnapshot.body().contains("\"backendRuntime\":[{\"port\":" + backend.getPort()
                         + ",\"backendPid\":" + ProcessHandle.current().pid())

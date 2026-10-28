@@ -176,7 +176,7 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
             });
             securityHeaders(exchange);
             exchange.getResponseHeaders().set("X-Proxy-Backend", lease.backend().getId());
-            exchange.getResponseHeaders().set("X-Proxy-Strategy", config.getLoadBalancerStrategy());
+            exchange.getResponseHeaders().set("X-Proxy-Strategy", lease.strategy());
             boolean noBody = exchange.getRequestMethod().equalsIgnoreCase("HEAD") || response.status() == 204 || response.status() == 304;
             if (noBody) {
                 if (response.status() != 204) response.headers().forEach((name, values) -> {

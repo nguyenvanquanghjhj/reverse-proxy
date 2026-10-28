@@ -47,7 +47,7 @@ final class MonitoringPage {
         <article class="card k"><small>Bị giới hạn tần suất</small><strong id="limited">—</strong></article><article class="card k"><small>Yêu cầu đang giữ chỗ</small><strong id="inflight">—</strong></article></div>
         <details class="how" hidden><summary>Cách đọc các số liệu</summary><p>Ba bộ đếm đầu gồm cả yêu cầu giám sát, không coi là lưu lượng nghiệp vụ riêng. Tốc độ tính từ chênh lệch tổng yêu cầu hoàn tất tới máy chủ và thời gian thực giữa hai lần đọc, gồm cả phản hồi lỗi; không phải tốc độ thành công.</p></details>
         <section><div class="sec"><h2>Máy chủ phía sau</h2></div><div class="share" id="share"></div><div id="backends"></div></section>
-        <section class="card"><div class="sec"><h2>Khám phá quyết định Adaptive</h2></div><div class="decide">
+        <section class="card"><div class="sec"><h2 id="decision-title">Khám phá quyết định Adaptive</h2></div><div class="decide">
         <p class="sub">Điểm = ECT × hệ số phạt. ECT = chờ slot + dịch vụ dự báo.</p>
         <div class="acts"><button id="decision-send" class="primary">Gửi yêu cầu thử</button><button id="decision-freeze">Giữ ảnh chụp hiện tại</button></div>
         <p id="decision-request">Chưa gửi yêu cầu thử.</p>
@@ -74,7 +74,7 @@ final class MonitoringPage {
         function connection(text,ok){el('state').textContent=text;el('state').className=ok?'ok':'bad';}
         function render(m,now){
           if(!Array.isArray(m.backends)||typeof m.requests_total!=='number')throw new Error('Số liệu không đúng định dạng');
-          el('strategy').textContent=strategy(m.strategy);el('total').textContent=number(m.requests_total);el('success').textContent=number(m.requests_successful);el('failed').textContent=number(m.requests_failed);
+          el('strategy').textContent=strategy(m.strategy);el('decision-title').textContent=m.strategy==='ADAPTIVE'?'Khám phá quyết định Adaptive':'Trace Adaptive · hiện đang dùng '+strategy(m.strategy);el('total').textContent=number(m.requests_total);el('success').textContent=number(m.requests_successful);el('failed').textContent=number(m.requests_failed);
           el('limited').textContent=number(m.rate_limit_rejected);el('inflight').textContent=number(m.backends.reduce((n,b)=>n+b.inFlight,0));
           const complete=m.backends.reduce((n,b)=>n+b.completed,0);
           const rate=previous&&complete>=previous.complete&&now>previous.time?(complete-previous.complete)*1000/(now-previous.time):null;
