@@ -42,6 +42,7 @@ final class DemoPage {
         header{min-height:76px;display:flex;align-items:center;justify-content:space-between;gap:16px;border-bottom:1px solid var(--border)}.brand{display:flex;align-items:center;gap:10px;font-weight:700;color:var(--text);text-decoration:none}.mark{display:grid;place-items:center;background:var(--text);color:var(--surface);border-radius:10px;width:36px;height:36px}.brand small{font-weight:400}.header-meta,.badges,.section-top,.actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.header-meta{justify-content:flex-end;font-size:12px}.badge{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:6px;padding:4px 9px;font-size:11px;font-weight:650;background:var(--surface-elevated);overflow-wrap:anywhere}.mode{color:var(--accent)}.button{border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:8px;padding:8px 12px;text-decoration:none;font-weight:600}.button:hover{background:var(--surface-elevated)}.intro{display:flex;justify-content:space-between;align-items:center;gap:24px;padding:32px 0 24px}.intro p{color:var(--muted);margin:12px 0 16px;max-width:740px}.intro .eyebrow{margin-bottom:10px}.origin{text-align:right;flex-shrink:0}.origin strong{display:block;font-size:18px}.origin a{display:inline-block;margin-top:12px}.badges{gap:7px}
         /* Metrics and workspace */
         .metrics{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px;margin-bottom:22px}.metric{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;min-width:0}.metric strong{display:block;font-size:25px;line-height:1.4;font-variant-numeric:tabular-nums}.metric .word{font-size:16px;margin:7px 0}.workspace{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.3fr);gap:20px;align-items:start}.panel{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;box-shadow:var(--shadow);min-width:0}.section-top{justify-content:space-between;margin-bottom:18px}.step{font-size:11px;color:var(--muted);letter-spacing:1px}.stack{display:grid;gap:20px}.types{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:14px 0}.type{text-align:left;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:10px;padding:14px 11px;min-width:0;position:relative;transition:border-color .15s}.type:hover{background:var(--surface-elevated);border-color:var(--accent)}.type[aria-pressed=true]{border:2px solid var(--accent);padding:13px 10px;background:var(--surface-elevated)}.type[aria-pressed=true]:after{content:'✓';position:absolute;right:9px;top:8px;color:var(--accent);font-weight:700}.type svg{color:var(--accent);margin-bottom:8px}.type strong,.type small,.type code{display:block}.type code{font-size:11px;color:var(--accent);margin:5px 0}.type small{font-size:11px;line-height:1.5}.more{margin:18px 0;border-top:1px solid var(--border);padding-top:14px}summary{cursor:pointer;font-weight:600}.request-config{min-height:85px;background:var(--surface-elevated);border-radius:8px;padding:13px;margin:16px 0;color:var(--muted);font-size:13px}.field{display:flex;gap:12px;align-items:center;margin-top:10px;flex-wrap:wrap}input,select{min-height:36px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);padding:5px 9px;max-width:100%}input{width:80px}.endpoint{display:flex;align-items:center;gap:12px;border:1px solid var(--border);padding:12px;border-radius:8px;background:var(--bg);margin-bottom:14px}.method{font-size:11px;font-weight:750;color:var(--success)}.send{display:flex;justify-content:center;align-items:center;gap:10px;width:100%;padding:13px;border:0;border-radius:9px;background:#245bd6;color:#fff;font-weight:650}.send:hover:not(:disabled){background:#1949b9}.send svg{width:19px;height:19px}.send-row .help{display:block;margin:10px 0}.pending{font-size:12px;color:var(--muted)}
+        .batch-summary{margin:12px 0;padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--surface-elevated);font-variant-numeric:tabular-nums}.batch-summary strong{display:block;font-size:17px;margin-bottom:3px}.batch-comparison-wrap{overflow:auto;margin-top:8px}.batch-comparison{width:100%;min-width:540px;border-collapse:collapse;font-size:12px}.batch-comparison th,.batch-comparison td{padding:8px;text-align:left;border-bottom:1px solid var(--border)}.batch-comparison th{color:var(--muted);background:var(--surface-elevated);font-size:11px}
         /* Routing and backend observations */
         .routing{border-top:3px solid var(--accent)}.flow{display:flex;align-items:center;gap:0;margin:23px 0}.node{flex:1;min-width:0;text-align:center;background:var(--surface-elevated);border:1px solid var(--border);border-radius:10px;padding:17px 8px}.node svg{display:block;margin:0 auto 8px}.node strong,.node small{display:block}.node strong{font-size:13px}.node small{font-size:11px;overflow-wrap:anywhere}.connector{flex:0 0 30px;color:var(--muted);text-align:center;font-size:22px}.selected-node{border:2px solid var(--node-color,var(--accent));color:var(--node-color,var(--accent))}.selected-node .badge{margin-top:7px;color:var(--node-color,var(--accent));font-size:10px}.route-note{font-size:12px;color:var(--muted);border-bottom:1px solid var(--border);padding-bottom:18px}.servers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:18px 0 12px}.server{border:1px solid var(--border);border-radius:10px;padding:12px;min-width:0;position:relative}.server[data-selected=true]{border:2px solid var(--server);padding:11px;background:var(--surface-elevated)}.server-name{font-size:14px;font-weight:700;color:var(--server)}.server-name a{color:inherit}.server .badge{font-size:10px;margin:8px 0;min-height:25px}.server[data-selected=true] .badge{color:var(--server)}.server-number{font-size:10px;color:var(--muted);letter-spacing:1px}.server dl{margin:4px 0 0;font-size:11px}.server dl div{display:flex;justify-content:space-between;gap:5px;margin-top:4px}.server dt{color:var(--muted)}.server dd{margin:0;font-variant-numeric:tabular-nums}.observed{margin-top:8px;font-size:10px;color:var(--muted)}.pulse{animation:arrive .65s ease-out 1}@keyframes arrive{0%{box-shadow:0 0 0 5px var(--border)}100%{box-shadow:0 0 0 0 transparent}}.decision{margin-top:18px;border-top:1px solid var(--border);padding-top:14px}.decision p{margin-top:9px}.decision-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}.decision-grid div{min-width:0}.decision-grid strong{display:block;font-size:12px;overflow-wrap:anywhere}
         /* Response and session history */
@@ -84,7 +85,7 @@ final class DemoPage {
         </div></details>
         <div class="request-config"><p id="config-description"></p><label class="field" id="config-download" hidden>Kích thước tệp<select id="file-size"><option value="64">64 KiB</option><option value="256" selected>256 KiB</option><option value="768">768 KiB</option></select></label><label class="field" id="config-orders" hidden>Số lượng sổ tay<input id="quantity" type="number" min="1" max="10" step="1" required value="1"></label></div>
         <div class="endpoint"><span class="method" id="method">GET</span><code id="endpoint">/work?cost=1</code></div><div class="send-row"><button class="send" id="send"><svg aria-hidden="true"><use href="#icon-send"/></svg><span id="send-label">Gửi yêu cầu</span></button><span class="help" id="action-note" hidden>Chỉ gửi khi bạn bấm. Không tự gửi lại hoặc tự thăm dò.</span><span class="pending" id="pending" hidden role="status" aria-live="polite">Sẵn sàng · một yêu cầu mỗi lần</span></div>
-        <section class="batch" id="batch-panel" hidden aria-labelledby="batch-title"><div class="batch-heading"><h3 id="batch-title">Gửi 300 request qua proxy</h3><button class="button" id="batch-send" type="button">Gửi 300 request</button></div><p class="help batch-status" id="batch-status" role="status" aria-live="polite">Chưa chạy.</p><div class="batch-table-wrap" role="region" aria-label="Kết quả 300 request, có thể cuộn" tabindex="0"><table class="batch-table"><thead><tr><th scope="col">#</th><th scope="col">Tác vụ</th><th scope="col">Máy chủ</th><th scope="col">Kết quả</th><th scope="col">Độ trễ</th></tr></thead><tbody id="batch-log"><tr><td colspan="5" class="empty">Bấm “Gửi 300 request” để bắt đầu.</td></tr></tbody></table></div></section>
+        <section class="batch" id="batch-panel" hidden aria-labelledby="batch-title"><div class="batch-heading"><h3 id="batch-title">Gửi 300 request qua proxy</h3><button class="button" id="batch-send" type="button">Gửi 300 request</button></div><p class="help batch-status" id="batch-status" role="status" aria-live="polite">Chưa chạy.</p><div class="batch-summary" aria-live="polite"><strong id="batch-total">Chưa có thời gian tổng.</strong><span id="batch-total-note">Thời gian từ lúc bắt đầu lịch gửi đến khi request cuối phản hồi.</span></div><h3>So sánh lượt chạy theo thuật toán</h3><p class="help">Kết quả mới nhất của mỗi thuật toán được giữ trong tab này. Hãy giữ cùng độ trễ backend và cùng workload khi so sánh.</p><div class="batch-comparison-wrap" role="region" aria-label="So sánh thời gian 300 request theo thuật toán" tabindex="0"><table class="batch-comparison"><thead><tr><th scope="col">Thuật toán</th><th scope="col">Tổng thời gian</th><th scope="col">Thành công</th><th scope="col">Lỗi</th><th scope="col">Lần đo</th></tr></thead><tbody id="batch-comparison"><tr><td colspan="5" class="empty">Chưa có lượt đo.</td></tr></tbody></table></div><div class="batch-table-wrap" role="region" aria-label="Kết quả 300 request, có thể cuộn" tabindex="0"><table class="batch-table"><thead><tr><th scope="col">#</th><th scope="col">Tác vụ</th><th scope="col">Máy chủ</th><th scope="col">Kết quả</th><th scope="col">Độ trễ</th></tr></thead><tbody id="batch-log"><tr><td colspan="5" class="empty">Bấm “Gửi 300 request” để bắt đầu.</td></tr></tbody></table></div></section>
         <div class="decision"><h3>Giải thích định tuyến</h3><div class="decision-grid"><div><small>Chế độ</small><strong id="decision-mode">—</strong></div><div><small>Chiến lược từ phản hồi</small><strong id="decision-strategy">—</strong></div><div><small>Máy chủ gần nhất</small><strong id="decision-backend">@@NAME@@ · phản hồi trang</strong></div><div><small>Yêu cầu gần nhất</small><strong id="decision-type">Tải trang /demo</strong></div><div><small>Đường dẫn gần nhất</small><strong id="decision-endpoint">—</strong></div></div><p class="help" id="decision-note"></p></div>
         </section>
         <div class="stack"><section class="panel routing" aria-labelledby="routing-title"><div class="section-top"><h2 id="routing-title">Yêu cầu đi đâu?</h2><span class="step">02 / ĐƯỜNG ĐI</span></div>
@@ -108,10 +109,50 @@ final class DemoPage {
           const names = {'9001':'Aurora','9002':'Ember','9003':'Orbit'};
           const colors = {'9001':'var(--aurora)','9002':'var(--ember)','9003':'var(--orbit)'};
           const historyKey = 'pbl-request-studio-history-v1';
-          let kind = 'work', pending = false, batchRunning = false, finished = 0, succeeded = 0, totalMs = 0, objectUrl = null, copyText = '', rows = [];
+          const batchComparisonKey = 'pbl-300-batch-comparison-v1';
+          const strategyOrder = ['ROUND_ROBIN','LEAST_CONNECTIONS','ADAPTIVE'];
+          let kind = 'work', pending = false, batchRunning = false, finished = 0, succeeded = 0, totalMs = 0, objectUrl = null, copyText = '', rows = [], batchComparisons = {};
           const strategyName = s => ({ROUND_ROBIN:'Luân phiên',LEAST_CONNECTIONS:'Ít kết nối nhất',ADAPTIVE:'Thích nghi'}[s] || s || '—');
           const titles = {work:'Tác vụ nhẹ',slow:'Tác vụ chậm',compute:'Tính toán CPU',products:'Xem sản phẩm',download:'Tải tệp',orders:'Đặt đơn thử'};
           const descriptions = {work:'GET nhẹ, cost = 1. Thời gian xử lý phụ thuộc độ trễ cấu hình của máy chủ.',slow:'Máy chủ chờ 2 giây. Theo dõi trạng thái đang gửi và độ trễ thực tế.',compute:'Máy chủ tính CPU với cost = 8. Đây là công việc thật, không phải số CPU giả lập.',products:'Lấy danh sách 3 sản phẩm mẫu dưới dạng JSON.',download:'Nhận đủ tệp nhị phân vào bộ nhớ trước khi lưu, tối đa 768 KiB.',orders:'Đặt thử Sổ tay PBL · 49.000 đ/cuốn. Mỗi lần gửi tạo một đơn thử mới.'};
+          function loadBatchComparisons() {
+            const result = {};
+            try {
+              const saved = JSON.parse(sessionStorage.getItem(batchComparisonKey) || '{}');
+              for (const strategy of strategyOrder) {
+                const item = saved && saved[strategy];
+                if (item && item.strategy === strategy && item.completed === 300
+                    && Number.isFinite(item.elapsedMs) && item.elapsedMs > 0
+                    && Number.isInteger(item.successes) && item.successes >= 0
+                    && Number.isInteger(item.failures) && item.failures >= 0
+                    && item.successes + item.failures === 300
+                    && typeof item.at === 'string' && Number.isFinite(Date.parse(item.at))) result[strategy] = item;
+              }
+            } catch (_) { }
+            return result;
+          }
+          function renderBatchComparisons() {
+            const tbody = $('batch-comparison');
+            tbody.replaceChildren();
+            for (const strategy of strategyOrder) {
+              const item = batchComparisons[strategy], row = document.createElement('tr');
+              const values = [
+                strategyName(strategy),
+                item ? (item.elapsedMs / 1000).toFixed(2) + ' giây' : 'Chưa đo',
+                item ? item.successes + '/300' : '\u2014',
+                item ? String(item.failures) : '\u2014',
+                item ? new Date(item.at).toLocaleTimeString('vi-VN') : '\u2014'
+              ];
+              for (const value of values) {
+                const cell = document.createElement('td');
+                cell.textContent = value;
+                row.append(cell);
+              }
+              tbody.append(row);
+            }
+          }
+          batchComparisons = loadBatchComparisons();
+          renderBatchComparisons();
           function element(tag, text, className) { const node = document.createElement(tag); if (text != null) node.textContent = text; if (className) node.className = className; return node; }
           function backendName(port) { return Object.hasOwn(names, port) ? names[port] : port ? 'Máy chủ :' + port : '—'; }
           function bytesText(n) { return n < 1024 ? n + ' B' : (n / 1024).toFixed(1) + ' KiB'; }
@@ -296,9 +337,9 @@ final class DemoPage {
           $('batch-send').addEventListener('click',async () => {
             if (!via || pending || batchRunning) return;
             const total = 300, ratePerSecond = 60, maxWorkers = 64, specs = Array.from({length:total},(_,index) => batchCycle[index % batchCycle.length]);
-            const log = $('batch-log'), resultRows = new Array(total); let next = 0, completed = 0, started = 0, lastItem = null;
+            const log = $('batch-log'), resultRows = new Array(total), batchResults = new Array(total); let next = 0, completed = 0, started = 0, lastItem = null;
             log.replaceChildren(); specs.forEach((spec,index) => { resultRows[index] = makeBatchRow(index,spec); });
-            batchRunning = true; batchSuccessStart = succeeded; update(); batchProgress(0,0,total); $('batch-status').scrollIntoView({block:'nearest'});
+            batchRunning = true; batchSuccessStart = succeeded; update(); batchProgress(0,0,total); $('batch-total').textContent = 'Đang đo tổng thời gian…'; $('batch-total-note').textContent = 'Đang gửi theo lịch khoảng 60 request/giây.'; $('batch-status').scrollIntoView({block:'nearest'});
             const launchAt = performance.now();
             async function worker() {
               while (next < total) {
@@ -317,7 +358,7 @@ final class DemoPage {
                 } catch (error) {
                   item.ms = performance.now() - start; item.message = error.name === 'AbortError' ? 'Quá 8 giây chờ ở trình duyệt.' : String(error.message);
                 } finally {
-                  clearTimeout(timeout); finished++; completed++; lastItem = item; update(); $('last-status').textContent = statusText(item);
+                  clearTimeout(timeout); batchResults[index] = item; finished++; completed++; lastItem = item; update(); $('last-status').textContent = statusText(item);
                   row.tr.dataset.state = item.ok ? 'success' : 'error'; row.cells[2].textContent = backendName(item.port); row.status.textContent = statusText(item); row.status.className = 'status' + (item.ok ? '' : ' error'); row.cells[4].textContent = item.ms.toFixed(1) + ' ms';
                   rows.unshift(item); rows = rows.slice(0,6); queueBatchRoute(item); batchProgress(started,completed,total);
                 }
@@ -325,7 +366,27 @@ final class DemoPage {
             }
             try { await Promise.all(Array.from({length:maxWorkers},() => worker())); }
             finally {
+              const elapsedMs = performance.now() - launchAt;
+              const reportedStrategies = batchResults.filter(item => item && item.strategy).map(item => item.strategy);
+              const singleStrategy = completed === total && reportedStrategies.length > 0
+                && reportedStrategies.every(strategy => strategyOrder.includes(strategy))
+                && new Set(reportedStrategies).size === 1 ? reportedStrategies[0] : null;
+              const batchSuccesses = batchResults.filter(item => item && item.ok).length;
+              const batchFailures = completed - batchSuccesses;
               batchRunning = false; update(); batchProgress(started,completed,total,true); refreshBackendStats();
+              $('batch-status').textContent += ' · Tổng thời gian ' + (elapsedMs / 1000).toFixed(2) + ' giây.';
+              if (singleStrategy) {
+                const measurement = {strategy:singleStrategy,elapsedMs,completed,successes:batchSuccesses,failures:batchFailures,at:new Date().toISOString()};
+                batchComparisons = {...batchComparisons,[singleStrategy]:measurement};
+                $('batch-total').textContent = 'Tổng thời gian: ' + (elapsedMs / 1000).toFixed(2) + ' giây';
+                $('batch-total-note').textContent = 'Thuật toán: ' + strategyName(singleStrategy) + ' · ' + batchSuccesses + ' thành công · ' + batchFailures + ' lỗi.';
+                try { sessionStorage.setItem(batchComparisonKey,JSON.stringify(batchComparisons)); }
+                catch (_) { $('batch-total-note').textContent += ' Không lưu được kết quả trong tab này.'; }
+                renderBatchComparisons();
+              } else {
+                $('batch-total').textContent = 'Lượt này mất ' + (elapsedMs / 1000).toFixed(2) + ' giây; chưa lưu để so sánh.';
+                $('batch-total-note').textContent = 'Không xác định được một thuật toán duy nhất từ header phản hồi. Hãy chạy lại và đừng đổi thuật toán giữa lượt.';
+              }
               try { sessionStorage.setItem(historyKey,JSON.stringify(rows)); } catch (_) { storageNotice(); }
               renderHistory(); showBatchRoute(lastItem);
             }
