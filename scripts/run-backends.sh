@@ -13,9 +13,9 @@ trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 "$java21_java" -cp target/reverse-proxy-demo.jar com.example.backend.DemoBackendServer 9001 8 20 0 & pids+=("$!")
-"$java21_java" -cp target/reverse-proxy-demo.jar com.example.backend.DemoBackendServer 9002 8 20 0 & pids+=("$!")
-"$java21_java" -cp target/reverse-proxy-demo.jar com.example.backend.DemoBackendServer 9003 8 20 0 & pids+=("$!")
-echo 'Backends: 9001, 9002, 9003 (each: 8 slots / 20 ms). Ctrl+C to stop.'
+"$java21_java" -cp target/reverse-proxy-demo.jar com.example.backend.DemoBackendServer 9002 8 80 0 & pids+=("$!")
+"$java21_java" -cp target/reverse-proxy-demo.jar com.example.backend.DemoBackendServer 9003 8 240 0 & pids+=("$!")
+echo 'Backends: port 9001=20ms, 9002=80ms, 9003=240ms (8 slots each). Ctrl+C to stop.'
 while true; do
   for backend_pid in "${pids[@]}"; do
     if ! kill -0 "$backend_pid" 2>/dev/null; then

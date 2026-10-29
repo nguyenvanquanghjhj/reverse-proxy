@@ -196,7 +196,7 @@ RR vẫn quay vòng và thường 40/40/40 khi ba backend luôn đủ điều ki
 
 Metrics xuất `estimatedOutstandingWorkMs`, `estimatedNextSlotMs`; không nhầm `scoreMs` tổng hợp cũ thành ECT chính xác của mọi request. CPU/heap chỉ là tín hiệu phụ trong tình huống này. CSV `ROUND_ROBIN-requests.csv`, `ADAPTIVE-requests.csv` và các file `*-metrics.csv` lưu trong thư mục session. Peak chỉ là max quan sát trên các mẫu, không phải đỉnh liên tục.
 
-Cuối demo khôi phục delay 20/20/20, proxy còn Adaptive và còn lịch sử học; dùng lệnh đổi strategy/restart nếu muốn reset. Demo D tự restart để bắt đầu rõ ràng. Không suy luận demo này khắc phục regression slow trong benchmark Mixed trước đây.
+Cuối demo giữ delay 20/80/240, proxy còn Adaptive và còn lịch sử học; dùng lệnh đổi strategy/restart nếu muốn reset lịch sử. Mỗi lần `start` cũng khởi động ba backend với delay 20/80/240. Demo D tự restart để bắt đầu rõ ràng. Không suy luận demo này khắc phục regression slow trong benchmark Mixed trước đây.
 
 ### DEMO D — Health Check (15–25 giây gồm restart)
 
@@ -270,9 +270,9 @@ Sau `demo.ps1 stop` và build, mở bốn terminal ở repository, thiết lập
 # Terminal 1
 java -cp target/classes com.example.backend.DemoBackendServer 9001 8 20 0
 # Terminal 2
-java -cp target/classes com.example.backend.DemoBackendServer 9002 8 20 0
+java -cp target/classes com.example.backend.DemoBackendServer 9002 8 80 0
 # Terminal 3
-java -cp target/classes com.example.backend.DemoBackendServer 9003 8 20 0
+java -cp target/classes com.example.backend.DemoBackendServer 9003 8 240 0
 # Terminal 4
 java -cp target/classes com.example.proxy.Main config/application.properties
 ```

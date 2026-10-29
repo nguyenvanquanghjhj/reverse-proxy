@@ -100,7 +100,7 @@ final class MonitoringPage {
         function clearDecision(note){el('candidates').replaceChildren();el('decision-note').textContent=note;el('decision-selection').textContent='—';el('decision-explanation').textContent='';el('decision-formula').textContent='';el('decision-json').textContent='—';lastDecision=null;}
         function freeze(value){decisionFrozen=value;el('decision-freeze').textContent=value?'Theo dõi quyết định mới':'Giữ ảnh chụp hiện tại';if(lastDecision)decision(lastDecision);}
         function decision(d){clearDecision('');lastDecision=d;
-          if(!d.enabled){el('decision-note').textContent='Chưa bật trace Adaptive hoặc chiến lược hiện tại không phải ADAPTIVE. Bật adaptive.decision-trace.enabled=true rồi restart ADAPTIVE.';return;}
+          if(!d.enabled){el('decision-note').textContent='Trace chỉ hiện khi chiến lược đang chạy là ADAPTIVE và adaptive.decision-trace.enabled=true. Nếu vừa bật tùy chọn này trong config/application.properties, hãy khởi động lại proxy.';return;}
           if(!d.lastDecision){el('decision-note').textContent='Chưa có quyết định; hãy gửi yêu cầu qua proxy.';return;}
           const x=d.lastDecision;if(!Array.isArray(x.candidates))throw new Error('Trace không đúng định dạng');
           el('decision-note').textContent=(decisionFrozen?'Ảnh chụp đã giữ':'Quyết định gần nhất')+' · Lần '+x.sequence+' · '+x.route+' / '+x.units+' đơn vị · Ngân sách '+number(x.budgetMs)+' ms · '+x.reason;

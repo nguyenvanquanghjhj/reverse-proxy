@@ -125,8 +125,10 @@ Circuit HALF_OPEN vẫn chỉ có một phép thử riêng. Từ chối nhanh l�
 không được đếm thành công vì latency nhỏ.
 
 ```powershell
-# Khôi phục độ trễ trước bài tiếp theo.
-curl.exe "http://127.0.0.1:9002/control?delayMs=20&cpuWorkers=0&healthy=true"
+# Giữ cấu hình độ trễ mặc định 20/80/240ms trước bài tiếp theo.
+curl.exe "http://127.0.0.1:9001/control?delayMs=20&cpuWorkers=0&healthy=true"
+curl.exe "http://127.0.0.1:9002/control?delayMs=80&cpuWorkers=0&healthy=true"
+curl.exe "http://127.0.0.1:9003/control?delayMs=240&cpuWorkers=0&healthy=true"
 ```
 
 Có thể dùng `.\scripts\demo.ps1 adaptive` để script chạy hai nhánh RR/Adaptive

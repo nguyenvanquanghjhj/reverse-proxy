@@ -81,7 +81,10 @@ public final class HttpTransportTest {
                     "backend exposes per-process runtime values");
             check(page.body().contains("id=\"batch-panel\" hidden") && page.body().contains("$('batch-panel').hidden = !via")
                     && page.body().contains("const total = 300"), "one-click 300-request panel is restricted to proxy pages");
-            check(page.body().contains("data:image/svg+xml") && !page.body().contains("src=\"") && !page.body().contains("setInterval("), "page embeds assets and has no polling timer");
+            check(page.body().contains("data:image/svg+xml") && !page.body().contains("src=\"")
+                    && page.body().contains("setInterval(() => { if (document.visibilityState !== 'hidden') refreshBackendStats(); },1000)")
+                    && page.body().contains("backend.inFlight") && page.body().contains("Mất kết nối"),
+                    "page embeds assets and polls live backend health and in-flight stats");
             check(get(client, direct + "/work?cost=1").headers().firstValue("Content-Type").orElse("").contains("application/json"), "existing workload remains JSON");
             Properties properties = new Properties();
             properties.setProperty("proxy.port", "0");

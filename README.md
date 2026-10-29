@@ -104,6 +104,8 @@ Linux/macOS/WSL: `bash scripts/build.sh`, rồi `bash scripts/run-backends.sh --
 
 ```text
 java -cp target/reverse-proxy-demo.jar com.example.backend.DemoBackendServer 9001 8 20 0
+java -cp target/reverse-proxy-demo.jar com.example.backend.DemoBackendServer 9002 8 80 0
+java -cp target/reverse-proxy-demo.jar com.example.backend.DemoBackendServer 9003 8 240 0
 java -jar target/reverse-proxy-demo.jar config/application.properties
 ```
 

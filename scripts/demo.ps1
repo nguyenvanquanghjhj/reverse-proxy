@@ -13,6 +13,7 @@ $runtime = Join-Path $repo '.demo'
 New-Item -ItemType Directory -Path $runtime -Force | Out-Null
 $stateFile = Join-Path $runtime 'state.json'
 $script:state = $null
+$script:demoBackendDelays = @(20,80,240)
 $handler = [Net.Http.HttpClientHandler]::new()
 $handler.UseProxy = $false
 $client = [Net.Http.HttpClient]::new($handler)
@@ -94,7 +95,7 @@ function Wait-Up {
     } while ([DateTime]::UtcNow -lt $until)
     throw "Not all backends reached UP. Logs: $($script:state.directory)"
 }
-function Start-Backend2 { Start-Owned 'backend-2' @('com.example.backend.DemoBackendServer','9002','8','20','0') 9002 }
+function Start-Backend2 { Start-Owned 'backend-2' @('com.example.backend.DemoBackendServer','9002','8',"$($script:demoBackendDelays[1])",'0') 9002 }
 function Set-Delays([int[]]$delays) {
     for ($i=0; $i -lt 3; $i++) { $null = Fetch "http://127.0.0.1:$(9001+$i)/control?delayMs=$($delays[$i])&cpuWorkers=0&healthy=true" }
 }
@@ -232,9 +233,9 @@ try {
             $script:state = [pscustomobject]@{ session=$session; java=[IO.Path]::GetFullPath($java); directory=$directory; jar=$jar; strategy=$Strategy; bindHost=$BindHost; processes=@() }
             Save-State
             try {
-                Start-Owned 'backend-1' @('com.example.backend.DemoBackendServer','9001','8','20','0') 9001
+                Start-Owned 'backend-1' @('com.example.backend.DemoBackendServer','9001','8',"$($script:demoBackendDelays[0])",'0') 9001
                 Start-Backend2
-                Start-Owned 'backend-3' @('com.example.backend.DemoBackendServer','9003','8','20','0') 9003
+                Start-Owned 'backend-3' @('com.example.backend.DemoBackendServer','9003','8',"$($script:demoBackendDelays[2])",'0') 9003
                 Switch-Strategy $Strategy
             } catch {
                 foreach ($entry in @($script:state.processes)) { Stop-Owned $entry.name }
@@ -252,7 +253,7 @@ try {
         'basic' { Assert-Running; $null = One-Request 1 -Details }
         'strategy' { Assert-Running; Switch-Strategy $Strategy; Show-Status }
         'rr' {
-            Assert-Running; Set-Delays @(20,20,20); Switch-Strategy 'ROUND_ROBIN'
+            Assert-Running; Set-Delays $script:demoBackendDelays; Switch-Strategy 'ROUND_ROBIN'
             for ($i=0; $i -lt 6; $i++) {
                 $port = One-Request ($i+1)
                 if ($port -ne (9001 + $i%3)) { throw 'RR sequence differed. Check other clients and backend states.' }
@@ -262,13 +263,11 @@ try {
         'adaptive' {
             Assert-Running
             Write-Host 'DEMO C: same /work?cost=1; B1/B2/B3 delays = 20/80/240ms; capacity=8 each.'
-            try {
-                Set-Delays @(20,80,240)
-                Run-Traffic 'ROUND_ROBIN'
-                Run-Traffic 'ADAPTIVE'
-                Write-Host 'Compare distribution and sampled metrics above. This is a routing demo, not proof of optimal performance.'
-            } finally { Set-Delays @(20,20,20) }
-            Write-Host 'Restored delays to 20ms. Proxy remains ADAPTIVE; restart strategy to clear learned history.'
+            Set-Delays $script:demoBackendDelays
+            Run-Traffic 'ROUND_ROBIN'
+            Run-Traffic 'ADAPTIVE'
+            Write-Host 'Compare distribution and sampled metrics above. This is a routing demo, not proof of optimal performance.'
+            Write-Host 'Backend delays remain 20/80/240ms. Proxy remains ADAPTIVE; restart strategy to clear learned history.'
         }
         'backend2-stop' {
             Assert-Running; Stop-Owned 'backend-2'; Wait-Backend2 'DOWN' -ShowTransitions
@@ -278,7 +277,7 @@ try {
             Stop-Owned 'backend-2'; Start-Backend2; Wait-Backend2 'UP' -ShowTransitions
         }
         'health' {
-            Assert-Running; Set-Delays @(20,20,20); Switch-Strategy 'ROUND_ROBIN'
+            Assert-Running; Set-Delays $script:demoBackendDelays; Switch-Strategy 'ROUND_ROBIN'
             Write-Host 'DEMO D: stop backend-2 process; wait for health checker (no traffic during detection).'
             Stop-Owned 'backend-2'
             try {

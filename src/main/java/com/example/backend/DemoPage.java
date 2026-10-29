@@ -69,7 +69,7 @@ final class DemoPage {
         <div class="shell">
         <header><a href="/demo" class="brand"><span class="mark"><svg aria-hidden="true"><use href="#icon-proxy"/></svg></span>PBL <span class="muted">/</span> Trạm thử yêu cầu <small>Thử nghiệm proxy ngược</small></a><div class="header-meta"><span id="host"></span><span id="mode" class="badge mode"></span><span class="header-observation" id="header-backend">@@NAME@@</span><span class="header-observation" id="header-strategy">—</span><button class="button" id="theme" aria-pressed="false">Giao diện tối</button></div></header>
         <main id="main">
-        <section class="intro"><div><div class="eyebrow">PBL4 / Giám sát mạng</div><h1>Theo dấu từng yêu cầu.</h1><p>Gửi một tác vụ, quan sát đường đi và xác nhận máy chủ thực sự xử lý.</p><div class="badges"><span class="badge">Trang: @@NAME@@ · :@@PORT@@</span><span class="badge">PID @@PID@@</span><span class="badge">Số luồng xử lý @@CAPACITY@@</span><span class="badge">Độ trễ @@DELAY@@ ms</span><span class="badge" id="overview-strategy">Chiến lược —</span></div></div><div class="origin"><small>PHẢN HỒI TRANG TỪ</small><strong>Máy chủ @@NUMBER@@ / @@NAME@@</strong><a id="proxy-link" class="button" hidden>Đi qua proxy ↗</a><a id="monitor-link" class="button" href="/__proxy/dashboard" hidden>Giám sát máy cục bộ ↗</a></div></section>
+        <section class="intro"><div><div class="badges"><span class="badge">Trang: @@NAME@@ · :@@PORT@@</span><span class="badge">PID @@PID@@</span><span class="badge">Số luồng xử lý @@CAPACITY@@</span><span class="badge">Độ trễ @@DELAY@@ ms</span><span class="badge" id="overview-strategy">Chiến lược —</span></div></div><div class="origin"><small>PHẢN HỒI TRANG TỪ</small><strong>Máy chủ @@NUMBER@@ / @@NAME@@</strong><a id="proxy-link" class="button" hidden>Đi qua proxy ↗</a><a id="monitor-link" class="button" href="/__proxy/dashboard" hidden>Giám sát máy cục bộ ↗</a></div></section>
         <section class="metrics" aria-label="Thống kê yêu cầu trong lần mở trang này"><div class="metric"><small>Đã hoàn tất</small><strong id="finished">0</strong></div><div class="metric"><small>Thành công · HTTP 2xx</small><strong id="succeeded">0</strong></div><div class="metric"><small>Thất bại</small><strong id="error-count">0</strong></div><div class="metric"><small>Độ trễ trung bình · ms</small><strong id="average">—</strong></div><div class="metric"><small>Trạng thái gần nhất</small><strong class="word" id="last-status">—</strong></div><div class="metric"><small>Máy chủ được chọn</small><strong class="word" id="selected-backend">@@NAME@@</strong></div><div class="metric"><small>Cách kết nối</small><strong class="word" id="metric-mode">—</strong></div></section>
         <div class="workspace">
         <section class="panel" aria-labelledby="request-title"><div class="section-top"><h2 id="request-title">Trạm thử yêu cầu</h2><span class="step">01 / GỬI YÊU CẦU</span></div><p class="muted">Chọn công việc để quan sát cách định tuyến.</p>
@@ -85,7 +85,7 @@ final class DemoPage {
         </div></details>
         <div class="request-config"><p id="config-description"></p><label class="field" id="config-download" hidden>Kích thước tệp<select id="file-size"><option value="64">64 KiB</option><option value="256" selected>256 KiB</option><option value="768">768 KiB</option></select></label><label class="field" id="config-orders" hidden>Số lượng sổ tay<input id="quantity" type="number" min="1" max="10" step="1" required value="1"></label></div>
         <div class="endpoint"><span class="method" id="method">GET</span><code id="endpoint">/work?cost=1</code></div><div class="send-row"><button class="send" id="send"><svg aria-hidden="true"><use href="#icon-send"/></svg><span id="send-label">Gửi yêu cầu</span></button><span class="help" id="action-note" hidden>Chỉ gửi khi bạn bấm. Không tự gửi lại hoặc tự thăm dò.</span><span class="pending" id="pending" hidden role="status" aria-live="polite">Sẵn sàng · một yêu cầu mỗi lần</span></div>
-        <section class="batch" id="batch-panel" hidden aria-labelledby="batch-title"><div class="batch-heading"><h3 id="batch-title">Gửi 300 request qua proxy</h3><button class="button" id="batch-send" type="button">Gửi 300 request</button></div><p class="help batch-status" id="batch-status" role="status" aria-live="polite">Chưa chạy.</p><div class="batch-summary" aria-live="polite"><strong id="batch-total">Chưa có thời gian tổng.</strong><span id="batch-total-note">Thời gian từ lúc bắt đầu lịch gửi đến khi request cuối phản hồi.</span></div><h3>So sánh lượt chạy theo thuật toán</h3><p class="help">Kết quả mới nhất của mỗi thuật toán được giữ trong tab này. Hãy giữ cùng độ trễ backend và cùng workload khi so sánh.</p><div class="batch-comparison-wrap" role="region" aria-label="So sánh thời gian 300 request theo thuật toán" tabindex="0"><table class="batch-comparison"><thead><tr><th scope="col">Thuật toán</th><th scope="col">Tổng thời gian</th><th scope="col">Thành công</th><th scope="col">Lỗi</th><th scope="col">Lần đo</th></tr></thead><tbody id="batch-comparison"><tr><td colspan="5" class="empty">Chưa có lượt đo.</td></tr></tbody></table></div><div class="batch-table-wrap" role="region" aria-label="Kết quả 300 request, có thể cuộn" tabindex="0"><table class="batch-table"><thead><tr><th scope="col">#</th><th scope="col">Tác vụ</th><th scope="col">Máy chủ</th><th scope="col">Kết quả</th><th scope="col">Độ trễ</th></tr></thead><tbody id="batch-log"><tr><td colspan="5" class="empty">Bấm “Gửi 300 request” để bắt đầu.</td></tr></tbody></table></div></section>
+        <section class="batch" id="batch-panel" hidden aria-labelledby="batch-title"><div class="batch-heading"><h3 id="batch-title">Gửi 300 request qua proxy</h3><button class="button" id="batch-send" type="button">Gửi 300 request</button></div><p class="help batch-status" id="batch-status" role="status" aria-live="polite">Chưa chạy.</p><div class="batch-summary" aria-live="polite"><strong id="batch-total">Chưa có thời gian tổng.</strong><span id="batch-total-note">Thời gian từ lúc bắt đầu lịch gửi đến khi request cuối phản hồi.</span></div><h3>So sánh lượt chạy theo thuật toán</h3><div class="batch-comparison-wrap" role="region" aria-label="So sánh thời gian 300 request theo thuật toán" tabindex="0"><table class="batch-comparison"><thead><tr><th scope="col">Thuật toán</th><th scope="col">Tổng thời gian</th><th scope="col">Thành công</th><th scope="col">Lỗi</th><th scope="col">Lần đo</th></tr></thead><tbody id="batch-comparison"><tr><td colspan="5" class="empty">Chưa có lượt đo.</td></tr></tbody></table></div><div class="batch-table-wrap" role="region" aria-label="Kết quả 300 request, có thể cuộn" tabindex="0"><table class="batch-table"><thead><tr><th scope="col">#</th><th scope="col">Tác vụ</th><th scope="col">Máy chủ</th><th scope="col">Kết quả</th><th scope="col">Độ trễ</th></tr></thead><tbody id="batch-log"><tr><td colspan="5" class="empty">Bấm “Gửi 300 request” để bắt đầu.</td></tr></tbody></table></div></section>
         <div class="decision"><h3>Giải thích định tuyến</h3><div class="decision-grid"><div><small>Chế độ</small><strong id="decision-mode">—</strong></div><div><small>Chiến lược từ phản hồi</small><strong id="decision-strategy">—</strong></div><div><small>Máy chủ gần nhất</small><strong id="decision-backend">@@NAME@@ · phản hồi trang</strong></div><div><small>Yêu cầu gần nhất</small><strong id="decision-type">Tải trang /demo</strong></div><div><small>Đường dẫn gần nhất</small><strong id="decision-endpoint">—</strong></div></div><p class="help" id="decision-note"></p></div>
         </section>
         <div class="stack"><section class="panel routing" aria-labelledby="routing-title"><div class="section-top"><h2 id="routing-title">Yêu cầu đi đâu?</h2><span class="step">02 / ĐƯỜNG ĐI</span></div>
@@ -111,7 +111,7 @@ final class DemoPage {
           const historyKey = 'pbl-request-studio-history-v1';
           const batchComparisonKey = 'pbl-300-batch-comparison-v1';
           const strategyOrder = ['ROUND_ROBIN','LEAST_CONNECTIONS','ADAPTIVE'];
-          let kind = 'work', pending = false, batchRunning = false, finished = 0, succeeded = 0, totalMs = 0, objectUrl = null, copyText = '', rows = [], batchComparisons = {};
+          let kind = 'work', pending = false, batchRunning = false, finished = 0, succeeded = 0, totalMs = 0, objectUrl = null, copyText = '', rows = [], batchComparisons = {}, statsRefreshInProgress = false;
           const strategyName = s => ({ROUND_ROBIN:'Luân phiên',LEAST_CONNECTIONS:'Ít kết nối nhất',ADAPTIVE:'Thích nghi'}[s] || s || '—');
           const titles = {work:'Tác vụ nhẹ',slow:'Tác vụ chậm',compute:'Tính toán CPU',products:'Xem sản phẩm',download:'Tải tệp',orders:'Đặt đơn thử'};
           const descriptions = {work:'GET nhẹ, cost = 1. Thời gian xử lý phụ thuộc độ trễ cấu hình của máy chủ.',slow:'Máy chủ chờ 2 giây. Theo dõi trạng thái đang gửi và độ trễ thực tế.',compute:'Máy chủ tính CPU với cost = 8. Đây là công việc thật, không phải số CPU giả lập.',products:'Lấy danh sách 3 sản phẩm mẫu dưới dạng JSON.',download:'Nhận đủ tệp nhị phân vào bộ nhớ trước khi lưu, tối đa 768 KiB.',orders:'Đặt thử Sổ tay PBL · 49.000 đ/cuốn. Mỗi lần gửi tạo một đơn thử mới.'};
@@ -189,21 +189,27 @@ final class DemoPage {
             card.append(element('div','MÁY CHỦ ' + (index + 1).toString().padStart(2,'0'),'server-number'));
             const title = element('div',null,'server-name'), link = element('a',names[port]);
             if (local) { const url = new URL('/demo',location.href); url.port = port; link.href = url.href; }
-            title.append(link,element('small',' :' + port)); card.append(title,element('span',port === pagePort ? 'Được chọn' : 'Sẵn sàng','badge'));
+            title.append(link,element('small',' :' + port)); const badge = element('span','Đang kiểm tra','badge'); badge.dataset.health = 'unknown'; card.append(title,badge);
             card.append(element('dl')); $('servers').append(card);
           });
           function renderBackendStats(backend) {
             const card = document.querySelector('[data-server="' + backend.port + '"]'); if (!card) return;
             const fmt = value => Number.isFinite(value) ? value.toLocaleString('vi-VN') : 'Đang đọc…';
-            const heap = Number.isFinite(backend.heapUsedBytes) ? (backend.heapUsedBytes / 1048576).toFixed(1) + ' MiB' : 'Đang đọc…';
-            const rows = [['PID',fmt(backend.backendPid)],['Số luồng xử lý',fmt(backend.backendCapacity ?? backend.capacity)],
-              ['Đang xử lý / chờ',fmt(backend.remoteActiveRequests) + ' / ' + fmt(backend.remoteQueuedRequests)],
-              ['Độ trễ tác vụ nhẹ',fmt(backend.configuredDelayMs) + ' ms'],
-              ['Tổng yêu cầu',fmt(backend.backendReceivedRequests ?? backend.completed)],['Bộ nhớ JVM',heap]];
+            const alive = backend.alive === true, badge = card.querySelector('.badge');
+            badge.dataset.health = backend.alive === false ? 'down' : alive ? 'up' : 'unknown';
+            badge.textContent = backend.alive === false ? 'Mất kết nối' : alive ? (card.dataset.selected === 'true' ? 'Được chọn' : 'Sẵn sàng') : 'Đang kiểm tra';
+            const heap = alive && Number.isFinite(backend.heapUsedBytes) ? (backend.heapUsedBytes / 1048576).toFixed(1) + ' MiB' : alive ? 'Đang đọc…' : '—';
+            const active = alive ? (Number.isFinite(backend.inFlight) ? backend.inFlight : backend.remoteActiveRequests) : NaN;
+            const queued = alive ? backend.remoteQueuedRequests : NaN;
+            const rows = [['PID',alive ? fmt(backend.backendPid) : '—'],['Số luồng xử lý',fmt(backend.backendCapacity ?? backend.capacity)],
+              ['Đang xử lý / chờ',alive ? fmt(active) + ' / ' + fmt(queued) : '— / —'],
+              ['Độ trễ tác vụ nhẹ',alive ? fmt(backend.configuredDelayMs) + ' ms' : '—'],
+              ['Tổng yêu cầu',fmt(alive ? (backend.backendReceivedRequests ?? backend.completed) : backend.completed)],['Bộ nhớ JVM',heap]];
             const dl = card.querySelector('dl'); dl.replaceChildren(); rows.forEach(([key,value]) => { const row = element('div'); row.append(element('dt',key),element('dd',value)); dl.append(row); });
           }
           async function refreshBackendStats(tries = 8) {
-            if (!via) return;
+            if (!via || statsRefreshInProgress) return;
+            statsRefreshInProgress = true;
             let incomplete = false;
             try {
               const response = await fetch('/__proxy/metrics',{cache:'no-store',signal:AbortSignal.timeout(2500)});
@@ -221,6 +227,7 @@ final class DemoPage {
                 return !runtime || !Number.isFinite(runtime.backendPid) || !Number.isFinite(runtime.heapUsedBytes);
               });
             } catch (_) { incomplete = true; }
+            finally { statsRefreshInProgress = false; }
             if (incomplete && tries > 0) setTimeout(() => refreshBackendStats(tries - 1),300);
           }
           const pageStats = {port:Number(pagePort),backendPid:Number('@@PID@@'),backendCapacity:Number('@@CAPACITY@@'),
@@ -235,10 +242,11 @@ final class DemoPage {
             const strategyText = via ? strategyName(strategy) : 'Không áp dụng';
             $('header-strategy').textContent = via ? strategyText : ''; $('overview-strategy').textContent = 'Chiến lược · ' + strategyText; $('decision-strategy').textContent = strategyText;
             $('strategy').textContent = via ? strategy ? 'Thuật toán: ' + strategyName(strategy) : 'Đang đọc thuật toán…' : 'Kết nối trực tiếp · Không qua proxy.';
-            document.querySelectorAll('[data-server]').forEach(card => { const p = card.dataset.server; card.dataset.selected = String(p === port); card.querySelector('.badge').textContent = p === port ? 'Được chọn' : 'Sẵn sàng'; });
+            document.querySelectorAll('[data-server]').forEach(card => { const p = card.dataset.server; card.dataset.selected = String(p === port); const badge = card.querySelector('.badge'); if (badge.dataset.health !== 'down') badge.textContent = badge.dataset.health === 'up' ? (p === port ? 'Được chọn' : 'Sẵn sàng') : 'Đang kiểm tra'; });
             if (!initial) { $('backend-node').classList.remove('pulse'); void $('backend-node').offsetWidth; $('backend-node').classList.add('pulse'); }
           }
           routing(pagePort,null,true); refreshBackendStats();
+          setInterval(() => { if (document.visibilityState !== 'hidden') refreshBackendStats(); },1000);
           function settings() { return {path:kind === 'work' ? '/work?cost=1' : kind === 'compute' ? '/compute?cost=8' : kind === 'download' ? '/download?sizeKiB=' + $('file-size').value : '/' + kind,method:kind === 'orders' ? 'POST' : 'GET'}; }
           function configure() {
             document.querySelectorAll('[data-kind]').forEach(button => button.setAttribute('aria-pressed',String(button.dataset.kind === kind)));

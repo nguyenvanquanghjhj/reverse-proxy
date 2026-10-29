@@ -11,11 +11,13 @@ $logPath = Join-Path $repoRoot 'target/logs'
 New-Item -ItemType Directory -Path $logPath -Force | Out-Null
 $processes = @()
 try {
-    foreach ($backendPort in @(9001, 9002, 9003)) {
-        $arguments = @('-cp', ('"' + $classesPath + '"'), 'com.example.backend.DemoBackendServer', $backendPort, 8, 20, 0)
+    foreach ($backend in @(@{ Port=9001; Delay=20 }, @{ Port=9002; Delay=80 }, @{ Port=9003; Delay=240 })) {
+        $backendPort = [int]$backend.Port
+        $delayMs = [int]$backend.Delay
+        $arguments = @('-cp', ('"' + $classesPath + '"'), 'com.example.backend.DemoBackendServer', $backendPort, 8, $delayMs, 0)
         $processes += Start-Process -FilePath $javaExecutable -ArgumentList $arguments -WorkingDirectory $repoRoot -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $logPath "backend-$backendPort.out.log") -RedirectStandardError (Join-Path $logPath "backend-$backendPort.err.log")
     }
-    Write-Host 'Backends: 9001, 9002, 9003 (each: 8 slots / 20 ms).'
+    Write-Host 'Backends: port 9001=20ms, 9002=80ms, 9003=240ms (8 slots each).'
     Write-Host "Logs: $logPath. Press Ctrl+C to stop these backend processes."
     while ($true) {
         foreach ($process in $processes) {

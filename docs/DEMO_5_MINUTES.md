@@ -60,7 +60,7 @@ try {
     curl.exe 'http://127.0.0.1:8080/__proxy/decision'
     # Đọc eligibility, service/wait, resourcePenalty, rankingScoreMs và reason.
     # MINIMUM_SCORE khác EXPLORATION; không khẳng định Adaptive luôn thắng.
-    curl.exe -s 'http://127.0.0.1:9002/control?delayMs=20&cpuWorkers=0&healthy=true'
+    curl.exe -s 'http://127.0.0.1:9002/control?delayMs=80&cpuWorkers=0&healthy=true'
 
     # 3:30–5:00 — Dừng hẳn B2, loại DOWN, khởi động và nhận request lại.
     Demo-Step health
@@ -73,7 +73,7 @@ try {
 ```
 
 Khi cần khôi phục một phiên đang chạy thủ công: `backend2-start`, đặt control cả
-ba backend về `delayMs=20&cpuWorkers=0&healthy=true`, rồi `strategy -Strategy ADAPTIVE`
+ba backend về độ trễ `20/80/240 ms`, rồi `strategy -Strategy ADAPTIVE`
 để xóa lịch sử scheduler; hoặc `stop` rồi `start`. Dùng cùng cú pháp `demo.ps1`
 ở trên. Logs/CSV trong `.demo` được giữ; script chỉ dừng PID của phiên đã ghi.
 Demo stop dùng kết thúc tiến trình; graceful shutdown được chứng minh riêng bằng

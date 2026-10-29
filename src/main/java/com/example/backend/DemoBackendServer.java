@@ -263,7 +263,8 @@ public final class DemoBackendServer implements AutoCloseable {
     public static void main(String[] args) throws IOException {
         int port = args.length > 0 ? Integer.parseInt(args[0]) : 9001;
         int capacity = args.length > 1 ? Integer.parseInt(args[1]) : 8;
-        int delay = args.length > 2 ? Integer.parseInt(args[2]) : 20;
+        int defaultDelay = switch (port) { case 9002 -> 80; case 9003 -> 240; default -> 20; };
+        int delay = args.length > 2 ? Integer.parseInt(args[2]) : defaultDelay;
         int cpuWorkers = args.length > 3 ? Integer.parseInt(args[3]) : 0;
         double cpuBudget = args.length > 4 ? Double.parseDouble(args[4]) : capacity;
         DemoBackendServer backend = new DemoBackendServer(port, capacity, delay, cpuWorkers, cpuBudget);
