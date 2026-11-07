@@ -7,6 +7,7 @@ import com.example.proxy.config.ProxyConfig;
 public final class BackendMetrics {
     private final BackendServer backend;
     private boolean alive;
+    private boolean operatorDraining, observedDraining;
     private int successes;
     private long healthGeneration;
     private long recoveredNanos;
@@ -16,6 +17,8 @@ public final class BackendMetrics {
     private double latencyEwmaMs;
     private double errorEwma;
     private boolean latencySampled;
+    private boolean everUp;
+    private long recoveries;
     private double cpuLoad = Double.NaN, memoryLoad = Double.NaN;
     private int remoteActive, remoteQueued, externalOutstanding;
     private long telemetryNanos;
@@ -28,17 +31,27 @@ public final class BackendMetrics {
     }
     public long healthGeneration() { return healthGeneration; }
     public int inFlight() { return inFlight; }
+    public long recoveries() { return recoveries; }
+    public boolean draining() { return operatorDraining || observedDraining; }
+    public void drain(boolean enabled,boolean observed,long now) {
+        boolean before=draining();
+        if(observed)observedDraining=enabled;else operatorDraining=enabled;
+        if(before&&!draining()&&alive){recoveredNanos=now;healthGeneration++;latencySampled=false;}
+    }
     public void reserve(long now) { inFlight++; dispatched++; lastSelectedNanos = now; }
     public void release() {
         if (inFlight <= 0) throw new IllegalStateException("Unbalanced lease release");
         inFlight--;
     }
     public void complete(double elapsedMs, boolean error, boolean transportFailure, double alpha) {
+        complete(elapsedMs, error, transportFailure, alpha, true);
+    }
+    public void complete(double elapsedMs, boolean error, boolean transportFailure, double alpha, boolean learnLatency) {
         release();
         completed++;
         if (error) errors++;
         // Fast refusals and 5xx must not make an unhealthy backend appear faster.
-        if (!error && Double.isFinite(elapsedMs) && elapsedMs >= 0) {
+        if (learnLatency && !error && Double.isFinite(elapsedMs) && elapsedMs >= 0) {
             double sample = Math.max(0.1, elapsedMs);
             latencyEwmaMs = latencySampled ? ewma(latencyEwmaMs, sample, alpha) : sample;
             latencySampled = true;
@@ -60,6 +73,8 @@ public final class BackendMetrics {
         if (!healthy) { down(); return; }
         if (alive) return;
         if (++successes >= config.getRecoverySuccesses()) {
+            if (everUp) recoveries++;
+            everUp = true;
             alive = true;
             healthGeneration++; // Probes begun before recovery cannot overwrite its new state.
             recoveredNanos = now;
@@ -104,7 +119,7 @@ public final class BackendMetrics {
         double score = latencyEwmaMs * (1 + (outstanding + 1) / effectiveCapacity) * penalty;
         return new Snapshot(backend, alive, inFlight, dispatched, completed, errors, latencyEwmaMs,
                 errorEwma, cpuLoad, memoryLoad, ageMs, fresh, effectiveCapacity, score, warmup,
-                remoteActive, remoteQueued, externalOutstanding, lastSelectedNanos, limit, runtimeInfo);
+                remoteActive, remoteQueued, externalOutstanding, lastSelectedNanos, limit, runtimeInfo,draining());
     }
     public record RuntimeInfo(long processId, int capacity, int delayMs, double serviceTimeMs,
             long completedRequests, long receivedRequests, long heapUsedBytes) {
@@ -138,8 +153,8 @@ public final class BackendMetrics {
             long completed, long errors, double latencyEwmaMs, double errorEwma, double cpuLoad,
             double memoryLoad, long telemetryAgeMs, boolean telemetryFresh, double effectiveCapacity,
             double scoreMs, double warmup, int remoteActiveRequests, int remoteQueuedRequests,
-            int externalOutstanding, long lastSelectedNanos, int inFlightLimit, RuntimeInfo runtimeInfo) {
-        public boolean eligible() { return alive && inFlight < inFlightLimit; }
-        public String state() { return !alive ? "DOWN" : warmup < 1 ? "WARMING" : "UP"; }
+            int externalOutstanding, long lastSelectedNanos, int inFlightLimit, RuntimeInfo runtimeInfo,boolean draining) {
+        public boolean eligible() { return alive && !draining && inFlight < inFlightLimit; }
+        public String state() { return !alive ? "DOWN" : draining ? "DRAINING" : warmup < 1 ? "WARMING" : "UP"; }
     }
 }

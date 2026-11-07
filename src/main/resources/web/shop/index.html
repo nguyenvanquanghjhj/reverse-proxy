@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Cửa hàng · PBL4</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/shop/assets/shop.css">
+  <script type="module" src="/shop/assets/shop.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#products">Đến sản phẩm</a>
+  <header class="site-header"><div class="header-inner">
+    <a class="brand" href="/shop" aria-label="Cửa hàng, trang chủ"><span class="brand-mark" aria-hidden="true">◈</span>Cửa hàng<span class="brand-note">PBL4</span></a>
+    <nav aria-label="Điều hướng chính"><a href="#products">Sản phẩm</a><a href="#order-panel">Giỏ hàng <span id="cart-count">0</span></a><a href="#lookup-panel">Tra cứu đơn</a></nav>
+  </div></header>
+  <main>
+    <section class="intro"><p class="eyebrow">GÓC HỌC TẬP</p><h1>Cửa hàng học tập</h1><p>Chọn sản phẩm và tài liệu cần thiết cho việc học.</p></section>
+    <div class="shop-layout">
+      <section id="products" aria-labelledby="products-title">
+        <div class="section-heading"><div><h2 id="products-title">Sản phẩm</h2><p id="catalog-state" role="status" aria-live="polite">Đang tải sản phẩm…</p></div><button id="reload" type="button" class="button secondary">Làm mới</button></div>
+        <div id="catalog" class="catalog" aria-busy="true"><div class="skeleton" aria-hidden="true"></div><div class="skeleton" aria-hidden="true"></div><div class="skeleton" aria-hidden="true"></div><div class="skeleton" aria-hidden="true"></div></div>
+      </section>
+      <aside class="order-column">
+        <section id="order-panel" class="panel" aria-labelledby="order-title">
+          <div class="section-heading"><h2 id="order-title">Đơn hàng của bạn</h2><span id="order-step" class="step">Chọn sản phẩm</span></div>
+          <div id="cart" class="cart"><p class="empty">Chưa có sản phẩm. Hãy chọn một món ở danh sách bên cạnh.</p></div>
+          <form id="order-form" novalidate>
+            <label for="customer">Tên của bạn <span aria-hidden="true">*</span></label>
+            <input id="customer" name="customer" maxlength="160" autocomplete="name" aria-describedby="customer-error" placeholder="Nhập họ và tên" required>
+            <p id="customer-error" class="field-error" hidden></p>
+            <div class="total"><span>Tổng tiền dự kiến</span><strong id="estimate">0 ₫</strong></div>
+            <p class="small muted">Giá và số lượng được xác nhận khi đặt hàng.</p>
+            <button id="submit" type="submit" class="button primary wide">Đặt hàng</button>
+          </form>
+          <div id="order-result" class="order-result" role="status" aria-live="polite" tabindex="-1"></div>
+          <div id="confirmed-order" hidden></div>
+          <button id="new-order" type="button" class="button secondary wide" hidden>Tạo đơn khác</button>
+        </section>
+        <section id="lookup-panel" class="panel" aria-labelledby="lookup-title">
+          <h2 id="lookup-title">Tra cứu đơn hàng</h2><p class="small muted">Dùng mã đơn đã nhận để xem lại thông tin.</p>
+          <form id="lookup-form" novalidate><label for="lookup-id">Mã đơn</label><input id="lookup-id" autocomplete="off" spellcheck="false" aria-describedby="lookup-error" placeholder="Nhập mã đơn hàng"><p id="lookup-error" class="field-error" hidden></p><button id="lookup" class="button secondary wide" type="submit">Xem đơn hàng</button></form>
+          <div id="lookup-result" class="lookup-result" role="status" aria-live="polite"></div>
+        </section>
+      </aside>
+    </div>
+    <a id="cart-shortcut" href="#order-panel" class="cart-shortcut" hidden><span>Xem giỏ hàng</span><strong id="cart-shortcut-total"></strong></a>
+  </main>
+  <dialog id="detail" aria-labelledby="detail-name"><div class="dialog-heading"><h2 id="detail-name">Thông tin sản phẩm</h2><button id="close-detail" type="button" class="button secondary" aria-label="Đóng chi tiết sản phẩm">Đóng</button></div><p id="detail-info" class="muted"></p><h3>Tài liệu sản phẩm</h3><div id="documents" aria-live="polite"></div></dialog>
+  <dialog id="restart-confirm" aria-labelledby="restart-title"><h2 id="restart-title">Tạo một đơn hàng khác?</h2><p>Đơn trước có thể đã được tạo. Bạn nên kiểm tra lại đơn trước khi tiếp tục để tránh đặt trùng.</p><div class="dialog-actions"><button id="keep-order" type="button" class="button secondary">Quay lại kiểm tra</button><button id="discard-order" type="button" class="button primary">Tôi muốn tạo đơn khác</button></div></dialog>
+  <footer><span>Cửa hàng học tập · PBL4</span><a href="/__proxy/dashboard">Quản trị</a></footer>
+</body>
+</html>

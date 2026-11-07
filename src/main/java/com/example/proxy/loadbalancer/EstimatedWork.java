@@ -7,16 +7,31 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.PriorityQueue;
+import java.util.regex.Pattern;
 
 /** Bounded route learning and a virtual FIFO server. Access only under Dispatcher's lock.
  * Illustrative arithmetic: with one slot holding 2000ms of SLOW work, LIGHT at 20ms/unit
  * and cost=2 has service=40ms, wait=2000ms, ECT=2040ms at the same instant.
  * This model supplies forecasts; AdaptiveLoadBalancer chooses and Dispatcher owns the state boundary. */
 final class EstimatedWork {
-    enum Route { LIGHT, SLOW, CPU, PRODUCTS, ORDERS, FILE_SMALL, FILE_MEDIUM, FILE_LARGE, OTHER }
+    enum Route { LIGHT, SLOW, CPU, PRODUCTS, ORDERS, FILE_SMALL, FILE_MEDIUM, FILE_LARGE,
+        ORDER_WRITE, ORDER_READ, DOCUMENT_LIST, DOCUMENT_UPLOAD, DOCUMENT_DOWNLOAD, OTHER,
+        STORE_SEARCH, STORE_AUTH, STORE_ADMIN_READ, STORE_ADMIN_WRITE, STORE_IMAGE }
     record Request(Route route, int units) {
+        private static final Pattern PRODUCT = Pattern.compile("/api/products/[^/]+");
+        private static final Pattern ORDER = Pattern.compile("/api/orders/[^/]+");
+        private static final Pattern DOCUMENTS = Pattern.compile("/api/products/[^/]+/documents");
+        private static final Pattern DOWNLOAD = Pattern.compile("/api/documents/[^/]+/download");
+        private static final Pattern STORE_SEARCH_QUERY = Pattern.compile("(^|&)q=[^&]+");
         static Request of(URI uri) {
+            return of("GET",uri);
+        }
+        static Request of(String method, URI uri) {
             String path = uri.getPath();
+            Route store = storeRoute(method,path,uri.getRawQuery());
+            if (store != null) return new Request(store,1);
+            Route shop = shopRoute(method,path);
+            if (shop != null) return new Request(shop,1);
             Route route = switch (path == null ? "" : path) {
                 case "/work" -> Route.LIGHT;
                 case "/slow" -> Route.SLOW;
@@ -38,6 +53,35 @@ final class EstimatedWork {
                 } catch (IllegalArgumentException invalid) { units = 1; }
             }
             return new Request(route, units >= 1 && units <= 20 ? units : 1);
+        }
+        private static Route shopRoute(String method,String path) {
+            if(path==null || !path.startsWith("/api/")) return null;
+            boolean read=method.equals("GET") || method.equals("HEAD");
+            if(read && (path.equals("/api/products") || PRODUCT.matcher(path).matches())) return Route.PRODUCTS;
+            if(method.equals("POST") && path.equals("/api/orders")) return Route.ORDER_WRITE;
+            if(read && ORDER.matcher(path).matches()) return Route.ORDER_READ;
+            if(DOCUMENTS.matcher(path).matches()) {
+                if(method.equals("POST")) return Route.DOCUMENT_UPLOAD;
+                if(read) return Route.DOCUMENT_LIST;
+            }
+            if(read && DOWNLOAD.matcher(path).matches()) return Route.DOCUMENT_DOWNLOAD;
+            return null;
+        }
+        private static Route storeRoute(String method,String path,String query) {
+            if(path==null||!path.startsWith("/api/store/"))return null;
+            boolean read=method.equals("GET")||method.equals("HEAD");
+            if(path.startsWith("/api/store/admin/")) {
+                if(method.equals("POST")&&path.endsWith("/files"))return Route.DOCUMENT_UPLOAD;
+                return read?Route.STORE_ADMIN_READ:Route.STORE_ADMIN_WRITE;
+            }
+            if(path.startsWith("/api/store/auth/")&&method.equals("POST"))return Route.STORE_AUTH;
+            if(path.equals("/api/store/products")&&read)return query!=null&&STORE_SEARCH_QUERY.matcher(query).find()?Route.STORE_SEARCH:Route.PRODUCTS;
+            if(path.startsWith("/api/store/products/")&&read)return Route.PRODUCTS;
+            if(path.equals("/api/store/orders")&&method.equals("POST"))return Route.ORDER_WRITE;
+            if(path.startsWith("/api/store/orders")&&read)return Route.ORDER_READ;
+            if(path.startsWith("/api/store/documents/")&&read)return Route.DOCUMENT_DOWNLOAD;
+            if(path.startsWith("/api/store/images/")&&read)return Route.STORE_IMAGE;
+            return Route.OTHER;
         }
         private static Route downloadRoute(URI uri) {
             int size = 256;
@@ -69,6 +113,14 @@ final class EstimatedWork {
     private long generation;
     private double genericMs;
     EstimatedWork(double initialMs) { this.initialMs = initialMs; genericMs = initialMs; }
+    String estimatesJson() {
+        StringBuilder out = new StringBuilder("{");
+        servicePerUnit.forEach((route, value) -> {
+            if (out.length() > 1) out.append(',');
+            out.append(com.example.proxy.util.Json.quote(route.name())).append(':').append(com.example.proxy.util.Json.number(value));
+        });
+        return out.append('}').toString();
+    }
     void generation(long current) {
         if (generation != current) {
             generation = current;

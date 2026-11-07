@@ -57,16 +57,22 @@ public final class Dispatcher {
         } finally { lock.unlock(); }
     }
     public Lease acquire() { return acquire(URI.create("/")); }
+    /** Fixed vocabulary shared with traffic metrics; never returns a URL or identifier. */
+    public static String requestClass(String method, URI uri) { return EstimatedWork.Request.of(method, uri).route().name(); }
+    public static List<String> requestClasses() { return java.util.Arrays.stream(EstimatedWork.Route.values()).map(Enum::name).toList(); }
     public Lease acquire(URI uri) {
+        return acquire("GET", uri);
+    }
+    public Lease acquire(String method, URI uri) {
         lock.lock();
         try {
             // 1. Check draining before touching selection state.
             if (draining) {
-                trace(EstimatedWork.Request.of(uri), "DRAINING", null, List.of());
+                trace(EstimatedWork.Request.of(method, uri), "DRAINING", null, List.of());
                 return null;
             }
             long now = clock.getAsLong();
-            var request = EstimatedWork.Request.of(uri);
+            var request = EstimatedWork.Request.of(method, uri);
             boolean adaptive = algorithm instanceof AdaptiveLoadBalancer;
             Map<BackendServer, EstimatedWork.Forecast> forecasts = new LinkedHashMap<>();
             List<BackendMetrics.Snapshot> candidates = new ArrayList<>();
@@ -78,7 +84,7 @@ public final class Dispatcher {
                 var snapshot = value.snapshot(now, config);
                 total += snapshot.inFlight();
                 if (!snapshot.eligible() || !circuits.get(snapshot.backend()).eligible(now)) {
-                    if (explanation != null) explanation.add(explain(snapshot, !snapshot.alive() ? "DOWN"
+                    if (explanation != null) explanation.add(explain(snapshot, !snapshot.alive() ? "DOWN" : snapshot.draining()?"DRAINING"
                             : !snapshot.eligible() ? "INFLIGHT_LIMIT" : "CIRCUIT_UNAVAILABLE", null));
                     continue;
                 }
@@ -116,8 +122,14 @@ public final class Dispatcher {
             // 5. Record the pre-reservation trace at its original position (still under the lock).
             if (adaptive) trace(request, ((AdaptiveLoadBalancer) algorithm).selectionReason(), chosen.backend().getId(), explanation);
             // 6. Reserve work, in-flight and the circuit ticket atomically before returning the lease.
-            EstimatedWork.Reservation reservation = adaptive ? work.get(chosen.backend()).reserve(request, now,
-                    forecasts.get(chosen.backend()), Math.max(1, (int) Math.floor(chosen.effectiveCapacity())), external(chosen)) : null;
+            // A future switch to Adaptive must see work admitted by RR/LC too.
+            // Only the selected backend needs a forecast for those strategies; their ranking is unchanged.
+            var selectedWork = work.get(chosen.backend());
+            selectedWork.generation(require(chosen.backend()).healthGeneration());
+            var selectedForecast = adaptive ? forecasts.get(chosen.backend())
+                    : selectedWork.forecast(request, now, chosen.effectiveCapacity(), external(chosen));
+            EstimatedWork.Reservation reservation = selectedWork.reserve(request, now, selectedForecast,
+                    Math.max(1, (int) Math.floor(chosen.effectiveCapacity())), external(chosen));
             metrics.get(chosen.backend()).reserve(now);
             return new Lease(chosen.backend(), algorithm.getName(), reservation, circuits.get(chosen.backend()).reserve(now));
         } finally { lock.unlock(); }
@@ -179,6 +191,24 @@ public final class Dispatcher {
         try { require(backend).health(healthy, probe.generation(), clock.getAsLong(), config); }
         finally { lock.unlock(); }
     }
+    /** A declared maintenance response is live, but not eligible. It never overrides operator draining. */
+    public void recordHealth(BackendServer backend,Probe probe,boolean healthy,boolean remotelyDraining) {
+        lock.lock();
+        try {
+            var state=require(backend);if(state.healthGeneration()!=probe.generation())return;
+            state.health(healthy,probe.generation(),clock.getAsLong(),config);
+            state.drain(remotelyDraining,true,clock.getAsLong());
+        } finally {lock.unlock();}
+    }
+    public boolean isDraining(BackendServer backend){lock.lock();try{return require(backend).draining();}finally{lock.unlock();}}
+    public boolean setDraining(String id,boolean enabled){
+        lock.lock();try{
+            for(var entry:metrics.entrySet())if(entry.getKey().getId().equals(id)){
+                entry.getValue().drain(enabled,false,clock.getAsLong());lastDecision=null;return true;
+            }
+            return false;
+        }finally{lock.unlock();}
+    }
     public void recordTelemetry(BackendServer backend, Probe probe, BackendMetrics.Telemetry sample) {
         lock.lock();
         try {
@@ -222,8 +252,10 @@ public final class Dispatcher {
             json.append("{\"id\":").append(Json.quote(s.backend().getId())).append(",\"host\":").append(Json.quote(s.backend().host()))
                 .append(",\"port\":").append(s.backend().port()).append(",\"state\":").append(Json.quote(s.state()))
                 .append(",\"alive\":").append(s.alive()).append(",\"inFlight\":").append(s.inFlight())
+                .append(",\"draining\":").append(s.draining())
                 .append(",\"dispatched\":").append(s.dispatched()).append(",\"completed\":").append(s.completed())
                 .append(",\"errors\":").append(s.errors()).append(",\"latencyEwmaMs\":").append(number(s.latencyEwmaMs()))
+                .append(",\"recoveries\":").append(require(s.backend()).recoveries())
                 .append(",\"errorEwma\":").append(number(s.errorEwma())).append(",\"cpuLoad\":").append(number(s.cpuLoad()))
                 .append(",\"memoryLoad\":").append(number(s.memoryLoad())).append(",\"telemetryAgeMs\":")
                 .append(s.telemetryAgeMs() < 0 ? "null" : Long.toString(s.telemetryAgeMs()))
@@ -242,6 +274,7 @@ public final class Dispatcher {
                     .append(",\"estimatedQueuedWorkMs\":").append(number(f.queuedMs()))
                     .append(",\"estimatedNextSlotMs\":").append(number(f.waitMs()))
                     .append(",\"completionBudgetMs\":").append(number(completionBudgetMs()));
+                json.append(",\"serviceEstimatesMsPerUnit\":").append(estimate.estimatesJson());
             }
             json.append(',').append(circuits.get(s.backend()).json());
             json.append('}');
@@ -261,8 +294,10 @@ public final class Dispatcher {
             String label = "{backend=\"" + s.backend().getId() + "\"} ";
             out.append("proxy_backend_selection_total").append(label).append(s.dispatched()).append('\n');
             out.append("proxy_backend_in_flight").append(label).append(s.inFlight()).append('\n');
+            out.append("proxy_backend_draining").append(label).append(s.draining()?1:0).append('\n');
             out.append("proxy_backend_circuit_state").append(label).append(circuits.get(s.backend()).stateCode()).append('\n');
             out.append("proxy_backend_circuit_open_total").append(label).append(circuits.get(s.backend()).openedCount()).append('\n');
+            out.append("proxy_backend_recovery_total").append(label).append(require(s.backend()).recoveries()).append('\n');
             out.append("proxy_backend_circuit_failures").append(label).append(circuits.get(s.backend()).failures()).append('\n');
             out.append("proxy_backend_circuit_probe_in_flight").append(label).append(circuits.get(s.backend()).probing() ? 1 : 0).append('\n');
         }
@@ -284,13 +319,24 @@ public final class Dispatcher {
         public BackendServer backend() { return backend; }
         public String strategy() { return strategy; }
         public void complete(double latencyMs, boolean error, boolean transportFailure) {
-            complete(latencyMs, error, transportFailure, true);
+            finish(latencyMs, error, transportFailure, true, true);
+        }
+        /** A valid business refusal is not a backend failure, but its fast path is not successful service time. */
+        public void completeHttp(double latencyMs, int status) {
+            // The store's persistent authentication budget is shared business state, not replica overload.
+            boolean authBudget = status == 429 && reservation != null && reservation.request.route() == EstimatedWork.Route.STORE_AUTH;
+            finish(latencyMs, status >= 500 || status == 429 && !authBudget, false, true, status >= 200 && status < 400);
+        }
+        /** A known application dependency failed. Release the lease without poisoning unrelated capabilities.
+         * Cancellation also prevents such a refusal from closing an unrelated half-open transport circuit. */
+        public void completeServiceFailure(double latencyMs) {
+            finish(latencyMs,false,false,false,false);
         }
         /** Proxy policy limits do not establish backend failure or recovery. */
         public void completePolicyRejection(double latencyMs) {
-            complete(latencyMs, true, false, false);
+            finish(latencyMs, true, false, false, false);
         }
-        private void complete(double latencyMs, boolean error, boolean transportFailure, boolean circuitOutcome) {
+        private void finish(double latencyMs, boolean error, boolean transportFailure, boolean circuitOutcome, boolean learnLatency) {
             lock.lock();
             try {
                 if (released) return;
@@ -300,9 +346,9 @@ public final class Dispatcher {
                 if (reservation != null) {
                     var estimate = work.get(backend);
                     estimate.generation(require(backend).healthGeneration());
-                    estimate.complete(reservation, latencyMs, error || transportFailure, config.getEwmaAlpha());
+                    estimate.complete(reservation, latencyMs, error || transportFailure || !learnLatency || !strategy.equals("ADAPTIVE"), config.getEwmaAlpha());
                 }
-                require(backend).complete(latencyMs, error || transportFailure, transportFailure, config.getEwmaAlpha());
+                require(backend).complete(latencyMs, error || transportFailure, transportFailure, config.getEwmaAlpha(), learnLatency);
             } finally { lock.unlock(); }
         }
         public void close() {

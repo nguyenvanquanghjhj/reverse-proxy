@@ -85,7 +85,14 @@ public final class ReverseProxyServer implements AutoCloseable {
             String path = exchange.getRequestURI().getPath();
             String body;
             int status = 200;
-            if (path.equals("/__proxy/strategy")) {
+            if(path.equals("/__proxy/backend-drain")){
+                if(!exchange.getRequestMethod().equals("POST")){exchange.getResponseHeaders().set("Allow","POST");ProxyHandler.sendError(exchange,405,"Method not allowed");return;}
+                if(!"set-backend-draining".equals(exchange.getRequestHeaders().getFirst("X-Proxy-Action"))){ProxyHandler.sendError(exchange,403,"Drain requires the operator action header");return;}
+                String length=exchange.getRequestHeaders().getFirst("Content-Length"),flag=exchange.getRequestHeaders().getFirst("X-Proxy-Draining"),target=exchange.getRequestHeaders().getFirst("X-Proxy-Target");
+                if(exchange.getRequestHeaders().containsKey("Transfer-Encoding")||length!=null&&!length.equals("0")||!("true".equals(flag)||"false".equals(flag))||!dispatcher.setDraining(target,Boolean.parseBoolean(flag))){ProxyHandler.sendError(exchange,400,"Invalid drain target, flag or body");return;}
+                log.info("event=backend_drain_changed backend="+target+" draining="+flag);
+                body=dispatcher.snapshotJson();
+            }else if (path.equals("/__proxy/strategy")) {
                 if (!exchange.getRequestMethod().equals("POST")) {
                     exchange.getResponseHeaders().set("Allow", "POST");
                     ProxyHandler.sendError(exchange, 405, "Method not allowed"); return;
@@ -99,6 +106,7 @@ public final class ReverseProxyServer implements AutoCloseable {
                     ProxyHandler.sendError(exchange, 400, "Strategy action does not accept a request body"); return;
                 }
                 String strategy = dispatcher.cycleStrategy();
+                log.info("event=strategy_changed strategy="+strategy);
                 body = "{\"strategy\":\"" + strategy + "\"}";
             } else {
                 if (!exchange.getRequestMethod().equals("GET") && !exchange.getRequestMethod().equals("HEAD")) {
@@ -110,7 +118,8 @@ public final class ReverseProxyServer implements AutoCloseable {
                 } else if (path.equals("/__proxy/metrics")) {
                     String snapshot = dispatcher.snapshotJson();
                     body = snapshot.substring(0, snapshot.length() - 1) + ",\"backendRuntime\":" + dispatcher.backendRuntimeJson()
-                        + "," + handler.countersJson()
+                        + "," + handler.countersJson() + ",\"traffic\":" + handler.trafficJson() + ",\"transport\":" + handler.transportJson()
+                            + ",\"downloadBulkhead\":" + handler.downloadBulkheadJson()
                             + ",\"health_probe_failures\":" + healthChecker.healthFailures()
                             + ",\"data_ingress_tasks\":" + getDataIngressTasks()
                             + ",\"management_ingress_tasks\":" + getManagementIngressTasks()
@@ -118,7 +127,7 @@ public final class ReverseProxyServer implements AutoCloseable {
                 } else if (path.equals("/__proxy/decision")) {
                     body = dispatcher.decisionJson();
                 } else if (path.equals("/__proxy/prometheus")) {
-                    body = handler.prometheus() + dispatcher.prometheus()
+                    body = handler.prometheus() + handler.trafficPrometheus() + dispatcher.prometheus()
                             + "# TYPE proxy_data_ingress_tasks gauge\nproxy_data_ingress_tasks " + getDataIngressTasks() + "\n"
                             + "# TYPE proxy_management_ingress_tasks gauge\nproxy_management_ingress_tasks " + getManagementIngressTasks() + "\n";
                 } else if (path.equals("/__proxy/health")) {

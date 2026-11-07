@@ -19,6 +19,8 @@ public final class UpstreamTransport implements AutoCloseable {
     private final int maxHeaderCount, maxChunkMetadataBytes;
     private final Set<Socket> activeSockets = ConcurrentHashMap.newKeySet();
     private final AtomicBoolean closed = new AtomicBoolean();
+    private final com.example.proxy.metrics.TransportMetrics metrics = new com.example.proxy.metrics.TransportMetrics();
+    public String metricsJson() { return metrics.json(); }
     private final ScheduledThreadPoolExecutor deadlines = new ScheduledThreadPoolExecutor(1,
             Thread.ofPlatform().daemon().name("upstream-deadlines").factory());
 
@@ -64,7 +66,7 @@ public final class UpstreamTransport implements AutoCloseable {
         if (body.length > maxBodyBytes) throw new BodyLimitException("Request body exceeds limit");
         if (host == null || !host.matches("[A-Za-z0-9._:-]+") || port < 1 || port > 65535)
             throw new ProtocolException("Invalid upstream address");
-        if (!method.matches("[!#$%&'*+.^_`|~0-9A-Za-z-]+") || method.equalsIgnoreCase("CONNECT"))
+        if (!method.matches("[!#$%&'*+.^_`|~0-9A-Za-z-]+") || method.equals("CONNECT"))
             throw new ProtocolException("Unsupported request method");
         if (uri.isAbsolute() || uri.getRawAuthority() != null || uri.getRawFragment() != null)
             throw new ProtocolException("Only origin-form request targets are supported");
@@ -100,6 +102,9 @@ public final class UpstreamTransport implements AutoCloseable {
         if (remaining <= 0 || Thread.currentThread().isInterrupted()) throw new SocketTimeoutException("Request deadline exceeded");
         int remainingMs = (int) Math.min(Integer.MAX_VALUE, Math.max(1, TimeUnit.NANOSECONDS.toMillis(remaining)));
         Socket socket = new Socket();
+        long exchangeStarted = System.nanoTime();
+        boolean success = false;
+        metrics.started();
         try (socket) {
             activeSockets.add(socket);
             if (closed.get()) throw new IOException("Transport is closed");
@@ -107,14 +112,33 @@ public final class UpstreamTransport implements AutoCloseable {
             try { deadline = deadlines.schedule(() -> closeQuietly(socket), remaining, TimeUnit.NANOSECONDS); }
             catch (RejectedExecutionException shutdown) { throw new IOException("Transport is closed", shutdown); }
             try {
+                long connecting = System.nanoTime();
                 socket.connect(new InetSocketAddress(host, port), Math.min(connectTimeoutMs, remainingMs));
+                long connected = System.nanoTime();
+                metrics.connected(connected - connecting);
                 socket.setSoTimeout(Math.min(readTimeoutMs, remainingMs));
                 socket.setTcpNoDelay(true);
                 OutputStream out = new BufferedOutputStream(socket.getOutputStream());
                 out.write(headBytes);
                 out.write(body);
                 out.flush();
-                return readResponse(new BufferedInputStream(socket.getInputStream()), method);
+                metrics.written(headBytes.length + body.length);
+                InputStream counted = new FilterInputStream(socket.getInputStream()) {
+                    boolean first = true;
+                    @Override public int read(byte[] bytes, int offset, int length) throws IOException {
+                        int n = in.read(bytes, offset, length);
+                        if (n > 0) { metrics.read(n); if (first) { first = false; metrics.firstByte(System.nanoTime() - connected); } }
+                        return n;
+                    }
+                    @Override public int read() throws IOException {
+                        int n = in.read();
+                        if (n >= 0) { metrics.read(1); if (first) { first = false; metrics.firstByte(System.nanoTime() - connected); } }
+                        return n;
+                    }
+                };
+                Response response = readResponse(new BufferedInputStream(counted), method);
+                success = true;
+                return response;
             } catch (IOException failure) {
                 if (System.nanoTime() >= expires && !(failure instanceof SocketTimeoutException)) {
                     SocketTimeoutException timeout = new SocketTimeoutException("Upstream exchange deadline exceeded");
@@ -123,7 +147,7 @@ public final class UpstreamTransport implements AutoCloseable {
                 }
                 throw failure;
             } finally { deadline.cancel(false); }
-        } finally { activeSockets.remove(socket); }
+        } finally { activeSockets.remove(socket); metrics.finished(System.nanoTime() - exchangeStarted, success); }
     }
     private Response readResponse(InputStream in, String method) throws IOException {
         HeaderBudget budget = new HeaderBudget(maxHeaderBytes, maxHeaderCount);
@@ -137,7 +161,7 @@ public final class UpstreamTransport implements AutoCloseable {
             if ((status < 200 || status == 204) && (framing.length >= 0 || framing.chunked))
                 throw new ProtocolException("Framing forbidden for this response status");
             if (status < 200) continue;
-            boolean noBody = method.equalsIgnoreCase("HEAD") || status == 204 || status == 304;
+            boolean noBody = method.equals("HEAD") || status == 204 || status == 304;
             byte[] body;
             if (noBody) body = new byte[0];
             else if (framing.chunked) body = readChunked(in, budget);

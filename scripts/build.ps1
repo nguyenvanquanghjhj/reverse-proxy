@@ -3,6 +3,10 @@ Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'java21.ps1')
 $java21 = Get-Java21Tools
 $repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+$liveOwned = @(Get-OwnedJavaProcesses $repoRoot)
+if ($liveOwned.Count -gt 0) {
+    throw 'Stop the owned application JVMs before building (python scripts/store.py stop). Build never replaces classes used by a live session.'
+}
 $targetRoot = Join-Path $repoRoot 'target'
 $repoPrefix = $repoRoot.TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
 
@@ -39,6 +43,14 @@ $sourceLines = @($sources | ForEach-Object { '"' + $_.FullName.Replace('\', '/')
 [IO.File]::WriteAllLines($sourceList, $sourceLines, [Text.UTF8Encoding]::new($false))
 & $java21.Javac --release 21 -encoding UTF-8 -d $classesPath "@$sourceList"
 if ($LASTEXITCODE -ne 0) { throw "javac failed (exit $LASTEXITCODE). No runnable JAR was created." }
+$resourcesPath = Join-Path $repoRoot 'src/main/resources'
+if (Test-Path -LiteralPath $resourcesPath) {
+    $resourceRoot = Get-Item -LiteralPath $resourcesPath -Force
+    if ($resourceRoot.Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'Refusing linked resources root.' }
+    $resourceLinks = @(Get-ChildItem -LiteralPath $resourcesPath -Recurse -Force | Where-Object { $_.Attributes -band [IO.FileAttributes]::ReparsePoint })
+    if ($resourceLinks.Count -gt 0) { throw 'Refusing linked build resources.' }
+    Get-ChildItem -LiteralPath $resourcesPath -Force | Copy-Item -Destination $classesPath -Recurse -Force
+}
 $jarPath = Join-Path $targetRoot 'reverse-proxy-demo.jar'
 & $java21.Jar --create --file $jarPath --main-class com.example.proxy.Main -C $classesPath .
 if ($LASTEXITCODE -ne 0) { throw "jar failed (exit $LASTEXITCODE)." }

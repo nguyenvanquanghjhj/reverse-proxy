@@ -6,7 +6,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /** No task queue: also bounds JDK header parsing, before an HttpExchange reaches our handler. */
-final class BoundedRequestExecutor implements Executor, AutoCloseable {
+public final class BoundedRequestExecutor implements Executor, AutoCloseable {
     private static final AppLogger log = AppLogger.of(BoundedRequestExecutor.class);
     private final ExecutorService workers = Executors.newVirtualThreadPerTaskExecutor();
     private final ScheduledThreadPoolExecutor timers = new ScheduledThreadPoolExecutor(1,
@@ -16,7 +16,8 @@ final class BoundedRequestExecutor implements Executor, AutoCloseable {
     private final int limit;
     private boolean accepting = true;
 
-    BoundedRequestExecutor(int limit, int timeoutMs) {
+    public BoundedRequestExecutor(int limit, int timeoutMs) {
+        if (limit < 1 || timeoutMs < 1) throw new IllegalArgumentException("Positive task and deadline bounds required");
         slots = new Semaphore(limit);
         this.limit = limit;
         this.timeoutMs = timeoutMs;

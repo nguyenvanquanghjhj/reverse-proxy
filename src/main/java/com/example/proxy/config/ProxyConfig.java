@@ -23,6 +23,7 @@ public final class ProxyConfig {
         getHealthCheckPath(); getMetricsPath(); getMaxHeaderCount(); getShutdownGraceSeconds(); getMaxHandlerTasks();
         isCircuitBreakerEnabled(); getCircuitFailureThreshold(); getCircuitOpenDurationMs(); getCircuitHalfOpenMaxProbes();
         isDecisionTraceEnabled();
+        getPdfBulkheadMaxInflight();getPdfBulkheadQueueCapacity();getPdfBulkheadWaitMs();
         isManagementEnabled(); getManagementPort(); getManagementMaxTasks();
         if (bool("proxy.connection-pool.enabled", false))
             throw new IllegalArgumentException("proxy.connection-pool.enabled=true is not supported; pooling is not implemented");
@@ -96,6 +97,9 @@ public final class ProxyConfig {
     public int getShutdownGraceSeconds() { return integer("proxy.shutdown.grace.seconds", 2, 0, 30); }
     public int getMaxHandlerTasks() { return integer("proxy.max.handler.tasks", getMaxInflight() + 16, 1, 100016); }
     public int getMaxInflight() { return integer("proxy.max.inflight", 128, 1, 100000); }
+    public int getPdfBulkheadMaxInflight(){return integer("proxy.pdf.bulkhead.max.inflight",0,0,128);}
+    public int getPdfBulkheadQueueCapacity(){return integer("proxy.pdf.bulkhead.queue.capacity",16,1,128);}
+    public int getPdfBulkheadWaitMs(){return integer("proxy.pdf.bulkhead.wait.ms",250,0,5000);}
     public int getBackendMaxInflight() { return integer("backend.max.inflight", 64, 1, 100000); }
     public int getHealthCheckIntervalMs() { return integer("healthcheck.interval.ms", 500, 20, 60000); }
     public int getHealthCheckTimeoutMs() { return integer("healthcheck.timeout.ms", 500, 1, 60000); }

@@ -135,6 +135,7 @@ public final class ProxyContractTest {
         Exchange(String method, String target, Map<String, List<String>> headers) {
             this.method = method; uri = URI.create(target);
             request.putAll(headers); request.putIfAbsent("X-Request-Id", List.of("contract-1"));
+            request.putIfAbsent("Host", List.of("localhost")); // A valid HTTP/1.1 fixture; Host rejection has raw-socket coverage.
         }
         public Headers getRequestHeaders() { return request; }
         public Headers getResponseHeaders() { return response; }

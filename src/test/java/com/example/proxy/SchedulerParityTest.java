@@ -59,7 +59,15 @@ public final class SchedulerParityTest {
             golden.append(d.snapshotJson()).append('\n').append(d.decisionJson()).append('\n');
         }
         String digest = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(golden.toString().getBytes(StandardCharsets.UTF_8)));
-        if (!digest.equals("f1b93fdb49772e638afad2906c6cb21383a39d3bc0fa7925dc7ee192c5dbbcfe")) {
+        // Frozen pre-V6 source independently replayed in v6-evidence/baseline-build.
+        // Keep the original golden as well: only remove documented V5 telemetry additions.
+        String legacy = golden.toString().replaceAll(",\"draining\":(?:false|true)", "")
+                .replaceAll(",\"recoveries\":[0-9]+", "")
+                .replaceAll(",\"serviceEstimatesMsPerUnit\":\\{[^}]*\\}", "")
+                .replaceAll("(?m)^proxy_backend_(?:draining|recovery_total)[^\\n]*\\n", "");
+        String legacyDigest = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(legacy.getBytes(StandardCharsets.UTF_8)));
+        if (!digest.equals("d4bb7fec1c06b5122c96fe9c4448c6cf5b5d119f06dc252805dda8074cc86718")
+                || !legacyDigest.equals("f1b93fdb49772e638afad2906c6cb21383a39d3bc0fa7925dc7ee192c5dbbcfe")) {
             Files.createDirectories(Path.of("target/test-reports"));
             Files.writeString(Path.of("target/test-reports/scheduler-transcript.txt"), golden);
             throw new AssertionError("Scheduler baseline changed: " + digest);

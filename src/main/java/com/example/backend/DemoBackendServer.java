@@ -3,6 +3,10 @@ package com.example.backend;
 import com.sun.management.OperatingSystemMXBean;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
+import com.example.shop.ShopConfig;
+import com.example.shop.ShopHandler;
+import com.example.store.StoreApplication;
+import com.example.shop.JsonCodec;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.net.InetSocketAddress;
@@ -15,14 +19,19 @@ import java.util.concurrent.atomic.*;
 /** Controlled fixture; each backend must run in its own JVM for credible process CPU/heap metrics. */
 public final class DemoBackendServer implements AutoCloseable {
     private final HttpServer server;
-    private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+    private final ShopHandler shop;
+    private final StoreApplication store;
+    private final StoreFaults storeFaults=new StoreFaults();
+    private final com.example.proxy.server.BoundedRequestExecutor executor = new com.example.proxy.server.BoundedRequestExecutor(128,10000);
     private final ScheduledExecutorService sampler = Executors.newSingleThreadScheduledExecutor();
-    private final Semaphore workers, admission;
+    private final Semaphore workers;
+    private final RequestAdmission admission;
     private final int capacity;
     private final double cpuBudget;
     private final AtomicInteger active = new AtomicInteger(), queued = new AtomicInteger();
     private final AtomicLong completed = new AtomicLong();
     private final AtomicLong received = new AtomicLong();
+    private final AtomicLong queueWaitNanos = new AtomicLong(), queueWaitSamples = new AtomicLong();
     private volatile long cpuSamples;
     private final List<CpuWorker> background = new ArrayList<>();
     private final OperatingSystemMXBean os = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
@@ -37,8 +46,10 @@ public final class DemoBackendServer implements AutoCloseable {
                 || cpuWorkers < 0 || cpuWorkers > 64 || !Double.isFinite(cpuBudget) || cpuBudget <= 0)
             throw new IllegalArgumentException("Invalid port/capacity/delay/cpuWorkers/cpuBudget");
         this.capacity = capacity; this.delayMs = delayMs; this.cpuBudget = cpuBudget;
+        shop = ShopConfig.enabled() ? new ShopHandler(ShopConfig.environment()) : null;
+        store = StoreApplication.enabled() ? new StoreApplication(ShopConfig.environment()) : null;
         workers = new Semaphore(capacity, true);
-        admission = new Semaphore(capacity * 8); // Executing plus waiting; reject excess immediately.
+        admission = new RequestAdmission(capacity * 8); // Executing plus waiting; reject excess immediately.
         server = HttpServer.create(new InetSocketAddress("127.0.0.1", port), 64);
         server.setExecutor(executor);
         server.createContext("/", this::handle);
@@ -64,12 +75,27 @@ public final class DemoBackendServer implements AutoCloseable {
         try (exchange) {
             String path = exchange.getRequestURI().getPath();
             switch (path) {
-                case "/health" -> respond(exchange, healthy ? 200 : 503, healthy ? "UP" : "DOWN", "text/plain");
+                case "/health" -> {exchange.getResponseHeaders().set("X-Backend-Draining",Boolean.toString(healthy&&admission.draining()));respond(exchange, healthy && !admission.draining() ? 200 : 503, healthy&&admission.draining() ? "DRAINING" : healthy ? "UP" : "DOWN", "text/plain");}
+                case "/live" -> respond(exchange, healthy ? 200 : 503, healthy ? "UP" : "DOWN", "text/plain");
+                case "/ready" -> readiness(exchange);
+                case "/__test/store-fault" -> storeFaults.control(exchange);
                 case "/metrics" -> respond(exchange, 200, metrics(), "text/plain");
                 case "/control", "/down", "/up" -> control(exchange, path);
                 default -> workload(exchange, path);
             }
         }
+    }
+    private void readiness(HttpExchange exchange) throws IOException {
+        if (!exchange.getRemoteAddress().getAddress().isLoopbackAddress()
+                || exchange.getRequestHeaders().containsKey("X-Forwarded-For")) {
+            respond(exchange,403,"Readiness is direct-loopback only","text/plain");return;
+        }
+        if (!Set.of("GET","HEAD").contains(exchange.getRequestMethod())) {
+            exchange.getResponseHeaders().set("Allow","GET, HEAD");respond(exchange,405,"Method not allowed","text/plain");return;
+        }
+        Map<String,Object> dependencies=store==null?Map.of("status","NOT_CONFIGURED"):store.dependencies();
+        boolean draining=admission.draining(),ready=healthy&&!draining&&(store==null||"READY".equals(dependencies.get("status")));
+        respond(exchange,ready?200:503,JsonCodec.write(Map.of("status",ready?"READY":draining?"DRAINING":"DEGRADED","live",healthy,"draining",draining,"admitted",admission.admitted(),"dependencies",dependencies)),"application/json; charset=utf-8");
     }
     private void control(HttpExchange exchange, String path) throws IOException {
         if (!exchange.getRemoteAddress().getAddress().isLoopbackAddress()
@@ -82,13 +108,17 @@ public final class DemoBackendServer implements AutoCloseable {
             int newWorkers = integer(values, "cpuWorkers", backgroundSize(), 0, 64);
             String health = values.getOrDefault("healthy", Boolean.toString(healthy));
             if (!health.equals("true") && !health.equals("false")) throw new IllegalArgumentException("healthy must be true or false");
+            String draining=values.getOrDefault("draining",Boolean.toString(admission.draining()));
+            if(!draining.equals("true")&&!draining.equals("false"))throw new IllegalArgumentException("draining must be true or false");
             delayMs = newDelay; setCpuWorkers(newWorkers);
+            admission.drain(Boolean.parseBoolean(draining));
             healthy = path.equals("/up") || (!path.equals("/down") && Boolean.parseBoolean(health));
             respond(exchange, 200, metrics(), "text/plain");
         } catch (IllegalArgumentException e) { respond(exchange, 400, e.getMessage(), "text/plain"); }
     }
     private void workload(HttpExchange exchange, String path) throws IOException {
         received.incrementAndGet(); // Excludes health, telemetry and control; includes rejected work.
+        if(admission.draining()){exchange.getResponseHeaders().set("Retry-After","1");respond(exchange,503,"Backend draining","text/plain");return;}
         if (path.equals("/status")) {
             try {
                 int status = integer(query(exchange), "code", 503, 400, 599);
@@ -101,7 +131,7 @@ public final class DemoBackendServer implements AutoCloseable {
         final int cost;
         final int fileKiB;
         try {
-            Map<String, String> values = query(exchange);
+            Map<String, String> values = path.startsWith("/api/") || path.equals("/shop") || path.startsWith("/shop/") ? Map.of() : query(exchange);
             cost = path.equals("/orders") ? 5 : integer(values, "cost", 1, 1, 20);
             fileKiB = path.equals("/download") ? integer(values, "sizeKiB", 256, 1, 768) : 0;
             if (path.equals("/download") && fileKiB != 64 && fileKiB != 256 && fileKiB != 768)
@@ -115,16 +145,30 @@ public final class DemoBackendServer implements AutoCloseable {
             respond(exchange, 405, "Method not allowed", "text/plain"); return;
         }
         if (!healthy) { respond(exchange, 503, "Backend is down", "text/plain"); return; }
-        if (!admission.tryAcquire()) { respond(exchange, 503, "Backend admission limit", "text/plain"); return; }
+        if (!admission.enter()) { respond(exchange, 503, "Backend admission closed or full", "text/plain"); return; }
         boolean acquired = false;
         long started = 0;
         queued.incrementAndGet();
         try {
+            long queueStarted = System.nanoTime();
             acquired = workers.tryAcquire(3, TimeUnit.SECONDS);
+            queueWaitNanos.addAndGet(System.nanoTime() - queueStarted); queueWaitSamples.incrementAndGet();
             queued.decrementAndGet();
             if (!acquired) { respond(exchange, 503, "Backend queue timeout", "text/plain"); return; }
             active.incrementAndGet(); started = System.nanoTime();
             if (!healthy) { respond(exchange, 503, "Backend is down", "text/plain"); return; }
+            if (store != null && StoreApplication.matches(path)) {
+                exchange.getResponseHeaders().set("X-Backend", "backend-" + getPort());
+                if(storeFaults.before(exchange))return;
+                store.handle(exchange); completed.incrementAndGet(); return;
+            }
+            if (path.startsWith("/api/") || path.equals("/shop") || path.startsWith("/shop/")) {
+                exchange.getResponseHeaders().set("X-Backend", "backend-" + getPort());
+                if (shop == null) respond(exchange, 503, "Shop disabled; enable SHOP_ENABLED and configure PostgreSQL", "text/plain");
+                else shop.handle(exchange);
+                completed.incrementAndGet();
+                return;
+            }
             byte[] body = exchange.getRequestBody().readNBytes(1_048_577);
             if (body.length > 1_048_576) { respond(exchange, 413, "Request body too large", "text/plain"); return; }
             int quantity = 1;
@@ -190,7 +234,7 @@ public final class DemoBackendServer implements AutoCloseable {
                 synchronized (this) { serviceTimeMs = serviceTimeMs == 0 ? elapsed : 0.2 * elapsed + 0.8 * serviceTimeMs; }
                 active.decrementAndGet(); workers.release();
             }
-            admission.release();
+            admission.leave();
         }
     }
     private String metrics() {
@@ -201,12 +245,12 @@ public final class DemoBackendServer implements AutoCloseable {
                 + "memoryLoad=%.6f%nheapUsedBytes=%d%nheapMaxBytes=%d%n"
                 + "hostCpuLoad=%.6f%nhostMemoryLoad=%.6f%nhostMemoryTotalBytes=%d%n"
                 + "activeRequests=%d%nqueuedRequests=%d%ncapacity=%d%nserviceTimeMs=%.3f%n"
-                + "healthy=%s%ndelayMs=%d%ncpuWorkers=%d%ncompletedRequests=%d%nreceivedRequests=%d%nprocessId=%d%nheapUsedBytes=%d%ncpuSamples=%d%n",
+                + "healthy=%s%ndelayMs=%d%ncpuWorkers=%d%ncompletedRequests=%d%nreceivedRequests=%d%nprocessId=%d%nheapUsedBytes=%d%ncpuSamples=%d%ndraining=%s%nadmittedRequests=%d%nqueueWaitTotalMs=%.3f%nqueueWaitSamples=%d%n",
                 cpuLoad, processCpuCores, cpuBudget, runtime.availableProcessors(),
                 clamp((double) heapUsed / runtime.maxMemory()), heapUsed, runtime.maxMemory(),
                 availableRatio(os.getCpuLoad()), hostTotal <= 0 ? -1 : clamp(1.0 - (double) hostFree / hostTotal), hostTotal,
                 active.get(), queued.get(), capacity, serviceTimeMs, healthy, delayMs, backgroundSize(),
-                completed.get(), received.get(), ProcessHandle.current().pid(), heapUsed, cpuSamples);
+                completed.get(), received.get(), ProcessHandle.current().pid(), heapUsed, cpuSamples, admission.draining(),admission.admitted(),queueWaitNanos.get()/1_000_000.0,queueWaitSamples.get());
     }
     private synchronized int backgroundSize() { return background.size(); }
     private synchronized void setCpuWorkers(int count) {
@@ -258,9 +302,10 @@ public final class DemoBackendServer implements AutoCloseable {
         }
     }
     @Override public void close() {
-        setCpuWorkers(0); server.stop(0); sampler.shutdownNow(); executor.shutdownNow();
+        setCpuWorkers(0); server.stop(0); sampler.shutdownNow(); executor.close();
     }
     public static void main(String[] args) throws IOException {
+        com.example.proxy.server.HttpListenerPolicy.installDefaults();
         int port = args.length > 0 ? Integer.parseInt(args[0]) : 9001;
         int capacity = args.length > 1 ? Integer.parseInt(args[1]) : 8;
         int defaultDelay = switch (port) { case 9002 -> 80; case 9003 -> 240; default -> 20; };

@@ -18,6 +18,7 @@ public class Main {
     private static final AppLogger log = AppLogger.of(Main.class);
 
     public static void main(String[] args) throws Exception {
+        com.example.proxy.server.HttpListenerPolicy.installDefaults();
         String configPath = args.length > 0 ? args[0] : "config/application.properties";
 
         log.info("Đang nạp cấu hình từ: " + configPath);

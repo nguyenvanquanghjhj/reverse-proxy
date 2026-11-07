@@ -14,8 +14,20 @@ final class IncomingRequestValidator {
         maxHeaderCount = config.getMaxHeaderCount();
         maxHeaderBytes = config.getMaxHeaderBytes();
     }
+    Rejection host(String protocol, Map<String, List<String>> headers) {
+        List<String> values = headers.get("Host");
+        if (values == null) return "HTTP/1.1".equals(protocol) ? new Rejection(400, "HTTP/1.1 requires one Host field") : null;
+        if (values.size() != 1) return new Rejection(400, "Multiple Host fields are forbidden");
+        String authority = values.getFirst();
+        // URI authority only: no userinfo, path, query, fragment, whitespace or bare IPv6.
+        if (!authority.matches("(?:\\[[0-9A-Fa-f:.]+\\]|(?:[A-Za-z0-9._~!$&'()*+,;=-]|%[0-9A-Fa-f]{2})*)(?::[0-9]*)?"))
+            return new Rejection(400, "Invalid Host authority");
+        try { if (authority.startsWith("[")) new URI("http://" + authority); }
+        catch (java.net.URISyntaxException invalid) { return new Rejection(400, "Invalid IP literal in Host"); }
+        return null;
+    }
     Rejection forwardedRequest(String method, URI uri, Map<String, List<String>> headers) {
-        if (method.equalsIgnoreCase("CONNECT") || headers.containsKey("Upgrade"))
+        if (method.equals("CONNECT") || headers.containsKey("Upgrade"))
             return new Rejection(501, "CONNECT and protocol upgrades are not supported");
         String path = uri.getPath();
         if (!method.matches("[!#$%&'*+.^_`|~0-9A-Za-z-]+")
@@ -41,7 +53,7 @@ final class IncomingRequestValidator {
             if (part.equals("..")) { if (!parts.isEmpty()) parts.removeLast(); }
             else if (!part.isEmpty() && !part.equals(".")) parts.addLast(part);
         }
-        return !parts.isEmpty() && Set.of("control", "down", "up").contains(parts.getFirst());
+          return !parts.isEmpty() && Set.of("control", "down", "up", "__test").contains(parts.getFirst());
     }
     private Rejection framing(Map<String, List<String>> headers) {
         List<String> lengths = headers.get("Content-Length");

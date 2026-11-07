@@ -53,12 +53,15 @@ public final class HealthChecker implements AutoCloseable {
         for (BackendServer backend : config.getBackendServers()) workers.execute(() -> pollLoop(backend));
     }
     private void pollLoop(BackendServer backend) {
+        String lastState=null;
         while (running.get() && !Thread.currentThread().isInterrupted()) {
             var healthProbe = dispatcher.beginProbe(backend);
-            boolean healthy;
+            boolean healthy,remotelyDraining=false;
             try {
                 var response = fetch(backend.getBaseUrl() + config.getHealthCheckPath());
-                healthy = response.statusCode() >= 200 && response.statusCode() < 300;
+                remotelyDraining=response.statusCode()==503&&response.headers().firstValue("X-Backend-Draining").orElse("").equals("true")
+                        &&new String(response.body(),StandardCharsets.UTF_8).equals("DRAINING");
+                healthy = response.statusCode() >= 200 && response.statusCode() < 300 || remotelyDraining;
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 break;
@@ -67,9 +70,16 @@ public final class HealthChecker implements AutoCloseable {
                 log.warn("health_probe_failed error_type=" + failure.getClass().getSimpleName());
                 healthy = false;
             }
-            if (!healthy) healthFailures.increment();
+            if (!healthy&&!dispatcher.isDraining(backend)) healthFailures.increment();
             if (!running.get()) break;
-            dispatcher.recordHealth(backend, healthProbe, healthy);
+            dispatcher.recordHealth(backend, healthProbe, healthy,remotelyDraining);
+            // Log observed state transitions after releasing the dispatcher's lock.
+            // A successful probe alone does not mean recovery or completed slow start.
+            String current=dispatcher.snapshots().stream().filter(s -> s.backend().equals(backend)).findFirst().orElseThrow().state();
+            if(!current.equals(lastState)) {
+                log.info("event=backend_state backend="+backend.getId()+" state="+current);
+                lastState=current;
+            }
             if (healthy) {
                 var metricsProbe = dispatcher.beginProbe(backend);
                 try {

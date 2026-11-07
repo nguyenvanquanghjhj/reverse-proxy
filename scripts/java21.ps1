@@ -17,3 +17,16 @@ function Get-Java21Tools {
     if (-not (Test-Path -LiteralPath $tools.Jar)) { throw "JDK jar tool missing: $($tools.Jar)" }
     return $tools
 }
+
+function Get-OwnedJavaProcesses([string]$RepoRoot) {
+    $stateFile = Join-Path $RepoRoot '.shop/processes.json'
+    if (-not (Test-Path -LiteralPath $stateFile)) { return }
+    $records = Get-Content -LiteralPath $stateFile -Raw | ConvertFrom-Json
+    foreach ($entry in $records.PSObject.Properties) {
+        $process = Get-Process -Id $entry.Value.pid -ErrorAction SilentlyContinue
+        if ($null -ne $process) {
+            # PID reuse does not grant ownership; compare the OS creation timestamp too.
+            if ($process.StartTime.ToFileTimeUtc().ToString() -eq $entry.Value.birth) { $entry.Name }
+        }
+    }
+}
