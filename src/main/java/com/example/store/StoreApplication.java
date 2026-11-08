@@ -26,7 +26,7 @@ public final class StoreApplication {
         try{StoreAdmin.check(db);}catch(SQLException e){throw new IOException("Store database migration required",e);}
         var storage=new FileStorage(config);operations=new OperationsService(db,storage);
         var sessions=new SessionService(db);controller=new StoreController(new CatalogRepository(db),new CatalogService(db),new OrderService(db),new FileService(db,storage),sessions,operations);
-        for(String file:List.of("index.html","store.css","app.js","api.js","cart.js","checkout.js","views.js","admin.js","operations.js"))try(var in=getClass().getResourceAsStream("/web/store/"+file)){
+        for(String file:List.of("index.html","store.css","shop.css","app.js","site.js","api.js","cart.js","checkout.js","views.js","admin.js","operations.js"))try(var in=getClass().getResourceAsStream("/web/store/"+file)){
             if(in==null)throw new IOException("Store resource missing: "+file);byte[] bytes=in.readNBytes(262145);if(bytes.length>262144)throw new IOException("Store resource exceeds budget");
             assets.put(file,new Asset(bytes,file.endsWith(".css")?"text/css; charset=utf-8":file.endsWith(".js")?"text/javascript; charset=utf-8":"text/html; charset=utf-8"));}
     }
