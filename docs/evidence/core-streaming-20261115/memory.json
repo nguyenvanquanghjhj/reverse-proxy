@@ -1,0 +1,9 @@
+{
+  "proxy_max_heap_bytes": 67108864,
+  "peak_rss_by_file_MiB": {
+    "32": 120356864,
+    "100": 110882816,
+    "256": 100573184
+  },
+  "note": "RSS includes JVM native memory; heap hard bounded by -Xmx64m, smaller than 100/256MiB payloads"
+}

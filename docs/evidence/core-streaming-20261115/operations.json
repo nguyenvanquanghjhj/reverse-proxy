@@ -1,0 +1,125 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "check": "three real PostgreSQL-backed JVMs ready",
+      "passed": true
+    },
+    {
+      "check": "real JDBC rollback/reset/concurrency/broken-connection recovery pool=false",
+      "passed": true
+    },
+    {
+      "check": "real JDBC rollback/reset/concurrency/broken-connection recovery pool=true",
+      "passed": true
+    },
+    {
+      "check": "ETag conditional GET returns 304 without body through proxy",
+      "passed": true
+    },
+    {
+      "check": "ETag equals actual JavaScript SHA-256",
+      "passed": true
+    },
+    {
+      "check": "private response remains no-store: /shop",
+      "passed": true
+    },
+    {
+      "check": "private response remains no-store: /api/store/products",
+      "passed": true
+    },
+    {
+      "check": "private response remains no-store: /api/store/session",
+      "passed": true
+    },
+    {
+      "check": "real Edge fetch observes conditional 304 without body",
+      "passed": true
+    },
+    {
+      "check": "B2 JVM stays alive across its real PostgreSQL network cut",
+      "passed": true
+    },
+    {
+      "check": "B2 static asset survives real DB connection loss",
+      "passed": true
+    },
+    {
+      "check": "18 orders succeed and avoid B2 after its DB loss",
+      "passed": true
+    },
+    {
+      "check": "RR still routes DB-independent static assets to B2",
+      "passed": true
+    },
+    {
+      "check": "business pause preserves HTTP 423 through capability routing",
+      "passed": true
+    },
+    {
+      "check": "all DB dependencies down fail closed before dispatch",
+      "passed": true
+    },
+    {
+      "check": "all DB dependencies down still serve static assets",
+      "passed": true
+    },
+    {
+      "check": "same-build HTTP JDBC A/B 60 orders pool=false repeat=0",
+      "passed": true
+    },
+    {
+      "check": "same-build HTTP JDBC A/B 60 orders pool=false repeat=1",
+      "passed": true
+    },
+    {
+      "check": "same-build HTTP JDBC A/B 60 orders pool=false repeat=2",
+      "passed": true
+    },
+    {
+      "check": "same-build HTTP JDBC A/B 60 orders pool=true repeat=0",
+      "passed": true
+    },
+    {
+      "check": "same-build HTTP JDBC A/B 60 orders pool=true repeat=1",
+      "passed": true
+    },
+    {
+      "check": "same-build HTTP JDBC A/B 60 orders pool=true repeat=2",
+      "passed": true
+    },
+    {
+      "check": "QoS rejects excess normal traffic while reserved capacity remains",
+      "passed": true
+    },
+    {
+      "check": "QoS real-peer cap bounds competing order POST",
+      "passed": true
+    },
+    {
+      "check": "reserved valid order and admitted normal requests complete",
+      "passed": true
+    },
+    {
+      "check": "runtime defaults retain upstream pool OFF and QoS OFF",
+      "passed": true
+    },
+    {
+      "check": "operator missing token rejected",
+      "passed": true
+    },
+    {
+      "check": "operator wrong token rejected",
+      "passed": true
+    },
+    {
+      "check": "operator correct token accepted",
+      "passed": true
+    },
+    {
+      "check": "forwarded identity never bypasses the operator token",
+      "passed": true
+    }
+  ]
+}

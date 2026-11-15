@@ -1,0 +1,29 @@
+{
+  "package": "PBL4_CORE_UPGRADE_20261115",
+  "base_commit": "6e7f3ac1cd010b1f33c85d215339cb2bb2bba0f1",
+  "status": {
+    "jdk21_standalone": "PASS_23_ASSERTIONS_8_MiB",
+    "installer_synthetic_anchors": "PASS",
+    "full_repository_integration": "NOT_RUN",
+    "post_merge_CI": "NOT_RUN",
+    "lan_multihost": "NOT_RUN"
+  },
+  "files": {
+    "README.md": "dbb813e56378c2e0f685b16de1de7cf3f91146069b9921db215d50f36b250bd7",
+    "docs/APPLY_AND_MERGE.md": "597e9815d37d47eeb12639076112360e8784633d416719ac413010fc918a41cf",
+    "docs/ARCHITECTURE_AND_RISKS.md": "58e3aa175da8a775d7b884b767356a93deedbbf8527475eee1a6bae906f8880c",
+    "docs/CODEX_PROMPT.md": "a3f9f3e02a52d76aab4caf05751782e3421e1aedaa08924b2e1d31d11c8a41dd",
+    "install.py": "7413c2c65df597580213cf0b9927a54063a786b69ed3aeb650a4ec8376067438",
+    "overlay/scripts/ops/heterogeneous_benchmark.py": "ec91175ed95a166f105576150763df637280ec722d4499fa6c39598207281bf1",
+    "overlay/src/main/java/com/example/backend/LargeFileHandler.java": "744d0c09c7cd5179f20fcb011161099f4dfa2ceec1966a26e8d819f77600814d",
+    "overlay/src/main/java/com/example/backend/RangeRequest.java": "26f6fb061334234ee2b5fe9c5a7bdc30f1d857d0f4a159737db00bf0f3d9e22e",
+    "overlay/src/main/java/com/example/proxy/handler/StreamingProxy.java": "35264c62dead8d784ee725cc104ff8c88520660c886cd3c5809acb67c6faaf32",
+    "overlay/src/test/java/com/example/proxy/RangeRequestTest.java": "a2e63bac565aa763dd71d113dce712e267f9ddb255d29243cd76ae7ca6ee0a86",
+    "overlay/src/test/java/com/example/proxy/StreamingProxyTest.java": "a30c96e432f3cb0dbe1f6d79d7a4bb9708b072387aa1538aa7200b3b96c7dae0",
+    "tests/StreamingStandaloneTest.java": "213f558ffefe158218c9df1f714252976987606efc80ace7d500ab62f129ac72",
+    "tests/run_standalone.py": "36565dfd6b32eec7bc606339b304c3a2e06250daec3a604e20f20e76300852d7",
+    "tests/stubs/com/example/proxy/backend/BackendServer.java": "4439de54e8dc17befd0033c10f0bce5638f0b5e5cb00e0fae2d3e8b1a8f359fe",
+    "tests/stubs/com/example/proxy/config/ProxyConfig.java": "709bd81314921b67beda53ce86ed65b183990fb4ef389a291a1f4060143ffd11",
+    "tests/test_installer_anchors.py": "eb7b013ea6ece6919772be0d0c9285da527b18a2f4975ec4e119b281257f71d1"
+  }
+}

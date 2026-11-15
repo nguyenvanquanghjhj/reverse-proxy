@@ -1,0 +1,65 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "check": "backup-offline exit=0",
+      "passed": true
+    },
+    {
+      "check": "backup-verify exit=0",
+      "passed": true
+    },
+    {
+      "check": "restore-new exit=0",
+      "passed": true
+    },
+    {
+      "check": "all PostgreSQL table counts and full-row hashes match after real pg_dump/pg_restore",
+      "passed": true
+    },
+    {
+      "check": "every restored file SHA-256 matches source",
+      "passed": true
+    },
+    {
+      "check": "restored-store-check exit=0",
+      "passed": true
+    },
+    {
+      "check": "restored-store-audit exit=0",
+      "passed": true
+    },
+    {
+      "check": "restored-store-stats exit=0",
+      "passed": true
+    },
+    {
+      "check": "refuse-existing-database exit=2",
+      "passed": true
+    },
+    {
+      "check": "restore refusal leaves existing target and files untouched",
+      "passed": true
+    },
+    {
+      "check": "source DB and shared files unchanged by backup and restore",
+      "passed": true
+    },
+    {
+      "check": "restored separate app serves verified IMAGE bytes",
+      "passed": true
+    },
+    {
+      "check": "restored separate app serves verified IMAGE bytes",
+      "passed": true
+    },
+    {
+      "check": "restored separate app serves verified PDF bytes",
+      "passed": true
+    },
+    {
+      "check": "restored separate app serves verified PDF bytes",
+      "passed": true
+    }
+  ]
+}
