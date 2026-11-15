@@ -26,7 +26,7 @@ def main():
     # Retain the original failure JSON plus an explicitly derived overlap-window analysis.
     fault_results=json.loads((failures/'failure-analysis.json').read_text(encoding='utf-8'))
     assert len(fault_results)==9 and all(r['passed'] for r in fault_results)
-    for run in fault_results:
+    for run in fault_results:   
         selected.append({**run,'experiment':'failure-recovery','origin_directory':failures.name})
         for suffix in ('.csv','-timeline.json','.properties','-warmup.csv','-warmup-snapshots.json'):copy_file(failures,run['label']+suffix)
     for name in ('tcp-connect.csv','direct-proxy.csv','tcp-before.json'):copy_file(original,name)
@@ -45,3 +45,4 @@ def main():
         'LAN':'NOT RUN: no controlled separate peer or network emulation available. Loopback results do not measure LAN RTT/loss/jitter.'},indent=2),encoding='utf-8')
     print('Assembled',len(selected),'records;',len(origins),'raw artifacts with identical Java runtime')
 if __name__=='__main__':main()
+
