@@ -7,6 +7,12 @@ commands. Keep the private Compose environment outside Git. Validate syntax with
 `docker compose -f deploy/compose/compose.yaml config --quiet` after providing the
 required variables.
 
+Compose launches `com.example.backend.BackendApplicationServer`; the old Java
+name is a compatibility adapter for archived experiments. Maven/native artifacts
+are named `reverse-proxy`; image runtime still uses `/app/classes:/app/lib/*`.
+`STORE_ENABLED=true` selects the one Mộc Store UI. Legacy product/order/document
+APIs remain separately compatible and retain their schema and transactions.
+
 Runtime volumes are data, not build cache. Do not remove volumes during cleanup.
 The `docker-live` CI job builds Java 21, runs the complete TestSuite, tests real
 control-plane authentication, streaming, orders and stock, then restarts the stack

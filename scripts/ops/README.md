@@ -2,8 +2,11 @@
 
 Run these commands from the checkout root. Private environment files, database
 clusters, backup archives and acceptance output belong outside the checkout.
-Pass their paths explicitly; scripts resolve application resources from their own
-location. No tool requires a particular Windows account or drive letter.
+Pass private env paths explicitly; scripts resolve application resources from
+their own location. Live acceptance defaults to sibling `evidence/` with unique
+run directories (`PBL4_EVIDENCE_ROOT` can select another absolute root). An
+explicit `--out` inside the checkout is rejected before payload/database work.
+No tool requires a particular Windows account or drive letter.
 
 | Task | Entry point | Conditions / evidence |
 |---|---|---|
@@ -22,10 +25,23 @@ Maven builds write regenerable output to `target`; do not clean classes while an
 application JVM or IDE uses them. Python operations regression is
 `python -m unittest discover -s scripts/ops -p "test_*.py" -v`.
 
+The maintained application lifecycle is `scripts/store.py` / `scripts/run.ps1`;
+both use `app_runtime.py`. Preparation is `prepare_runtime.py` and never initializes
+a database. `shop_demo.py` / `shop_prepare.py` only preserve old imports/commands.
+Use explicit private env and an absolute `PBL4_RUNTIME_DIR` when testing lifecycle
+entrypoints; the default `.shop` belongs to the actual local store.
+
 Keep raw PASS and FAIL logs, CSV, JSON and checksums. On NTFS, offline QA files
 may be compressed losslessly after inventory and hash verification; this preserves
 paths and content. Report logical and allocated bytes separately. Do not deduplicate
 referenced payloads by replacing them with links: the file endpoint rejects links.
+
+After streaming acceptance PASS and JVM shutdown, the default policy validates
+the recorded size/SHA of exactly five generated inputs and releases them (489 MiB).
+`fixture-inputs.json` keeps their recipe, checksums and removal receipt. Use
+`--retain-fixtures` to keep inputs; failed runs always retain them. Database,
+store images/PDFs, backup and raw measurements remain. Other tools retain output
+until an explicit reviewed cleanup; no recursive cleanup runs automatically.
 
 See [deployment](../../deploy/README.md), [maintenance audit](../../docs/maintenance/STORAGE_AUDIT.md),
 [operations contract](../../docs/OPERATIONS_UPGRADE.md) and

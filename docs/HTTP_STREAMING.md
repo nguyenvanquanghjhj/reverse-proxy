@@ -52,8 +52,13 @@ python scripts/ops/acceptance_streaming.py --env-file <private-QA.env> --out <ne
 ```
 
 It uses a new PostgreSQL schema, three owned JVMs, new public files and a 64 MiB
-proxy heap; preserves all datasets/evidence; checks 32/100/256 MiB SHA, resume,
+proxy heap; preserves database/store datasets and raw evidence; checks 32/100/256 MiB SHA, resume,
 conditions, path safety, slow clients, disconnects, backend death, storage faults,
 atomic replacement, deadlines, QoS/order isolation and actual handles/sockets.
 `psutil` and the existing Lab/browser dependencies are required. Multi-host LAN
 requires a real second host; loopback and a single Docker bridge do not qualify.
+
+After PASS and JVM shutdown, exactly five reproducible generated inputs (489 MiB)
+are size/SHA-verified and released. Their recipe and checksum/removal receipt stay
+in `fixture-inputs.json`; measurements and store files remain. `--retain-fixtures`
+keeps inputs, and failed runs always retain them for investigation.

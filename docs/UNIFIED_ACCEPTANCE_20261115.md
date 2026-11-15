@@ -53,7 +53,7 @@ Nguồn duy nhất là folder unified trong Downloads. `--verify-bundle` xác nh
 
 12 file baseline khác byte vì CRLF. Đã lưu bản gốc, đối chiếu LF của từng file với SHA Git blob trong bundle và `origin/main`; cả 12 khớp. Không bỏ kiểm tra baseline. Installer còn sai hai anchor khoảng trắng và xuất diff CRCRLF trên Windows; sửa tối thiểu trong bản sao được review, cập nhật manifest bản sao, kiểm lại, `git apply --check` PASS rồi apply đúng một lần. Bundle Downloads gốc không sửa.
 
-Diff sửa installer: [unified-installer-fixes.patch](unified-installer-fixes.patch); inventory gốc: [unified-release-manifest.json](unified-release-manifest.json). Patch giữ byte/context nguyên vẹn bằng một rule `.gitattributes` riêng cho artifact, không thay kiểm tra whitespace source.
+Diff sửa installer: [unified-installer-fixes.patch](history/unified/unified-installer-fixes.patch); inventory gốc: [unified-release-manifest.json](history/unified/unified-release-manifest.json). Patch giữ byte/context nguyên vẹn bằng một rule `.gitattributes` riêng cho artifact, không thay kiểm tra whitespace source.
 
 Các log FAIL được giữ: baseline/anchor/EOL (`02*`, `03*`); Python fixture Windows (`06-python-ops-tests.log`, `08-bundle-integrator-tests.log`); Java contract/schema/snapshot/socket-count (`10-java-native.log`); fixture startup DB-down (`17-operational-live.log`); expectation X-Forwarded-For (`17b-operational-live.log`); browser selector (`23-browser-postgres-acceptance.log`); lỗi print thật (`23b-browser-postgres-acceptance.log`); client fixture gửi HTTP/2 Upgrade ngoài contract (`25-native-final.log`) và chưa chờ health recovery sau timeout (`25b-native-final.log`). Đã sửa và chạy lại toàn bộ lệnh tương ứng; không xóa test hoặc thay hai hash parity lịch sử.
 

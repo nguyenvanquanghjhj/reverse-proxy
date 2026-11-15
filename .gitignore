@@ -32,6 +32,8 @@ __pycache__/
 /.venv/
 /.pytest_cache/
 /postgres-data/
-/private-*.env
-/private-*-password.txt
+private-*.env
+private-*-password.txt
+postgres-data/
+qa-runtime/
 /storage-maintenance-*/
