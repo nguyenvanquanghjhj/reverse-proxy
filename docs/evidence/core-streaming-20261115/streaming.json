@@ -1,0 +1,285 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "check": "32 MiB GET through real proxy SHA-256 byte equal",
+      "passed": true
+    },
+    {
+      "check": "32 MiB exact fixed-length framing",
+      "passed": true
+    },
+    {
+      "check": "32 MiB proxy Via response header",
+      "passed": true
+    },
+    {
+      "check": "32 MiB HEAD representation length without body",
+      "passed": true
+    },
+    {
+      "check": "32 MiB bytes=0-4095 range bytes and Content-Range",
+      "passed": true
+    },
+    {
+      "check": "32 MiB bytes=100000-104095 range bytes and Content-Range",
+      "passed": true
+    },
+    {
+      "check": "32 MiB bytes=-4096 range bytes and Content-Range",
+      "passed": true
+    },
+    {
+      "check": "100 MiB GET through real proxy SHA-256 byte equal",
+      "passed": true
+    },
+    {
+      "check": "100 MiB exact fixed-length framing",
+      "passed": true
+    },
+    {
+      "check": "100 MiB proxy Via response header",
+      "passed": true
+    },
+    {
+      "check": "100 MiB HEAD representation length without body",
+      "passed": true
+    },
+    {
+      "check": "100 MiB bytes=0-4095 range bytes and Content-Range",
+      "passed": true
+    },
+    {
+      "check": "100 MiB bytes=100000-104095 range bytes and Content-Range",
+      "passed": true
+    },
+    {
+      "check": "100 MiB bytes=-4096 range bytes and Content-Range",
+      "passed": true
+    },
+    {
+      "check": "256 MiB GET through real proxy SHA-256 byte equal",
+      "passed": true
+    },
+    {
+      "check": "256 MiB exact fixed-length framing",
+      "passed": true
+    },
+    {
+      "check": "256 MiB proxy Via response header",
+      "passed": true
+    },
+    {
+      "check": "256 MiB HEAD representation length without body",
+      "passed": true
+    },
+    {
+      "check": "256 MiB bytes=0-4095 range bytes and Content-Range",
+      "passed": true
+    },
+    {
+      "check": "256 MiB bytes=100000-104095 range bytes and Content-Range",
+      "passed": true
+    },
+    {
+      "check": "256 MiB bytes=-4096 range bytes and Content-Range",
+      "passed": true
+    },
+    {
+      "check": "100 MiB Range + strong If-Range resume reconstructs identical real file",
+      "passed": true
+    },
+    {
+      "check": "HEAD ignores Range",
+      "passed": true
+    },
+    {
+      "check": "conditional/range semantics {'If-None-Match': '\"1cbd22e11bc209926b1e050d644779ba4105d7a023109c3b78bb35edf5c7c292\"', 'Range': 'bytes=0-4'}",
+      "passed": true
+    },
+    {
+      "check": "conditional/refusal has no body",
+      "passed": true
+    },
+    {
+      "check": "conditional/range semantics {'If-None-Match': 'W/\"1cbd22e11bc209926b1e050d644779ba4105d7a023109c3b78bb35edf5c7c292\"'}",
+      "passed": true
+    },
+    {
+      "check": "conditional/refusal has no body",
+      "passed": true
+    },
+    {
+      "check": "conditional/range semantics {'If-Match': '\"wrong\"'}",
+      "passed": true
+    },
+    {
+      "check": "conditional/refusal has no body",
+      "passed": true
+    },
+    {
+      "check": "conditional/range semantics {'Range': 'bytes=0-4', 'If-Range': '\"stale\"'}",
+      "passed": true
+    },
+    {
+      "check": "conditional/range semantics {'Range': 'bytes=999999999999-'}",
+      "passed": true
+    },
+    {
+      "check": "conditional/refusal has no body",
+      "passed": true
+    },
+    {
+      "check": "conditional/range semantics {'Range': 'bytes=0-4,7-9'}",
+      "passed": true
+    },
+    {
+      "check": "conditional/refusal has no body",
+      "passed": true
+    },
+    {
+      "check": "conditional/range semantics {'Range': 'bytes=bad'}",
+      "passed": true
+    },
+    {
+      "check": "conditional/refusal has no body",
+      "passed": true
+    },
+    {
+      "check": "path/extension refusal ../secret.bin",
+      "passed": true
+    },
+    {
+      "check": "path/extension refusal %2e%2e%2fsecret.bin",
+      "passed": true
+    },
+    {
+      "check": "path/extension refusal %66ile-32.bin",
+      "passed": true
+    },
+    {
+      "check": "path/extension refusal a.txt",
+      "passed": true
+    },
+    {
+      "check": "path/extension refusal bin",
+      "passed": true
+    },
+    {
+      "check": "large-file endpoint is read only",
+      "passed": true
+    },
+    {
+      "check": "ordering remains transactional with streaming enabled and bounded heap",
+      "passed": true
+    },
+    {
+      "check": "slow client completes beyond short ingress deadline using route-only bounded budget",
+      "passed": true
+    },
+    {
+      "check": "zero stream bodies, leases, QoS and bulkhead tickets, backend workers",
+      "passed": true
+    },
+    {
+      "check": "healthy streams retain closed backend circuits",
+      "passed": true
+    },
+    {
+      "check": "streaming bulkhead bounds long transfers",
+      "passed": true
+    },
+    {
+      "check": "reserved checkout completes while all download slots held",
+      "passed": true
+    },
+    {
+      "check": "zero stream bodies, leases, QoS and bulkhead tickets, backend workers",
+      "passed": true
+    },
+    {
+      "check": "client RST classified downstream; healthy backend circuits unchanged",
+      "passed": true
+    },
+    {
+      "check": "backend death midstream yields incomplete client response, never successful truncated file",
+      "passed": true
+    },
+    {
+      "check": "zero stream bodies, leases, QoS and bulkhead tickets, backend workers",
+      "passed": true
+    },
+    {
+      "check": "unavailable file root fails closed",
+      "passed": true
+    },
+    {
+      "check": "file service recovers after storage returns",
+      "passed": true
+    },
+    {
+      "check": "atomic file replacement cannot change bytes under an in-flight ETag",
+      "passed": true
+    },
+    {
+      "check": "zero stream bodies, leases, QoS and bulkhead tickets, backend workers",
+      "passed": true
+    },
+    {
+      "check": "Windows refused publication during an open reader; atomic replacement succeeds after descriptor closes",
+      "passed": true
+    },
+    {
+      "check": "stale If-Range after replacement returns new complete representation",
+      "passed": true
+    },
+    {
+      "check": "actual linked/junction root rejected",
+      "passed": true
+    },
+    {
+      "check": "zero stream bodies, leases, QoS and bulkhead tickets, backend workers",
+      "passed": true
+    },
+    {
+      "check": "blocked slow client bounded by streaming deadline and all resources released",
+      "passed": true
+    },
+    {
+      "check": "local route deadline does not condemn healthy backends",
+      "passed": true
+    },
+    {
+      "check": "zero stream bodies, leases, QoS and bulkhead tickets, backend workers",
+      "passed": true
+    },
+    {
+      "check": "zero stream bodies, leases, QoS and bulkhead tickets, backend workers",
+      "passed": true
+    },
+    {
+      "check": "20 cancellation soak: bounded actual OS handles and sockets",
+      "passed": true
+    },
+    {
+      "check": "32/100/256 MiB peak RSS growth below 100 MiB under a fixed 64 MiB proxy heap",
+      "passed": true
+    },
+    {
+      "check": "streaming started = completed + failed with zero active",
+      "passed": true
+    },
+    {
+      "check": "18 ordinary catalog GETs succeed with explicit upstream pooling ON",
+      "passed": true
+    },
+    {
+      "check": "ordinary upstream keep-alive ON reuses real connections alongside streaming and successful checkout",
+      "passed": true
+    },
+    {
+      "check": "deployment upstream pool and QoS defaults remain OFF after isolated ON testing",
+      "passed": true
+    }
+  ]
+}

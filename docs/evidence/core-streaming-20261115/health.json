@@ -1,0 +1,85 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "check": "health_snapshot reads real proxy and all three ready endpoints",
+      "passed": true
+    },
+    {
+      "check": "remaining backends serve traffic during B1 outage",
+      "passed": true
+    },
+    {
+      "check": "remaining backends serve traffic during B1 outage",
+      "passed": true
+    },
+    {
+      "check": "remaining backends serve traffic during B1 outage",
+      "passed": true
+    },
+    {
+      "check": "remaining backends serve traffic during B1 outage",
+      "passed": true
+    },
+    {
+      "check": "remaining backends serve traffic during B1 outage",
+      "passed": true
+    },
+    {
+      "check": "remaining backends serve traffic during B1 outage",
+      "passed": true
+    },
+    {
+      "check": "remaining backends serve traffic during B1 outage",
+      "passed": true
+    },
+    {
+      "check": "remaining backends serve traffic during B1 outage",
+      "passed": true
+    },
+    {
+      "check": "remaining backends serve traffic during B1 outage",
+      "passed": true
+    },
+    {
+      "check": "remaining backends serve traffic during B1 outage",
+      "passed": true
+    },
+    {
+      "check": "remaining backends serve traffic during B1 outage",
+      "passed": true
+    },
+    {
+      "check": "remaining backends serve traffic during B1 outage",
+      "passed": true
+    },
+    {
+      "check": "watchdog recovers to OK after real JVM restart",
+      "passed": true
+    },
+    {
+      "check": "watchdog records BACKEND_DOWN alert and recovery with raw CSV",
+      "passed": true
+    },
+    {
+      "check": "maintenance drains B1 to zero in-flight",
+      "passed": true
+    },
+    {
+      "check": "new requests avoid drained B1",
+      "passed": true
+    },
+    {
+      "check": "maintenance drains B2 with B3 still healthy",
+      "passed": true
+    },
+    {
+      "check": "maintenance refuses to drain final healthy backend",
+      "passed": true
+    },
+    {
+      "check": "maintenance resumes both drained backends",
+      "passed": true
+    }
+  ]
+}

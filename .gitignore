@@ -8,9 +8,19 @@ __pycache__/
 .vscode/
 *.iml
 *.log
+# Explicitly reviewed acceptance receipts, separate from all private runtime logs.
+!/docs/evidence/unified-20261115/*.log
 /lib/
 /.runtime/
 /.shop/
 /shared-files/
 /.env*
 !/.env.store.example
+
+# Runtime secrets, local topology and recovery archives (all nested paths).
+/deploy/compose/.env
+/config/lan.properties
+/pbl4-backups/
+/pbl4-operations/
+*.dump
+*.tar.gz

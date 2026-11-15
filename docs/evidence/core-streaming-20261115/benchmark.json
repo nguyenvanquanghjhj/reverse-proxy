@@ -1,0 +1,7 @@
+{
+  "passed": true,
+  "runs": 18,
+  "requests_per_run": 180,
+  "profiles": 2,
+  "repeats_per_strategy_profile": 3
+}

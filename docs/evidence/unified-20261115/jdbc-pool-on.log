@@ -1,0 +1,1 @@
+{"transactions":48,"status":"PASS","pool":"{\"enabled\":true,\"idle\":3,\"created\":4,\"reused\":52,\"discarded\":1}","p95_ms":143.1791,"distinct_backend_pids":4}

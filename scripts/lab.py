@@ -92,8 +92,8 @@ class LargePdf{public static void main(String[] a)throws Exception{var c=ShopCon
               'java':subprocess.check_output([runtime.java(),'--version']).decode(),'jvm':['-Xms64m','-Xmx192m'],
               'source':fingerprint(),'runner_sha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),'git_head':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT).decode().strip(),
               'runtime_sha256':{str(p.relative_to(ROOT/'target/standalone/classes')):hashlib.sha256(p.read_bytes()).hexdigest() for p in (ROOT/'target/standalone/classes').rglob('*') if p.is_file()},
-              'transport':'HTTP/1.1 buffered, one upstream TCP socket/exchange; health probes separate',
-              'timeout_seconds':8,'backend_workers':4,'background':'Existing local review demo remains running but receives no scheduled benchmark load. Windows/IDE background not controlled.'}
+              'transport':'HTTP/1.1 buffered; effective upstream pool settings are in each run properties file; health probes separate',
+              'timeout_seconds':8,'backend_workers':4,'background':'Existing demo state is not changed by this Lab; no benchmark load is scheduled outside owned ports. Windows/IDE background not controlled.'}
         (out/'environment.json').write_text(json.dumps(meta,indent=2),encoding='utf-8')
     def java(self,*args):
         result=subprocess.run([runtime.java(),'-Dstdout.encoding=UTF-8','-Dstderr.encoding=UTF-8','-cp',runtime.CP,*args],cwd=ROOT,env=self.env,capture_output=True)
@@ -143,7 +143,12 @@ class LargePdf{public static void main(String[] a)throws Exception{var c=ShopCon
         self.launch('proxy',['com.example.proxy.Main',str(path)],self.out/'transport.jfr' if jfr else None)
         runtime.wait_ready(BASE+'/__proxy/health')
         deadline=time.monotonic()+10
-        while not all(b['state']=='UP' for b in get(BASE+'/__proxy/metrics')['backends']):
+        configured=dict(line.strip().split('=',1) for line in config.splitlines()
+                        if '=' in line and not line.strip().startswith('#'))
+        require_capabilities=configured.get('proxy.capability-routing.enabled','false')=='true'
+        while not all(b['state']=='UP' and (not require_capabilities or
+                      b['capabilities'].get('catalog')=='AVAILABLE')
+                      for b in get(BASE+'/__proxy/metrics')['backends']):
             if time.monotonic()>deadline:raise RuntimeError('warm-up readiness timeout')
             time.sleep(.05)
         status,data,h=fetch(BASE+'/api/store/session');self.session=json.loads(data)

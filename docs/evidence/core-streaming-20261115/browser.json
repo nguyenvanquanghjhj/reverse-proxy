@@ -1,0 +1,1269 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "check": "12 real phone models in catalog",
+      "passed": true
+    },
+    {
+      "check": "verified model name 1",
+      "passed": true
+    },
+    {
+      "check": "photographs match source manifest 1",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 1 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 1 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 1 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 1 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 1 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 1 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "verified model name 2",
+      "passed": true
+    },
+    {
+      "check": "photographs match source manifest 2",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 2 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 2 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 2 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 2 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 2 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 2 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "verified model name 3",
+      "passed": true
+    },
+    {
+      "check": "photographs match source manifest 3",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 3 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 3 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 3 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 3 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 3 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 3 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "verified model name 4",
+      "passed": true
+    },
+    {
+      "check": "photographs match source manifest 4",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 4 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 4 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 4 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 4 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 4 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 4 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "verified model name 5",
+      "passed": true
+    },
+    {
+      "check": "photographs match source manifest 5",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 5 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 5 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 5 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 5 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 5 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 5 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "verified model name 6",
+      "passed": true
+    },
+    {
+      "check": "photographs match source manifest 6",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 6 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 6 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 6 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 6 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 6 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 6 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "verified model name 7",
+      "passed": true
+    },
+    {
+      "check": "photographs match source manifest 7",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 7 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 7 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 7 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 7 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 7 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 7 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "verified model name 8",
+      "passed": true
+    },
+    {
+      "check": "photographs match source manifest 8",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 8 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 8 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 8 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "verified model name 9",
+      "passed": true
+    },
+    {
+      "check": "photographs match source manifest 9",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 9 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 9 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 9 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "verified model name 10",
+      "passed": true
+    },
+    {
+      "check": "photographs match source manifest 10",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 10 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 10 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 10 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 10 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 10 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 10 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "verified model name 11",
+      "passed": true
+    },
+    {
+      "check": "photographs match source manifest 11",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 11 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 11 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 11 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 11 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 11 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 11 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "verified model name 12",
+      "passed": true
+    },
+    {
+      "check": "photographs match source manifest 12",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 12 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 12 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 12 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "24 same-key requests across 3 JVMs create one order",
+      "passed": true
+    },
+    {
+      "check": "SQL order count and stock decrement exactly once",
+      "passed": true
+    },
+    {
+      "check": "order ownership enforced",
+      "passed": true
+    },
+    {
+      "check": "guest capability retrieves own order",
+      "passed": true
+    },
+    {
+      "check": "24 concurrent checkouts cannot oversell final unit",
+      "passed": true
+    },
+    {
+      "check": "SQL stock never negative",
+      "passed": true
+    },
+    {
+      "check": "admin server-side authorization",
+      "passed": true
+    },
+    {
+      "check": "admin login",
+      "passed": true
+    },
+    {
+      "check": "session continuity on 19001",
+      "passed": true
+    },
+    {
+      "check": "session continuity on 19002",
+      "passed": true
+    },
+    {
+      "check": "session continuity on 19003",
+      "passed": true
+    },
+    {
+      "check": "shared service controls update",
+      "passed": true
+    },
+    {
+      "check": "sales pause rejects NEW order",
+      "passed": true
+    },
+    {
+      "check": "committed idempotent replay survives sales pause",
+      "passed": true
+    },
+    {
+      "check": "PDF pause enforced",
+      "passed": true
+    },
+    {
+      "check": "image remains available during PDF pause",
+      "passed": true
+    },
+    {
+      "check": "PDF upload pause enforced",
+      "passed": true
+    },
+    {
+      "check": "service controls resume",
+      "passed": true
+    },
+    {
+      "check": "file byte integrity IMAGE",
+      "passed": true
+    },
+    {
+      "check": "file byte integrity IMAGE",
+      "passed": true
+    },
+    {
+      "check": "file byte integrity PDF",
+      "passed": true
+    },
+    {
+      "check": "PDF-only dependency failure does not poison global backend health",
+      "passed": true
+    },
+    {
+      "check": "catalog and orders work while B2 PDF fails",
+      "passed": true
+    },
+    {
+      "check": "fault controls blocked through proxy",
+      "passed": true
+    },
+    {
+      "check": "operator drain marks backend ineligible",
+      "passed": true
+    },
+    {
+      "check": "new requests avoid draining backend",
+      "passed": true
+    },
+    {
+      "check": "existing PDF leases finish during drain",
+      "passed": true
+    },
+    {
+      "check": "draining remains observable",
+      "passed": true
+    },
+    {
+      "check": "current storefront protects product UI with login",
+      "passed": true
+    },
+    {
+      "check": "real browser registration reaches all twelve models",
+      "passed": true
+    },
+    {
+      "check": "admin can rename and reorder a photograph",
+      "passed": true
+    },
+    {
+      "check": "photo and attribution follow image hash after rename/reorder",
+      "passed": true
+    },
+    {
+      "check": "restore private gallery order",
+      "passed": true
+    },
+    {
+      "check": "rendered model 1 390",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 1 390",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 1 390",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 1 390",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 1 390",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 1 390",
+      "passed": true
+    },
+    {
+      "check": "rendered model 1 1440",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 1 1440",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 1 1440",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 1 1440",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 1 1440",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 1 1440",
+      "passed": true
+    },
+    {
+      "check": "rendered model 2 390",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 2 390",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 2 390",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 2 390",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 2 390",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 2 390",
+      "passed": true
+    },
+    {
+      "check": "rendered model 2 1440",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 2 1440",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 2 1440",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 2 1440",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 2 1440",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 2 1440",
+      "passed": true
+    },
+    {
+      "check": "rendered model 3 390",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 3 390",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 3 390",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 3 390",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 3 390",
+      "passed": true
+    },
+    {
+      "check": "rendered model 3 1440",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 3 1440",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 3 1440",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 3 1440",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 3 1440",
+      "passed": true
+    },
+    {
+      "check": "rendered model 4 390",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 4 390",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 4 390",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 4 390",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 4 390",
+      "passed": true
+    },
+    {
+      "check": "rendered model 4 1440",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 4 1440",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 4 1440",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 4 1440",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 4 1440",
+      "passed": true
+    },
+    {
+      "check": "rendered model 5 390",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 5 390",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 5 390",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 5 390",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 5 390",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 5 390",
+      "passed": true
+    },
+    {
+      "check": "rendered model 5 1440",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 5 1440",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 5 1440",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 5 1440",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 5 1440",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 5 1440",
+      "passed": true
+    },
+    {
+      "check": "rendered model 6 390",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 6 390",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 6 390",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 6 390",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 6 390",
+      "passed": true
+    },
+    {
+      "check": "rendered model 6 1440",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 6 1440",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 6 1440",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 6 1440",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 6 1440",
+      "passed": true
+    },
+    {
+      "check": "rendered model 7 390",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 7 390",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 7 390",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 7 390",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 7 390",
+      "passed": true
+    },
+    {
+      "check": "rendered model 7 1440",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 7 1440",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 7 1440",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 7 1440",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 7 1440",
+      "passed": true
+    },
+    {
+      "check": "rendered model 8 390",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 8 390",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 8 390",
+      "passed": true
+    },
+    {
+      "check": "rendered model 8 1440",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 8 1440",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 8 1440",
+      "passed": true
+    },
+    {
+      "check": "rendered model 9 390",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 9 390",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 9 390",
+      "passed": true
+    },
+    {
+      "check": "rendered model 9 1440",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 9 1440",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 9 1440",
+      "passed": true
+    },
+    {
+      "check": "rendered model 10 390",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 10 390",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 10 390",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 10 390",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 10 390",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 10 390",
+      "passed": true
+    },
+    {
+      "check": "rendered model 10 1440",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 10 1440",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 10 1440",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 10 1440",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 10 1440",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 10 1440",
+      "passed": true
+    },
+    {
+      "check": "rendered model 11 390",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 11 390",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 11 390",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 11 390",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 11 390",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 11 390",
+      "passed": true
+    },
+    {
+      "check": "rendered model 11 1440",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 11 1440",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 11 1440",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 11 1440",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 11 1440",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 11 1440",
+      "passed": true
+    },
+    {
+      "check": "rendered model 12 390",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 12 390",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 12 390",
+      "passed": true
+    },
+    {
+      "check": "rendered model 12 1440",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 12 1440",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 12 1440",
+      "passed": true
+    },
+    {
+      "check": "browser checkout committed order and navigated to confirmation",
+      "passed": true
+    },
+    {
+      "check": "browser confirmation exists exactly once in PostgreSQL",
+      "passed": true
+    },
+    {
+      "check": "retired cart route follows upstream product-list compatibility contract",
+      "passed": true
+    },
+    {
+      "check": "retired cart artwork cannot contaminate current purchase page",
+      "passed": true
+    },
+    {
+      "check": "reopening a confirmed product never auto-submits another order",
+      "passed": true
+    },
+    {
+      "check": "unknown-result fixture actually committed",
+      "passed": true
+    },
+    {
+      "check": "UNKNOWN_RESULT prevents a second submit",
+      "passed": true
+    },
+    {
+      "check": "lost response replay creates no duplicate order",
+      "passed": true
+    },
+    {
+      "check": "empty search is explicit",
+      "passed": true
+    },
+    {
+      "check": "offline state recovers through its real retry control",
+      "passed": true
+    },
+    {
+      "check": "loading state holds a real catalog request",
+      "passed": true
+    },
+    {
+      "check": "loading resolves to live catalog",
+      "passed": true
+    },
+    {
+      "check": "phone validation rejects malformed input before submission",
+      "passed": true
+    },
+    {
+      "check": "browser fixture pauses new orders",
+      "passed": true
+    },
+    {
+      "check": "purchase button visibly disabled during sales pause",
+      "passed": true
+    },
+    {
+      "check": "browser fixture resumes service",
+      "passed": true
+    },
+    {
+      "check": "page overflow home 320",
+      "passed": true
+    },
+    {
+      "check": "page overflow catalog 320",
+      "passed": true
+    },
+    {
+      "check": "page overflow detail 320",
+      "passed": true
+    },
+    {
+      "check": "page overflow cart 320",
+      "passed": true
+    },
+    {
+      "check": "page overflow account 320",
+      "passed": true
+    },
+    {
+      "check": "page overflow admin 320",
+      "passed": true
+    },
+    {
+      "check": "page overflow admin-products 320",
+      "passed": true
+    },
+    {
+      "check": "page overflow admin-orders 320",
+      "passed": true
+    },
+    {
+      "check": "page overflow media 320",
+      "passed": true
+    },
+    {
+      "check": "page overflow operations 320",
+      "passed": true
+    },
+    {
+      "check": "page overflow dashboard 320",
+      "passed": true
+    },
+    {
+      "check": "page overflow home 390",
+      "passed": true
+    },
+    {
+      "check": "page overflow catalog 390",
+      "passed": true
+    },
+    {
+      "check": "page overflow detail 390",
+      "passed": true
+    },
+    {
+      "check": "page overflow cart 390",
+      "passed": true
+    },
+    {
+      "check": "page overflow account 390",
+      "passed": true
+    },
+    {
+      "check": "page overflow admin 390",
+      "passed": true
+    },
+    {
+      "check": "page overflow admin-products 390",
+      "passed": true
+    },
+    {
+      "check": "page overflow admin-orders 390",
+      "passed": true
+    },
+    {
+      "check": "page overflow media 390",
+      "passed": true
+    },
+    {
+      "check": "page overflow operations 390",
+      "passed": true
+    },
+    {
+      "check": "page overflow dashboard 390",
+      "passed": true
+    },
+    {
+      "check": "page overflow home 768",
+      "passed": true
+    },
+    {
+      "check": "page overflow catalog 768",
+      "passed": true
+    },
+    {
+      "check": "page overflow detail 768",
+      "passed": true
+    },
+    {
+      "check": "page overflow cart 768",
+      "passed": true
+    },
+    {
+      "check": "page overflow account 768",
+      "passed": true
+    },
+    {
+      "check": "page overflow admin 768",
+      "passed": true
+    },
+    {
+      "check": "page overflow admin-products 768",
+      "passed": true
+    },
+    {
+      "check": "page overflow admin-orders 768",
+      "passed": true
+    },
+    {
+      "check": "page overflow media 768",
+      "passed": true
+    },
+    {
+      "check": "page overflow operations 768",
+      "passed": true
+    },
+    {
+      "check": "page overflow dashboard 768",
+      "passed": true
+    },
+    {
+      "check": "page overflow home 1024",
+      "passed": true
+    },
+    {
+      "check": "page overflow catalog 1024",
+      "passed": true
+    },
+    {
+      "check": "page overflow detail 1024",
+      "passed": true
+    },
+    {
+      "check": "page overflow cart 1024",
+      "passed": true
+    },
+    {
+      "check": "page overflow account 1024",
+      "passed": true
+    },
+    {
+      "check": "page overflow admin 1024",
+      "passed": true
+    },
+    {
+      "check": "page overflow admin-products 1024",
+      "passed": true
+    },
+    {
+      "check": "page overflow admin-orders 1024",
+      "passed": true
+    },
+    {
+      "check": "page overflow media 1024",
+      "passed": true
+    },
+    {
+      "check": "page overflow operations 1024",
+      "passed": true
+    },
+    {
+      "check": "page overflow dashboard 1024",
+      "passed": true
+    },
+    {
+      "check": "page overflow home 1440",
+      "passed": true
+    },
+    {
+      "check": "print hides skip home",
+      "passed": true
+    },
+    {
+      "check": "page overflow catalog 1440",
+      "passed": true
+    },
+    {
+      "check": "page overflow detail 1440",
+      "passed": true
+    },
+    {
+      "check": "page overflow cart 1440",
+      "passed": true
+    },
+    {
+      "check": "page overflow account 1440",
+      "passed": true
+    },
+    {
+      "check": "page overflow admin 1440",
+      "passed": true
+    },
+    {
+      "check": "page overflow admin-products 1440",
+      "passed": true
+    },
+    {
+      "check": "page overflow admin-orders 1440",
+      "passed": true
+    },
+    {
+      "check": "page overflow media 1440",
+      "passed": true
+    },
+    {
+      "check": "print hides skip media",
+      "passed": true
+    },
+    {
+      "check": "page overflow operations 1440",
+      "passed": true
+    },
+    {
+      "check": "page overflow dashboard 1440",
+      "passed": true
+    },
+    {
+      "check": "print hides skip dashboard",
+      "passed": true
+    },
+    {
+      "check": "no browser JavaScript errors",
+      "passed": true
+    },
+    {
+      "check": "bounded socket count after requests",
+      "passed": true
+    },
+    {
+      "check": "real transport instrumentation recorded",
+      "passed": true
+    }
+  ]
+}

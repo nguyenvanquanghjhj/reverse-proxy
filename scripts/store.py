@@ -16,7 +16,7 @@ ROOT=Path(__file__).resolve().parents[1]
 
 def configure(path):
     if path.exists():
-        allowed={'SHOP_DB_URL','SHOP_DB_USER','SHOP_DB_PASSWORD','SHOP_FILES_DIR','SHOP_DB_MAX_CONNECTIONS','SHOP_MAX_PDF_BYTES','STORE_ORIGIN','STORE_ENV','STORE_ADMIN_EMAIL'}
+        allowed={'SHOP_DB_URL','SHOP_DB_USER','SHOP_DB_PASSWORD','SHOP_FILES_DIR','SHOP_DB_MAX_CONNECTIONS','SHOP_DB_POOL_ENABLED','SHOP_MAX_PDF_BYTES','STORE_ORIGIN','STORE_ENV','STORE_ADMIN_EMAIL'}
         for line in path.read_text(encoding='utf-8-sig').splitlines():
             line=line.strip()
             if not line or line.startswith('#'):continue

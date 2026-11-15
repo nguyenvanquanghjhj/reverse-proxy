@@ -1,0 +1,32 @@
+{
+  "run_id": 43683180239,
+  "sha": "41634ca44e0e33f22d02eec448f4ba0252420792",
+  "url": "https://github.com/nguyenvanquanghjhj/reverse-proxy/actions/runs/43683180239",
+  "conclusion": "success",
+  "jobs": [
+    {
+      "id": 132718010010,
+      "name": "core-java-windows",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 132718010200,
+      "name": "docker-live",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 132718010203,
+      "name": "tools-and-config",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 132718010254,
+      "name": "core-java-linux",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ]
+}

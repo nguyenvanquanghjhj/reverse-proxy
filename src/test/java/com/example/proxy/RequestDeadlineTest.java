@@ -16,6 +16,16 @@ public final class RequestDeadlineTest {
             check(RequestDeadline.currentOrNew(100) == deadline, "nested failure restores budget");
         });
         check(RequestDeadline.currentOrNew(1) != deadline, "thread-local removed");
+        RequestDeadline.run(deadline,()->{
+            RequestDeadline.forRoute(500);
+            check(RequestDeadline.currentOrNew(1)==deadline,"direct handler fallback cannot leak a new thread-local budget");
+        });
+        RequestDeadline.run(deadline,()->{
+            check(RequestDeadline.forRoute(50)==123,"outer route extension");
+            RequestDeadline.run(deadline,()->check(RequestDeadline.forRoute(20)==456,"nested route extension"),ignored->456);
+            check(RequestDeadline.forRoute(50)==123,"nested extension scope restored");
+        },ignored->123);
+        check(RequestDeadline.currentOrNew(1)!=123,"extension scope removed");
         try (var tasks = Executors.newVirtualThreadPerTaskExecutor()) {
             check(tasks.submit(() -> RequestDeadline.currentOrNew(1) != deadline).get(1,TimeUnit.SECONDS), "no cross-request budget");
         }

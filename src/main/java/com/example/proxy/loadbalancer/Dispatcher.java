@@ -19,6 +19,7 @@ public final class Dispatcher {
     private final Map<BackendServer, BackendMetrics> metrics = new LinkedHashMap<>();
     private final Map<BackendServer, EstimatedWork> work = new LinkedHashMap<>();
     private final Map<BackendServer, CircuitBreaker> circuits = new LinkedHashMap<>();
+    private final Map<BackendServer, CapabilityRouting.Status> capabilities = new LinkedHashMap<>();
     private long workRejected;
     private long decisionSequence;
     private AdaptiveDecision lastDecision;
@@ -39,6 +40,7 @@ public final class Dispatcher {
             metrics.put(b, new BackendMetrics(b, config.getInitialLatencyMs()));
             circuits.put(b, new CircuitBreaker(config));
             work.put(b, new EstimatedWork(config.getInitialLatencyMs()));
+            capabilities.put(b, CapabilityRouting.Status.unknown());
         });
     }
     /** Cycles strategies atomically with dispatch selection; in-flight leases remain valid. */
@@ -79,10 +81,17 @@ public final class Dispatcher {
             List<AdaptiveDecision.Candidate> explanation = config.isDecisionTraceEnabled() && adaptive ? new ArrayList<>() : null;
             int total = 0;
             boolean workLimited = false;
+            String requiredCapability = config.isCapabilityRoutingEnabled()
+                    ? CapabilityRouting.required(method, uri) : null;
             // 2. Snapshot eligible backends in configuration order, under this same lock.
             for (BackendMetrics value : metrics.values()) {
                 var snapshot = value.snapshot(now, config);
                 total += snapshot.inFlight();
+                if (requiredCapability != null && !capabilities.get(snapshot.backend())
+                        .supports(requiredCapability, now, config.getMetricsStaleMs())) {
+                    if (explanation != null) explanation.add(explain(snapshot, "CAPABILITY_UNAVAILABLE", null));
+                    continue;
+                }
                 if (!snapshot.eligible() || !circuits.get(snapshot.backend()).eligible(now)) {
                     if (explanation != null) explanation.add(explain(snapshot, !snapshot.alive() ? "DOWN" : snapshot.draining()?"DRAINING"
                             : !snapshot.eligible() ? "INFLIGHT_LIMIT" : "CIRCUIT_UNAVAILABLE", null));
@@ -200,6 +209,13 @@ public final class Dispatcher {
             state.drain(remotelyDraining,true,clock.getAsLong());
         } finally {lock.unlock();}
     }
+    /** Generated probe guards late /ready responses from old backend generations. */
+    public void recordCapabilities(BackendServer backend, Probe probe, CapabilityRouting.Status status) {
+        lock.lock();
+        try { if (require(backend).healthGeneration() == probe.generation())
+            capabilities.put(backend, status.withObservedAt(clock.getAsLong())); }
+        finally { lock.unlock(); }
+    }
     public boolean isDraining(BackendServer backend){lock.lock();try{return require(backend).draining();}finally{lock.unlock();}}
     public boolean setDraining(String id,boolean enabled){
         lock.lock();try{
@@ -252,6 +268,7 @@ public final class Dispatcher {
             json.append("{\"id\":").append(Json.quote(s.backend().getId())).append(",\"host\":").append(Json.quote(s.backend().host()))
                 .append(",\"port\":").append(s.backend().port()).append(",\"state\":").append(Json.quote(s.state()))
                 .append(",\"alive\":").append(s.alive()).append(",\"inFlight\":").append(s.inFlight())
+                .append(",\"capabilities\":").append(capabilities.get(s.backend()).json())
                 .append(",\"draining\":").append(s.draining())
                 .append(",\"dispatched\":").append(s.dispatched()).append(",\"completed\":").append(s.completed())
                 .append(",\"errors\":").append(s.errors()).append(",\"latencyEwmaMs\":").append(number(s.latencyEwmaMs()))

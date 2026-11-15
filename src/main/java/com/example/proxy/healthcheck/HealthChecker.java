@@ -3,6 +3,7 @@ package com.example.proxy.healthcheck;
 import com.example.proxy.backend.BackendServer;
 import com.example.proxy.config.ProxyConfig;
 import com.example.proxy.loadbalancer.Dispatcher;
+import com.example.proxy.loadbalancer.CapabilityRouting;
 import com.example.proxy.metrics.BackendMetrics;
 import com.example.proxy.util.AppLogger;
 import java.io.ByteArrayOutputStream;
@@ -80,6 +81,20 @@ public final class HealthChecker implements AutoCloseable {
                 log.info("event=backend_state backend="+backend.getId()+" state="+current);
                 lastState=current;
             }
+            if (healthy && config.isCapabilityRoutingEnabled()) {
+                var capabilityProbe = dispatcher.beginProbe(backend);
+                try {
+                    var readiness = fetch(backend.getBaseUrl() + "/ready");
+                    if (running.get()) dispatcher.recordCapabilities(backend, capabilityProbe,
+                            (readiness.statusCode() == 200 || readiness.statusCode() == 503)
+                                ? CapabilityRouting.parse(readiness.body())
+                                : CapabilityRouting.Status.unknown());
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt(); break;
+                } catch (ExecutionException | TimeoutException | IllegalArgumentException failure) {
+                    dispatcher.recordCapabilities(backend, capabilityProbe, CapabilityRouting.Status.unknown());
+                }
+            }
             if (healthy) {
                 var metricsProbe = dispatcher.beginProbe(backend);
                 try {
@@ -100,8 +115,11 @@ public final class HealthChecker implements AutoCloseable {
         }
     }
     private HttpResponse<byte[]> fetch(String address) throws InterruptedException, ExecutionException, TimeoutException {
-        var request = HttpRequest.newBuilder(URI.create(address))
-                .timeout(Duration.ofMillis(config.getHealthCheckTimeoutMs())).GET().build();
+        var builder = HttpRequest.newBuilder(URI.create(address))
+                .timeout(Duration.ofMillis(config.getHealthCheckTimeoutMs()));
+        String token = System.getenv("PBL4_PROBE_TOKEN");
+        if (token != null && !token.isBlank()) builder.header("X-PBL4-Probe-Token", token);
+        var request = builder.GET().build();
         CompletableFuture<HttpResponse<byte[]>> response;
         synchronized (this) {
             if (stopped) throw new InterruptedException("Health checker is closed");

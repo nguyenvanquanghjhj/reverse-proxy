@@ -50,7 +50,8 @@ public final class DemoBackendServer implements AutoCloseable {
         store = StoreApplication.enabled() ? new StoreApplication(ShopConfig.environment()) : null;
         workers = new Semaphore(capacity, true);
         admission = new RequestAdmission(capacity * 8); // Executing plus waiting; reject excess immediately.
-        server = HttpServer.create(new InetSocketAddress("127.0.0.1", port), 64);
+        server = HttpServer.create(new InetSocketAddress(
+                System.getenv().getOrDefault("PBL4_BACKEND_BIND_HOST", "127.0.0.1"), port), 64);
         server.setExecutor(executor);
         server.createContext("/", this::handle);
         previousCpuNanos = os.getProcessCpuTime(); previousSampleNanos = System.nanoTime();
@@ -74,21 +75,34 @@ public final class DemoBackendServer implements AutoCloseable {
     private void handle(HttpExchange exchange) throws IOException {
         try (exchange) {
             String path = exchange.getRequestURI().getPath();
+            if (LargeFileHandler.matches(path) && Set.of("GET","HEAD").contains(exchange.getRequestMethod()))
+                com.example.proxy.util.RequestDeadline.forRoute(120000);
             switch (path) {
                 case "/health" -> {exchange.getResponseHeaders().set("X-Backend-Draining",Boolean.toString(healthy&&admission.draining()));respond(exchange, healthy && !admission.draining() ? 200 : 503, healthy&&admission.draining() ? "DRAINING" : healthy ? "UP" : "DOWN", "text/plain");}
                 case "/live" -> respond(exchange, healthy ? 200 : 503, healthy ? "UP" : "DOWN", "text/plain");
                 case "/ready" -> readiness(exchange);
                 case "/__test/store-fault" -> storeFaults.control(exchange);
-                case "/metrics" -> respond(exchange, 200, metrics(), "text/plain");
+                case "/metrics" -> { if (!probeAllowed(exchange))
+                    respond(exchange, 403, "Metrics access denied", "text/plain");
+                    else respond(exchange, 200, metrics(), "text/plain"); }
                 case "/control", "/down", "/up" -> control(exchange, path);
                 default -> workload(exchange, path);
             }
         }
     }
+    private static boolean probeAllowed(HttpExchange exchange) {
+        if (exchange.getRequestHeaders().containsKey("X-Forwarded-For")) return false;
+        if (exchange.getRemoteAddress().getAddress().isLoopbackAddress()) return true;
+        String configured = System.getenv("PBL4_PROBE_TOKEN");
+        String provided = exchange.getRequestHeaders().getFirst("X-PBL4-Probe-Token");
+        return configured != null && configured.length() >= 32 && provided != null
+            && java.security.MessageDigest.isEqual(
+                configured.getBytes(java.nio.charset.StandardCharsets.UTF_8),
+                provided.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+    }
     private void readiness(HttpExchange exchange) throws IOException {
-        if (!exchange.getRemoteAddress().getAddress().isLoopbackAddress()
-                || exchange.getRequestHeaders().containsKey("X-Forwarded-For")) {
-            respond(exchange,403,"Readiness is direct-loopback only","text/plain");return;
+        if (!probeAllowed(exchange)) {
+            respond(exchange,403,"Readiness access denied","text/plain");return;
         }
         if (!Set.of("GET","HEAD").contains(exchange.getRequestMethod())) {
             exchange.getResponseHeaders().set("Allow","GET, HEAD");respond(exchange,405,"Method not allowed","text/plain");return;
@@ -157,6 +171,9 @@ public final class DemoBackendServer implements AutoCloseable {
             if (!acquired) { respond(exchange, 503, "Backend queue timeout", "text/plain"); return; }
             active.incrementAndGet(); started = System.nanoTime();
             if (!healthy) { respond(exchange, 503, "Backend is down", "text/plain"); return; }
+            if (LargeFileHandler.matches(path)) {
+                LargeFileHandler.serve(exchange); completed.incrementAndGet(); return;
+            }
             if (store != null && StoreApplication.matches(path)) {
                 exchange.getResponseHeaders().set("X-Backend", "backend-" + getPort());
                 if(storeFaults.before(exchange))return;

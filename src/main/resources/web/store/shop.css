@@ -733,3 +733,8 @@ dialog .actions {
     scroll-behavior: auto !important;
   }
 }
+@media print {
+  .skip {
+    display: none !important;
+  }
+}

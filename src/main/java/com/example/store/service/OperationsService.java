@@ -87,6 +87,7 @@ public final class OperationsService {
         result.put("configuration_version",settings==null?null:settings.get("version"));
         var capabilities=new LinkedHashMap<String,Object>();
         capabilities.put("static_files","AVAILABLE");
+        capabilities.put("file_read",database&&files?"AVAILABLE":"UNAVAILABLE");
         capabilities.put("catalog",database?"AVAILABLE":"UNAVAILABLE");
         capabilities.put("order_create",capability(database,settings,"sales_enabled"));
         capabilities.put("document_download",capability(database&&files,settings,"downloads_enabled"));

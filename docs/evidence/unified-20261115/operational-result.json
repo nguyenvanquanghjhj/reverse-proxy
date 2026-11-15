@@ -1,0 +1,621 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "check": "three real PostgreSQL-backed JVMs ready",
+      "passed": true
+    },
+    {
+      "check": "real JDBC rollback/reset/concurrency/broken-connection recovery pool=false",
+      "passed": true
+    },
+    {
+      "check": "real JDBC rollback/reset/concurrency/broken-connection recovery pool=true",
+      "passed": true
+    },
+    {
+      "check": "ETag conditional GET returns 304 without body through proxy",
+      "passed": true
+    },
+    {
+      "check": "ETag equals actual JavaScript SHA-256",
+      "passed": true
+    },
+    {
+      "check": "private response remains no-store: /shop",
+      "passed": true
+    },
+    {
+      "check": "private response remains no-store: /api/store/products",
+      "passed": true
+    },
+    {
+      "check": "private response remains no-store: /api/store/session",
+      "passed": true
+    },
+    {
+      "check": "real Edge fetch observes conditional 304 without body",
+      "passed": true
+    },
+    {
+      "check": "B2 JVM stays alive across its real PostgreSQL network cut",
+      "passed": true
+    },
+    {
+      "check": "B2 static asset survives real DB connection loss",
+      "passed": true
+    },
+    {
+      "check": "18 orders succeed and avoid B2 after its DB loss",
+      "passed": true
+    },
+    {
+      "check": "RR still routes DB-independent static assets to B2",
+      "passed": true
+    },
+    {
+      "check": "business pause preserves HTTP 423 through capability routing",
+      "passed": true
+    },
+    {
+      "check": "all DB dependencies down fail closed before dispatch",
+      "passed": true
+    },
+    {
+      "check": "all DB dependencies down still serve static assets",
+      "passed": true
+    },
+    {
+      "check": "same-build HTTP JDBC A/B 60 orders pool=false repeat=0",
+      "passed": true
+    },
+    {
+      "check": "same-build HTTP JDBC A/B 60 orders pool=false repeat=1",
+      "passed": true
+    },
+    {
+      "check": "same-build HTTP JDBC A/B 60 orders pool=false repeat=2",
+      "passed": true
+    },
+    {
+      "check": "same-build HTTP JDBC A/B 60 orders pool=true repeat=0",
+      "passed": true
+    },
+    {
+      "check": "same-build HTTP JDBC A/B 60 orders pool=true repeat=1",
+      "passed": true
+    },
+    {
+      "check": "same-build HTTP JDBC A/B 60 orders pool=true repeat=2",
+      "passed": true
+    },
+    {
+      "check": "QoS rejects excess normal traffic while reserved capacity remains",
+      "passed": true
+    },
+    {
+      "check": "QoS real-peer cap bounds competing order POST",
+      "passed": true
+    },
+    {
+      "check": "reserved valid order and admitted normal requests complete",
+      "passed": true
+    },
+    {
+      "check": "runtime defaults retain upstream pool OFF and QoS OFF",
+      "passed": true
+    },
+    {
+      "check": "operator missing token rejected",
+      "passed": true
+    },
+    {
+      "check": "operator wrong token rejected",
+      "passed": true
+    },
+    {
+      "check": "operator correct token accepted",
+      "passed": true
+    },
+    {
+      "check": "forwarded identity never bypasses the operator token",
+      "passed": true
+    }
+  ],
+  "evidence": {
+    "jdbc": [
+      {
+        "status": "PASS",
+        "pool": "{\"enabled\":false,\"idle\":0,\"created\":56,\"reused\":0,\"discarded\":1}",
+        "p95_ms": 258.9697,
+        "distinct_backend_pids": 48,
+        "transactions": 48
+      },
+      {
+        "transactions": 48,
+        "status": "PASS",
+        "pool": "{\"enabled\":true,\"idle\":3,\"created\":4,\"reused\":52,\"discarded\":1}",
+        "p95_ms": 143.1791,
+        "distinct_backend_pids": 4
+      }
+    ],
+    "etag": {
+      "etag": "\"e7e347fe1312cb1a07ea76fe2e8f039f0ab03455909678abc8f2c88886bd5a3b\"",
+      "sha256": "e7e347fe1312cb1a07ea76fe2e8f039f0ab03455909678abc8f2c88886bd5a3b",
+      "browser": {
+        "status": 304,
+        "bytes": 0
+      }
+    },
+    "b2_database_down": [
+      {
+        "id": "127.0.0.1:19001",
+        "host": "127.0.0.1",
+        "port": 19001,
+        "state": "UP",
+        "alive": true,
+        "inFlight": 0,
+        "capabilities": {
+          "catalog": "AVAILABLE",
+          "document_download": "AVAILABLE",
+          "file_read": "AVAILABLE",
+          "document_upload": "AVAILABLE",
+          "order_create": "AVAILABLE",
+          "static_files": "AVAILABLE"
+        },
+        "draining": false,
+        "dispatched": 7,
+        "completed": 7,
+        "errors": 0,
+        "latencyEwmaMs": 14.5647395712,
+        "recoveries": 0,
+        "errorEwma": 0.0,
+        "cpuLoad": 0.03327951619447544,
+        "memoryLoad": 0.10245684055387552,
+        "telemetryAgeMs": 115,
+        "telemetryFresh": true,
+        "capacity": 4,
+        "effectiveCapacity": 4.0,
+        "scoreMs": 18.425284174345126,
+        "warmup": 1.0,
+        "remoteActiveRequests": 0,
+        "remoteQueuedRequests": 0,
+        "externalOutstanding": 0,
+        "inFlightLimit": 64,
+        "circuitState": "CLOSED",
+        "circuitFailures": 0,
+        "circuitOpenCount": 0,
+        "circuitProbeInFlight": false
+      },
+      {
+        "id": "127.0.0.1:19002",
+        "host": "127.0.0.1",
+        "port": 19002,
+        "state": "UP",
+        "alive": true,
+        "inFlight": 0,
+        "capabilities": {
+          "catalog": "UNAVAILABLE",
+          "document_download": "UNAVAILABLE",
+          "file_read": "UNAVAILABLE",
+          "document_upload": "UNAVAILABLE",
+          "order_create": "UNAVAILABLE",
+          "static_files": "AVAILABLE"
+        },
+        "draining": false,
+        "dispatched": 7,
+        "completed": 7,
+        "errors": 0,
+        "latencyEwmaMs": 7.894015948799999,
+        "recoveries": 0,
+        "errorEwma": 0.0,
+        "cpuLoad": 0.028742594821012935,
+        "memoryLoad": 0.08646788124378248,
+        "telemetryAgeMs": 86,
+        "telemetryFresh": true,
+        "capacity": 4,
+        "effectiveCapacity": 4.0,
+        "scoreMs": 9.96972388735598,
+        "warmup": 1.0,
+        "remoteActiveRequests": 0,
+        "remoteQueuedRequests": 0,
+        "externalOutstanding": 0,
+        "inFlightLimit": 64,
+        "circuitState": "CLOSED",
+        "circuitFailures": 0,
+        "circuitOpenCount": 0,
+        "circuitProbeInFlight": false
+      },
+      {
+        "id": "127.0.0.1:19003",
+        "host": "127.0.0.1",
+        "port": 19003,
+        "state": "UP",
+        "alive": true,
+        "inFlight": 0,
+        "capabilities": {
+          "catalog": "AVAILABLE",
+          "document_download": "AVAILABLE",
+          "file_read": "AVAILABLE",
+          "document_upload": "AVAILABLE",
+          "order_create": "AVAILABLE",
+          "static_files": "AVAILABLE"
+        },
+        "draining": false,
+        "dispatched": 6,
+        "completed": 6,
+        "errors": 0,
+        "latencyEwmaMs": 8.04682192,
+        "recoveries": 0,
+        "errorEwma": 0.0,
+        "cpuLoad": 0.04198806330229975,
+        "memoryLoad": 0.08811451331349472,
+        "telemetryAgeMs": 97,
+        "telemetryFresh": true,
+        "capacity": 4,
+        "effectiveCapacity": 4.0,
+        "scoreMs": 10.21282436035858,
+        "warmup": 1.0,
+        "remoteActiveRequests": 0,
+        "remoteQueuedRequests": 0,
+        "externalOutstanding": 0,
+        "inFlightLimit": 64,
+        "circuitState": "CLOSED",
+        "circuitFailures": 0,
+        "circuitOpenCount": 0,
+        "circuitProbeInFlight": false
+      }
+    ],
+    "all_databases_down": [
+      {
+        "id": "127.0.0.1:19001",
+        "host": "127.0.0.1",
+        "port": 19001,
+        "state": "UP",
+        "alive": true,
+        "inFlight": 0,
+        "capabilities": {
+          "catalog": "UNAVAILABLE",
+          "document_download": "UNAVAILABLE",
+          "file_read": "UNAVAILABLE",
+          "document_upload": "UNAVAILABLE",
+          "order_create": "UNAVAILABLE",
+          "static_files": "AVAILABLE"
+        },
+        "draining": false,
+        "dispatched": 23,
+        "completed": 23,
+        "errors": 0,
+        "latencyEwmaMs": 4.937887193764439,
+        "recoveries": 0,
+        "errorEwma": 0.0,
+        "cpuLoad": 0.007270514519038593,
+        "memoryLoad": 0.1942300548136048,
+        "telemetryAgeMs": 102,
+        "telemetryFresh": true,
+        "capacity": 4,
+        "effectiveCapacity": 4.0,
+        "scoreMs": 6.188180703169168,
+        "warmup": 1.0,
+        "remoteActiveRequests": 0,
+        "remoteQueuedRequests": 0,
+        "externalOutstanding": 0,
+        "inFlightLimit": 64,
+        "circuitState": "CLOSED",
+        "circuitFailures": 0,
+        "circuitOpenCount": 0,
+        "circuitProbeInFlight": false
+      },
+      {
+        "id": "127.0.0.1:19002",
+        "host": "127.0.0.1",
+        "port": 19002,
+        "state": "UP",
+        "alive": true,
+        "inFlight": 0,
+        "capabilities": {
+          "catalog": "UNAVAILABLE",
+          "document_download": "UNAVAILABLE",
+          "file_read": "UNAVAILABLE",
+          "document_upload": "UNAVAILABLE",
+          "order_create": "UNAVAILABLE",
+          "static_files": "AVAILABLE"
+        },
+        "draining": false,
+        "dispatched": 13,
+        "completed": 13,
+        "errors": 0,
+        "latencyEwmaMs": 3.6398286352822273,
+        "recoveries": 0,
+        "errorEwma": 0.0,
+        "cpuLoad": 0.00686766016229092,
+        "memoryLoad": 0.16955684585632466,
+        "telemetryAgeMs": 100,
+        "telemetryFresh": true,
+        "capacity": 4,
+        "effectiveCapacity": 4.0,
+        "scoreMs": 4.560797653738307,
+        "warmup": 1.0,
+        "remoteActiveRequests": 0,
+        "remoteQueuedRequests": 0,
+        "externalOutstanding": 0,
+        "inFlightLimit": 64,
+        "circuitState": "CLOSED",
+        "circuitFailures": 0,
+        "circuitOpenCount": 0,
+        "circuitProbeInFlight": false
+      },
+      {
+        "id": "127.0.0.1:19003",
+        "host": "127.0.0.1",
+        "port": 19003,
+        "state": "UP",
+        "alive": true,
+        "inFlight": 0,
+        "capabilities": {
+          "catalog": "UNAVAILABLE",
+          "document_download": "UNAVAILABLE",
+          "file_read": "UNAVAILABLE",
+          "document_upload": "UNAVAILABLE",
+          "order_create": "UNAVAILABLE",
+          "static_files": "AVAILABLE"
+        },
+        "draining": false,
+        "dispatched": 22,
+        "completed": 22,
+        "errors": 0,
+        "latencyEwmaMs": 5.110912613993245,
+        "recoveries": 0,
+        "errorEwma": 0.0,
+        "cpuLoad": 0.008813630901231719,
+        "memoryLoad": 0.18669224740576953,
+        "telemetryAgeMs": 93,
+        "telemetryFresh": true,
+        "capacity": 4,
+        "effectiveCapacity": 4.0,
+        "scoreMs": 6.408523499139439,
+        "warmup": 1.0,
+        "remoteActiveRequests": 0,
+        "remoteQueuedRequests": 0,
+        "externalOutstanding": 0,
+        "inFlightLimit": 64,
+        "circuitState": "CLOSED",
+        "circuitFailures": 0,
+        "circuitOpenCount": 0,
+        "circuitProbeInFlight": false
+      }
+    ],
+    "pool_ab": [
+      {
+        "pool": "false",
+        "label": "jdbc-false-0",
+        "n": 60,
+        "concurrency": 6,
+        "seed": 20261115,
+        "load_model": "closed-loop fixed concurrency",
+        "elapsed_s": 1.941390400000273,
+        "attempted_rps": 30.905684915301713,
+        "configured_offered_rps": null,
+        "background_workers": 0,
+        "observed_start_rps": 32.36031000299495,
+        "max_schedule_lag_ms": 0,
+        "measured": {
+          "count": 60,
+          "success": 60,
+          "successful_rps": 30.905684915301713,
+          "window_success": 60,
+          "success_drained_after_window": 0,
+          "http_errors": 0,
+          "client_errors": 0,
+          "timeouts": 0,
+          "proxy_rejected_503": 0,
+          "backend_http503": 0,
+          "p50_ms": 178.5476000000017,
+          "p95_ms": 249.41209999997227,
+          "p99_ms": null,
+          "successful_p95_ms": 249.41209999997227,
+          "successful_p99_ms": null,
+          "distribution": {
+            "127.0.0.1:19001": 20,
+            "127.0.0.1:19002": 20,
+            "127.0.0.1:19003": 20
+          }
+        }
+      },
+      {
+        "pool": "false",
+        "label": "jdbc-false-1",
+        "n": 60,
+        "concurrency": 6,
+        "seed": 20261116,
+        "load_model": "closed-loop fixed concurrency",
+        "elapsed_s": 1.9279051999997137,
+        "attempted_rps": 31.121862216051344,
+        "configured_offered_rps": null,
+        "background_workers": 0,
+        "observed_start_rps": 33.60981871547592,
+        "max_schedule_lag_ms": 0,
+        "measured": {
+          "count": 60,
+          "success": 60,
+          "successful_rps": 31.121862216051344,
+          "window_success": 60,
+          "success_drained_after_window": 0,
+          "http_errors": 0,
+          "client_errors": 0,
+          "timeouts": 0,
+          "proxy_rejected_503": 0,
+          "backend_http503": 0,
+          "p50_ms": 178.05749999979525,
+          "p95_ms": 248.50240000023405,
+          "p99_ms": null,
+          "successful_p95_ms": 248.50240000023405,
+          "successful_p99_ms": null,
+          "distribution": {
+            "127.0.0.1:19001": 20,
+            "127.0.0.1:19002": 20,
+            "127.0.0.1:19003": 20
+          }
+        }
+      },
+      {
+        "pool": "false",
+        "label": "jdbc-false-2",
+        "n": 60,
+        "concurrency": 6,
+        "seed": 20261117,
+        "load_model": "closed-loop fixed concurrency",
+        "elapsed_s": 1.8385928000002423,
+        "attempted_rps": 32.63365330267371,
+        "configured_offered_rps": null,
+        "background_workers": 0,
+        "observed_start_rps": 35.82879689146845,
+        "max_schedule_lag_ms": 0,
+        "measured": {
+          "count": 60,
+          "success": 60,
+          "successful_rps": 32.63365330267371,
+          "window_success": 60,
+          "success_drained_after_window": 0,
+          "http_errors": 0,
+          "client_errors": 0,
+          "timeouts": 0,
+          "proxy_rejected_503": 0,
+          "backend_http503": 0,
+          "p50_ms": 174.7690999995939,
+          "p95_ms": 222.9127000000517,
+          "p99_ms": null,
+          "successful_p95_ms": 222.9127000000517,
+          "successful_p99_ms": null,
+          "distribution": {
+            "127.0.0.1:19001": 20,
+            "127.0.0.1:19002": 20,
+            "127.0.0.1:19003": 20
+          }
+        }
+      },
+      {
+        "pool": "true",
+        "label": "jdbc-true-0",
+        "n": 60,
+        "concurrency": 6,
+        "seed": 20261115,
+        "load_model": "closed-loop fixed concurrency",
+        "elapsed_s": 1.1023783999999068,
+        "attempted_rps": 54.427771806854224,
+        "configured_offered_rps": null,
+        "background_workers": 0,
+        "observed_start_rps": 57.74503297289255,
+        "max_schedule_lag_ms": 0,
+        "measured": {
+          "count": 60,
+          "success": 60,
+          "successful_rps": 54.427771806854224,
+          "window_success": 60,
+          "success_drained_after_window": 0,
+          "http_errors": 0,
+          "client_errors": 0,
+          "timeouts": 0,
+          "proxy_rejected_503": 0,
+          "backend_http503": 0,
+          "p50_ms": 91.19160000000193,
+          "p95_ms": 271.17299999963507,
+          "p99_ms": null,
+          "successful_p95_ms": 271.17299999963507,
+          "successful_p99_ms": null,
+          "distribution": {
+            "127.0.0.1:19001": 20,
+            "127.0.0.1:19002": 20,
+            "127.0.0.1:19003": 20
+          }
+        }
+      },
+      {
+        "pool": "true",
+        "label": "jdbc-true-1",
+        "n": 60,
+        "concurrency": 6,
+        "seed": 20261116,
+        "load_model": "closed-loop fixed concurrency",
+        "elapsed_s": 0.5985027000001537,
+        "attempted_rps": 100.25017430996483,
+        "configured_offered_rps": null,
+        "background_workers": 0,
+        "observed_start_rps": 113.76485306214121,
+        "max_schedule_lag_ms": 0,
+        "measured": {
+          "count": 60,
+          "success": 60,
+          "successful_rps": 100.25017430996483,
+          "window_success": 60,
+          "success_drained_after_window": 0,
+          "http_errors": 0,
+          "client_errors": 0,
+          "timeouts": 0,
+          "proxy_rejected_503": 0,
+          "backend_http503": 0,
+          "p50_ms": 50.65939999985858,
+          "p95_ms": 105.15239999995174,
+          "p99_ms": null,
+          "successful_p95_ms": 105.15239999995174,
+          "successful_p99_ms": null,
+          "distribution": {
+            "127.0.0.1:19001": 20,
+            "127.0.0.1:19002": 20,
+            "127.0.0.1:19003": 20
+          }
+        }
+      },
+      {
+        "pool": "true",
+        "label": "jdbc-true-2",
+        "n": 60,
+        "concurrency": 6,
+        "seed": 20261117,
+        "load_model": "closed-loop fixed concurrency",
+        "elapsed_s": 0.6770398999997269,
+        "attempted_rps": 88.62106945251558,
+        "configured_offered_rps": null,
+        "background_workers": 0,
+        "observed_start_rps": 101.03540743038921,
+        "max_schedule_lag_ms": 0,
+        "measured": {
+          "count": 60,
+          "success": 60,
+          "successful_rps": 88.62106945251558,
+          "window_success": 60,
+          "success_drained_after_window": 0,
+          "http_errors": 0,
+          "client_errors": 0,
+          "timeouts": 0,
+          "proxy_rejected_503": 0,
+          "backend_http503": 0,
+          "p50_ms": 60.64749999995911,
+          "p95_ms": 114.25490000010541,
+          "p99_ms": null,
+          "successful_p95_ms": 114.25490000010541,
+          "successful_p99_ms": null,
+          "distribution": {
+            "127.0.0.1:19001": 20,
+            "127.0.0.1:19002": 20,
+            "127.0.0.1:19003": 20
+          }
+        }
+      }
+    ],
+    "qos": {
+      "capacity": 8,
+      "reservedCritical": 2,
+      "active": 0,
+      "activeNormal": 0,
+      "activeCritical": 0,
+      "acceptedNormal": 7,
+      "acceptedCritical": 1,
+      "rejectedNormal": 1,
+      "rejectedCritical": 1,
+      "rejectedPeerCap": 1,
+      "criticalPeers": 0
+    }
+  },
+  "schema": "v6_2b54c0146001"
+}

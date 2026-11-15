@@ -1,0 +1,82 @@
+name: pbl4-stack
+x-store-env: &store-env
+  SHOP_ENABLED: 'true'
+  STORE_ENABLED: 'true'
+  SHOP_DB_URL: jdbc:postgresql://postgres:5432/pbl4
+  SHOP_DB_USER: pbl4
+  SHOP_DB_PASSWORD: ${PBL4_DB_PASSWORD:?Set PBL4_DB_PASSWORD in .env}
+  SHOP_FILES_DIR: /data/files
+  SHOP_DB_MAX_CONNECTIONS: '8'
+  SHOP_DB_POOL_ENABLED: 'true'
+  SHOP_MAX_PDF_BYTES: '262144'
+  STORE_ENV: demonstration
+  STORE_ORIGIN: http://127.0.0.1:8080
+  PBL4_BACKEND_BIND_HOST: 0.0.0.0
+  PBL4_LARGE_FILES_ROOT: /data/files/public-downloads
+  PBL4_PROBE_TOKEN: ${PBL4_PROBE_TOKEN:?Set PBL4_PROBE_TOKEN in .env}
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: pbl4
+      POSTGRES_DB: pbl4
+      POSTGRES_PASSWORD: ${PBL4_DB_PASSWORD:?Missing password}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U pbl4 -d pbl4']
+      interval: 5s
+      timeout: 3s
+      retries: 15
+    restart: unless-stopped
+    networks: [private]
+  init:
+    build:
+      context: ../..
+      dockerfile: deploy/compose/Dockerfile
+    environment: *store-env
+    command: ["sh", "-ec", "java com.example.store.StoreAdmin migrate && java com.example.store.StoreAdmin seed"]
+    volumes:
+      - store-files:/data/files
+    depends_on:
+      postgres: {condition: service_healthy}
+    restart: 'no'
+    networks: [private]
+  backend1: &backend
+    build:
+      context: ../..
+      dockerfile: deploy/compose/Dockerfile
+    environment: *store-env
+    command: ['java','com.example.backend.DemoBackendServer','9001','8','10']
+    volumes:
+      - store-files:/data/files
+    depends_on:
+      init: {condition: service_completed_successfully}
+    restart: unless-stopped
+    networks: [private]
+  backend2:
+    <<: *backend
+    command: ['java','com.example.backend.DemoBackendServer','9002','8','10']
+  backend3:
+    <<: *backend
+    command: ['java','com.example.backend.DemoBackendServer','9003','8','10']
+  proxy:
+    build:
+      context: ../..
+      dockerfile: deploy/compose/Dockerfile
+    environment:
+      PBL4_PROBE_TOKEN: ${PBL4_PROBE_TOKEN:?Set PBL4_PROBE_TOKEN in .env}
+      PBL4_CONTROL_TOKEN: ${PBL4_CONTROL_TOKEN:-}
+    command: ['java','com.example.proxy.Main','deploy/compose/proxy.properties']
+    ports: ['127.0.0.1:8080:8080']
+    depends_on:
+      backend1: {condition: service_started}
+      backend2: {condition: service_started}
+      backend3: {condition: service_started}
+    restart: unless-stopped
+    networks: [private]
+volumes:
+  postgres-data: {}
+  store-files: {}
+networks:
+  private: {internal: false}

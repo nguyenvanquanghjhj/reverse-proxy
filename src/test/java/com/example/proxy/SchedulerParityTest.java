@@ -52,11 +52,11 @@ public final class SchedulerParityTest {
                         }
                     }
                 }
-                golden.append(d.snapshotJson()).append('\n').append(d.decisionJson()).append('\n').append(d.prometheus());
+                golden.append(schedulerSnapshot(d.snapshotJson())).append('\n').append(d.decisionJson()).append('\n').append(d.prometheus());
             }
             held.forEach(Dispatcher.Lease::close);
             d.stopAccepting(); d.acquire();
-            golden.append(d.snapshotJson()).append('\n').append(d.decisionJson()).append('\n');
+            golden.append(schedulerSnapshot(d.snapshotJson())).append('\n').append(d.decisionJson()).append('\n');
         }
         String digest = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(golden.toString().getBytes(StandardCharsets.UTF_8)));
         // Frozen pre-V6 source independently replayed in v6-evidence/baseline-build.
@@ -73,5 +73,14 @@ public final class SchedulerParityTest {
             throw new AssertionError("Scheduler baseline changed: " + digest);
         }
         System.out.println("SchedulerParityTest PASS: 2700 deterministic states match 6550f5c baseline");
+    }
+    private static String schedulerSnapshot(String snapshot) {
+        // Capability routing is off in this historical replay. Project only the additive
+        // empty capability field; preserve every scheduler value and BOTH frozen hashes.
+        String field = ",\"capabilities\":{}";
+        String projected = snapshot.replace(field, "");
+        if (snapshot.length() - projected.length() != 3 * field.length())
+            throw new AssertionError("Expected three unknown capability maps with capability routing disabled");
+        return projected;
     }
 }

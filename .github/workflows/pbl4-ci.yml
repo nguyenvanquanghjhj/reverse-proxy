@@ -1,0 +1,95 @@
+name: PBL4 integrated regression
+on:
+  push:
+    branches: [main, feature/pbl4-unified-20261115, feature/pbl4-core-streaming-20261115]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  core-java-linux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Maven Java 21 test mains and XML regression reports
+        run: mvn -B --no-transfer-progress -Pshop test
+      - name: Upload Java test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: java-regression-linux
+          path: |
+            target/test-reports/
+            target/surefire-reports/
+          if-no-files-found: warn
+  core-java-windows:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Native Windows build and complete Java TestSuite
+        shell: pwsh
+        run: ./scripts/test.ps1
+      - name: Windows operations tests including real junction refusal
+        run: python -m unittest discover -s scripts/ops -p "test_*.py" -v
+      - name: Windows preserved HTTP tooling tests
+        run: python scripts/test_defense_live.py
+      - name: Upload Windows test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: java-regression-windows
+          path: target/test-reports/
+          if-no-files-found: warn
+  tools-and-config:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Existing HTTP tooling tests (preserved from source bundle)
+        run: python scripts/test_defense_live.py
+      - name: Operations and database safeguard unit tests
+        run: |
+          python scripts/ops/test_ops.py
+          python scripts/ops/test_consistent_bundle.py
+          python scripts/ops/test_docker_operator.py
+          python scripts/ops/test_lan_benchmark.py
+      - name: Compose syntax and dependency resolution (no deployment)
+        env:
+          PBL4_DB_PASSWORD: 'CI_NO_SECRET_VALUE_0123456789abcdef'
+          PBL4_PROBE_TOKEN: 'CI_NO_SECRET_VALUE_0123456789abcdef0123456789abcdef0123456789abcdef'
+          PBL4_CONTROL_TOKEN: 'CI_NO_SECRET_VALUE_0123456789abcdef0123456789abcdef0123456789abcdef'
+        run: docker compose -f deploy/compose/compose.yaml config --quiet
+  docker-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Real Docker control plane and restart persistence in a new stack
+        run: python scripts/ops/acceptance_docker_ci.py --out target/docker-acceptance
+      - name: Upload Docker runtime evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-live-acceptance
+          path: target/docker-acceptance/
+          if-no-files-found: error
