@@ -34,6 +34,11 @@
     "bytes": 164,
     "original": "D:\\PBL4\\unified-acceptance-20261115\\operational-03\\jdbc-true.log"
   },
+  "browser-result.json": {
+    "sha256": "7fdaddfec68db1525bbfb4bc6915d009edf749c66f0ed68dfb44e394452d8dc4",
+    "bytes": 43473,
+    "original": "D:\\PBL4\\unified-acceptance-20261115\\browser-acceptance-03\\acceptance.json"
+  },
   "backup-restore-result.json": {
     "sha256": "0f5a0d4b08e2ba7f896888d17cc19aab0cbb440c8234945689b447e66bd5f773",
     "bytes": 1792,
@@ -49,9 +54,34 @@
     "bytes": 61,
     "original": "D:\\PBL4\\unified-acceptance-20261115\\backup-restore\\restored-store-audit.log"
   },
+  "operations-result.json": {
+    "sha256": "5497a71d9a877cf8dc8ec1107d7db43421a6d48c356c2da0f8449816032b553f",
+    "bytes": 2141,
+    "original": "D:\\PBL4\\unified-acceptance-20261115\\operations-live\\result.json"
+  },
+  "watchdog-events.jsonl": {
+    "sha256": "5f704ceef12d9a486f07c6737973d433c19bb467283bed66c2180703b222db1b",
+    "bytes": 391,
+    "original": "D:\\PBL4\\unified-acceptance-20261115\\operations-live\\watchdog\\watchdog-events.jsonl"
+  },
   "preservation-result.json": {
     "sha256": "de93a3b9b21e777af4e2ef8743f14e83e0b002458c8151a94606a1d6178ee246",
     "bytes": 540,
     "original": "D:\\PBL4\\unified-acceptance-20261115\\preservation-result.json"
+  },
+  "github-ci.json": {
+    "sha256": "b09704cb70ea5ef9cdb389b2b9667b5ce736b6affb0dac971f3d7a435df29508",
+    "bytes": 7059,
+    "original": "D:\\PBL4\\unified-acceptance-20261115\\github-ci.json"
+  },
+  "docker-result.json": {
+    "sha256": "ec9ce32b4f6aa8de087bd6af05bb9e58122772d4854ffc5f73115da655c06d65",
+    "bytes": 4101,
+    "original": "D:\\PBL4\\unified-acceptance-20261115\\github-docker\\result.json"
+  },
+  "docker-job.log": {
+    "sha256": "17881c35413488561ba335dd2f350278d3feb9600572900fc06c7e3a1ac8776b",
+    "bytes": 21228,
+    "original": "D:\\PBL4\\unified-acceptance-20261115\\github-docker\\job.log"
   }
 }

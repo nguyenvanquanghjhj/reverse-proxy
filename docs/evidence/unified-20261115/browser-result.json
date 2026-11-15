@@ -1,0 +1,1381 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "check": "12 real phone models in catalog",
+      "passed": true
+    },
+    {
+      "check": "verified model name 1",
+      "passed": true
+    },
+    {
+      "check": "photographs match source manifest 1",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 1 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 1 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 1 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 1 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 1 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 1 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "verified model name 2",
+      "passed": true
+    },
+    {
+      "check": "photographs match source manifest 2",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 2 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 2 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 2 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 2 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 2 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 2 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "verified model name 3",
+      "passed": true
+    },
+    {
+      "check": "photographs match source manifest 3",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 3 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 3 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 3 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 3 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 3 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 3 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "verified model name 4",
+      "passed": true
+    },
+    {
+      "check": "photographs match source manifest 4",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 4 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 4 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 4 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 4 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 4 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 4 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "verified model name 5",
+      "passed": true
+    },
+    {
+      "check": "photographs match source manifest 5",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 5 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 5 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 5 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 5 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 5 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 5 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "verified model name 6",
+      "passed": true
+    },
+    {
+      "check": "photographs match source manifest 6",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 6 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 6 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 6 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 6 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 6 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 6 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "verified model name 7",
+      "passed": true
+    },
+    {
+      "check": "photographs match source manifest 7",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 7 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 7 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 7 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 7 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 7 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 7 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "verified model name 8",
+      "passed": true
+    },
+    {
+      "check": "photographs match source manifest 8",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 8 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 8 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 8 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "verified model name 9",
+      "passed": true
+    },
+    {
+      "check": "photographs match source manifest 9",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 9 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 9 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 9 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "verified model name 10",
+      "passed": true
+    },
+    {
+      "check": "photographs match source manifest 10",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 10 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 10 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 10 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 10 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 10 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 10 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "verified model name 11",
+      "passed": true
+    },
+    {
+      "check": "photographs match source manifest 11",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 11 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 11 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 11 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 11 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 11 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 11 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "verified model name 12",
+      "passed": true
+    },
+    {
+      "check": "photographs match source manifest 12",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 12 backend 19001",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 12 backend 19002",
+      "passed": true
+    },
+    {
+      "check": "shared image integrity 12 backend 19003",
+      "passed": true
+    },
+    {
+      "check": "24 same-key requests across 3 JVMs create one order",
+      "passed": true
+    },
+    {
+      "check": "SQL order count and stock decrement exactly once",
+      "passed": true
+    },
+    {
+      "check": "order ownership enforced",
+      "passed": true
+    },
+    {
+      "check": "guest capability retrieves own order",
+      "passed": true
+    },
+    {
+      "check": "24 concurrent checkouts cannot oversell final unit",
+      "passed": true
+    },
+    {
+      "check": "SQL stock never negative",
+      "passed": true
+    },
+    {
+      "check": "admin server-side authorization",
+      "passed": true
+    },
+    {
+      "check": "admin login",
+      "passed": true
+    },
+    {
+      "check": "session continuity on 19001",
+      "passed": true
+    },
+    {
+      "check": "session continuity on 19002",
+      "passed": true
+    },
+    {
+      "check": "session continuity on 19003",
+      "passed": true
+    },
+    {
+      "check": "shared service controls update",
+      "passed": true
+    },
+    {
+      "check": "sales pause rejects NEW order",
+      "passed": true
+    },
+    {
+      "check": "committed idempotent replay survives sales pause",
+      "passed": true
+    },
+    {
+      "check": "PDF pause enforced",
+      "passed": true
+    },
+    {
+      "check": "image remains available during PDF pause",
+      "passed": true
+    },
+    {
+      "check": "PDF upload pause enforced",
+      "passed": true
+    },
+    {
+      "check": "service controls resume",
+      "passed": true
+    },
+    {
+      "check": "file byte integrity IMAGE",
+      "passed": true
+    },
+    {
+      "check": "file byte integrity IMAGE",
+      "passed": true
+    },
+    {
+      "check": "file byte integrity PDF",
+      "passed": true
+    },
+    {
+      "check": "PDF-only dependency failure does not poison global backend health",
+      "passed": true
+    },
+    {
+      "check": "catalog and orders work while B2 PDF fails",
+      "passed": true
+    },
+    {
+      "check": "fault controls blocked through proxy",
+      "passed": true
+    },
+    {
+      "check": "operator drain marks backend ineligible",
+      "passed": true
+    },
+    {
+      "check": "new requests avoid draining backend",
+      "passed": true
+    },
+    {
+      "check": "existing PDF leases finish during drain",
+      "passed": true
+    },
+    {
+      "check": "draining remains observable",
+      "passed": true
+    },
+    {
+      "check": "current storefront protects product UI with login",
+      "passed": true
+    },
+    {
+      "check": "real browser registration reaches all twelve models",
+      "passed": true
+    },
+    {
+      "check": "admin can rename and reorder a photograph",
+      "passed": true
+    },
+    {
+      "check": "photo and attribution follow image hash after rename/reorder",
+      "passed": true
+    },
+    {
+      "check": "restore private gallery order",
+      "passed": true
+    },
+    {
+      "check": "rendered model 1 390",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 1 390",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 1 390",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 1 390",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 1 390",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 1 390",
+      "passed": true
+    },
+    {
+      "check": "rendered model 1 1440",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 1 1440",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 1 1440",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 1 1440",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 1 1440",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 1 1440",
+      "passed": true
+    },
+    {
+      "check": "rendered model 2 390",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 2 390",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 2 390",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 2 390",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 2 390",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 2 390",
+      "passed": true
+    },
+    {
+      "check": "rendered model 2 1440",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 2 1440",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 2 1440",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 2 1440",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 2 1440",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 2 1440",
+      "passed": true
+    },
+    {
+      "check": "rendered model 3 390",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 3 390",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 3 390",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 3 390",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 3 390",
+      "passed": true
+    },
+    {
+      "check": "rendered model 3 1440",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 3 1440",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 3 1440",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 3 1440",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 3 1440",
+      "passed": true
+    },
+    {
+      "check": "rendered model 4 390",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 4 390",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 4 390",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 4 390",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 4 390",
+      "passed": true
+    },
+    {
+      "check": "rendered model 4 1440",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 4 1440",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 4 1440",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 4 1440",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 4 1440",
+      "passed": true
+    },
+    {
+      "check": "rendered model 5 390",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 5 390",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 5 390",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 5 390",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 5 390",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 5 390",
+      "passed": true
+    },
+    {
+      "check": "rendered model 5 1440",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 5 1440",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 5 1440",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 5 1440",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 5 1440",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 5 1440",
+      "passed": true
+    },
+    {
+      "check": "rendered model 6 390",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 6 390",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 6 390",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 6 390",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 6 390",
+      "passed": true
+    },
+    {
+      "check": "rendered model 6 1440",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 6 1440",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 6 1440",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 6 1440",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 6 1440",
+      "passed": true
+    },
+    {
+      "check": "rendered model 7 390",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 7 390",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 7 390",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 7 390",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 7 390",
+      "passed": true
+    },
+    {
+      "check": "rendered model 7 1440",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 7 1440",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 7 1440",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 7 1440",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 7 1440",
+      "passed": true
+    },
+    {
+      "check": "rendered model 8 390",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 8 390",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 8 390",
+      "passed": true
+    },
+    {
+      "check": "rendered model 8 1440",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 8 1440",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 8 1440",
+      "passed": true
+    },
+    {
+      "check": "rendered model 9 390",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 9 390",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 9 390",
+      "passed": true
+    },
+    {
+      "check": "rendered model 9 1440",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 9 1440",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 9 1440",
+      "passed": true
+    },
+    {
+      "check": "rendered model 10 390",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 10 390",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 10 390",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 10 390",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 10 390",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 10 390",
+      "passed": true
+    },
+    {
+      "check": "rendered model 10 1440",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 10 1440",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 10 1440",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 10 1440",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 10 1440",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 10 1440",
+      "passed": true
+    },
+    {
+      "check": "rendered model 11 390",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 11 390",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 11 390",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 11 390",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 11 390",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 11 390",
+      "passed": true
+    },
+    {
+      "check": "rendered model 11 1440",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 11 1440",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 11 1440",
+      "passed": true
+    },
+    {
+      "check": "gallery decodes 11 1440",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 11 1440",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 11 1440",
+      "passed": true
+    },
+    {
+      "check": "rendered model 12 390",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 12 390",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 12 390",
+      "passed": true
+    },
+    {
+      "check": "rendered model 12 1440",
+      "passed": true
+    },
+    {
+      "check": "primary photo decodes 12 1440",
+      "passed": true
+    },
+    {
+      "check": "manufacturer source retained on product 12 1440",
+      "passed": true
+    },
+    {
+      "check": "browser checkout committed order and navigated to confirmation",
+      "passed": true
+    },
+    {
+      "check": "browser confirmation exists exactly once in PostgreSQL",
+      "passed": true
+    },
+    {
+      "check": "retired cart route follows upstream product-list compatibility contract",
+      "passed": true
+    },
+    {
+      "check": "retired cart artwork cannot contaminate current purchase page",
+      "passed": true
+    },
+    {
+      "check": "reopening a confirmed product never auto-submits another order",
+      "passed": true
+    },
+    {
+      "check": "unknown-result fixture actually committed",
+      "passed": true
+    },
+    {
+      "check": "UNKNOWN_RESULT prevents a second submit",
+      "passed": true
+    },
+    {
+      "check": "lost response replay creates no duplicate order",
+      "passed": true
+    },
+    {
+      "check": "empty search is explicit",
+      "passed": true
+    },
+    {
+      "check": "offline state recovers through its real retry control",
+      "passed": true
+    },
+    {
+      "check": "loading state holds a real catalog request",
+      "passed": true
+    },
+    {
+      "check": "loading resolves to live catalog",
+      "passed": true
+    },
+    {
+      "check": "phone validation rejects malformed input before submission",
+      "passed": true
+    },
+    {
+      "check": "browser fixture pauses new orders",
+      "passed": true
+    },
+    {
+      "check": "purchase button visibly disabled during sales pause",
+      "passed": true
+    },
+    {
+      "check": "browser fixture resumes service",
+      "passed": true
+    },
+    {
+      "check": "page overflow home 320",
+      "passed": true
+    },
+    {
+      "check": "page overflow catalog 320",
+      "passed": true
+    },
+    {
+      "check": "page overflow detail 320",
+      "passed": true
+    },
+    {
+      "check": "page overflow cart 320",
+      "passed": true
+    },
+    {
+      "check": "page overflow account 320",
+      "passed": true
+    },
+    {
+      "check": "page overflow admin 320",
+      "passed": true
+    },
+    {
+      "check": "page overflow admin-products 320",
+      "passed": true
+    },
+    {
+      "check": "page overflow admin-orders 320",
+      "passed": true
+    },
+    {
+      "check": "page overflow media 320",
+      "passed": true
+    },
+    {
+      "check": "page overflow operations 320",
+      "passed": true
+    },
+    {
+      "check": "page overflow dashboard 320",
+      "passed": true
+    },
+    {
+      "check": "page overflow home 390",
+      "passed": true
+    },
+    {
+      "check": "page overflow catalog 390",
+      "passed": true
+    },
+    {
+      "check": "page overflow detail 390",
+      "passed": true
+    },
+    {
+      "check": "page overflow cart 390",
+      "passed": true
+    },
+    {
+      "check": "page overflow account 390",
+      "passed": true
+    },
+    {
+      "check": "page overflow admin 390",
+      "passed": true
+    },
+    {
+      "check": "page overflow admin-products 390",
+      "passed": true
+    },
+    {
+      "check": "page overflow admin-orders 390",
+      "passed": true
+    },
+    {
+      "check": "page overflow media 390",
+      "passed": true
+    },
+    {
+      "check": "page overflow operations 390",
+      "passed": true
+    },
+    {
+      "check": "page overflow dashboard 390",
+      "passed": true
+    },
+    {
+      "check": "page overflow home 768",
+      "passed": true
+    },
+    {
+      "check": "page overflow catalog 768",
+      "passed": true
+    },
+    {
+      "check": "page overflow detail 768",
+      "passed": true
+    },
+    {
+      "check": "page overflow cart 768",
+      "passed": true
+    },
+    {
+      "check": "page overflow account 768",
+      "passed": true
+    },
+    {
+      "check": "page overflow admin 768",
+      "passed": true
+    },
+    {
+      "check": "page overflow admin-products 768",
+      "passed": true
+    },
+    {
+      "check": "page overflow admin-orders 768",
+      "passed": true
+    },
+    {
+      "check": "page overflow media 768",
+      "passed": true
+    },
+    {
+      "check": "page overflow operations 768",
+      "passed": true
+    },
+    {
+      "check": "page overflow dashboard 768",
+      "passed": true
+    },
+    {
+      "check": "page overflow home 1024",
+      "passed": true
+    },
+    {
+      "check": "page overflow catalog 1024",
+      "passed": true
+    },
+    {
+      "check": "page overflow detail 1024",
+      "passed": true
+    },
+    {
+      "check": "page overflow cart 1024",
+      "passed": true
+    },
+    {
+      "check": "page overflow account 1024",
+      "passed": true
+    },
+    {
+      "check": "page overflow admin 1024",
+      "passed": true
+    },
+    {
+      "check": "page overflow admin-products 1024",
+      "passed": true
+    },
+    {
+      "check": "page overflow admin-orders 1024",
+      "passed": true
+    },
+    {
+      "check": "page overflow media 1024",
+      "passed": true
+    },
+    {
+      "check": "page overflow operations 1024",
+      "passed": true
+    },
+    {
+      "check": "page overflow dashboard 1024",
+      "passed": true
+    },
+    {
+      "check": "page overflow home 1440",
+      "passed": true
+    },
+    {
+      "check": "print hides skip home",
+      "passed": true
+    },
+    {
+      "check": "page overflow catalog 1440",
+      "passed": true
+    },
+    {
+      "check": "page overflow detail 1440",
+      "passed": true
+    },
+    {
+      "check": "page overflow cart 1440",
+      "passed": true
+    },
+    {
+      "check": "page overflow account 1440",
+      "passed": true
+    },
+    {
+      "check": "page overflow admin 1440",
+      "passed": true
+    },
+    {
+      "check": "page overflow admin-products 1440",
+      "passed": true
+    },
+    {
+      "check": "page overflow admin-orders 1440",
+      "passed": true
+    },
+    {
+      "check": "page overflow media 1440",
+      "passed": true
+    },
+    {
+      "check": "print hides skip media",
+      "passed": true
+    },
+    {
+      "check": "page overflow operations 1440",
+      "passed": true
+    },
+    {
+      "check": "page overflow dashboard 1440",
+      "passed": true
+    },
+    {
+      "check": "print hides skip dashboard",
+      "passed": true
+    },
+    {
+      "check": "no browser JavaScript errors",
+      "passed": true
+    },
+    {
+      "check": "bounded socket count after requests",
+      "passed": true
+    },
+    {
+      "check": "real transport instrumentation recorded",
+      "passed": true
+    }
+  ],
+  "source": {
+    "src\\main\\java\\com\\example\\backend\\DemoBackendServer.java": "0507f7c0d04cadc14099c9aca0d8de36912257511798b0cf3504b8798ab7158b",
+    "src\\main\\java\\com\\example\\backend\\DemoPage.java": "9564fb6360bd460e690036a3d78a0ab0c8d8db7a08491c6c1c907cca216b73ea",
+    "src\\main\\java\\com\\example\\backend\\RequestAdmission.java": "af4586c491328e15cff5eb36326f1c6f0af010ef2b285aa368b8d1e0949e82c4",
+    "src\\main\\java\\com\\example\\backend\\StoreFaults.java": "583fbad1f23b6e81a3d79877aa5540d1633d27932c6ab2d75d2b01461bdc48a9",
+    "src\\main\\java\\com\\example\\proxy\\backend\\BackendServer.java": "5efae00c66e9514c6d211724be9cb38faebee6cea18d8f4d07fdbd9f93a4af7d",
+    "src\\main\\java\\com\\example\\proxy\\config\\ConfigLoader.java": "3a9e86ac1a231f25a54f5d3822be2e4f8fd48c0d1eaa84d9dae9956820b36646",
+    "src\\main\\java\\com\\example\\proxy\\config\\ProxyConfig.java": "f9b61c2c09effbe209ff7650a101d5b286879e7633b3477b7bf7040918d20bb6",
+    "src\\main\\java\\com\\example\\proxy\\handler\\ClientRateLimiter.java": "94023a6731590e34c3e586338534683aad1f5ff3544246a44afe1c4f8579f221",
+    "src\\main\\java\\com\\example\\proxy\\handler\\DownloadBulkhead.java": "94b4e982818b69f9d0af4d08e14c9dd3196ae9b5c4f669e1eaf7db0219471d42",
+    "src\\main\\java\\com\\example\\proxy\\handler\\IncomingRequestValidator.java": "5f1a2a7447d071c0373a46e039aedc47c2f59a47a96b9c43fdf147aa91ab3da2",
+    "src\\main\\java\\com\\example\\proxy\\handler\\PriorityAdmission.java": "8bee91076612455c714c6fb0796bd9bbd3c30e1b167f779fcb674e8b2db197be",
+    "src\\main\\java\\com\\example\\proxy\\handler\\ProxyHandler.java": "0052001b84191b894e464ab228734ea8ab9981dcf3bce4bb4d943b88f857a92a",
+    "src\\main\\java\\com\\example\\proxy\\handler\\ProxyRequestMetrics.java": "6d336c7a84b4fbae5c04455a8dcb549a83e9a3d87a06c0466770e0cdec865469",
+    "src\\main\\java\\com\\example\\proxy\\handler\\UpstreamTransport.java": "021728c049a21e460522da59a057e29f4dde03c2bfd7334e9dafd9cca3ad7d0e",
+    "src\\main\\java\\com\\example\\proxy\\healthcheck\\HealthChecker.java": "ff8323b676501d80b9a794f06b18253a2d66e826e122966e370f66ca4c715983",
+    "src\\main\\java\\com\\example\\proxy\\loadbalancer\\AdaptiveCandidateScorer.java": "185aa52507562fe421fcb4ad4c80abab610ecb1f0810a3d555f2824a750e2579",
+    "src\\main\\java\\com\\example\\proxy\\loadbalancer\\AdaptiveDecision.java": "f4806b9f862b8a598ec4fb5a084e5a7c89675e71ef54311055c6e6c3fa6605b8",
+    "src\\main\\java\\com\\example\\proxy\\loadbalancer\\AdaptiveLoadBalancer.java": "886759a207dab6989e12277aeaa2d79ad00cd2bcbb748e242909938986c4f6c6",
+    "src\\main\\java\\com\\example\\proxy\\loadbalancer\\CapabilityRouting.java": "f3ea68824a054a7e6db9bd3e11f1001d632e940f6dbc423f00299009dd4df6f1",
+    "src\\main\\java\\com\\example\\proxy\\loadbalancer\\CircuitBreaker.java": "c02089641fb3295e608ef5a950f044a645a76a464df63116b5a2d3ee6ad1648d",
+    "src\\main\\java\\com\\example\\proxy\\loadbalancer\\Dispatcher.java": "e9b6aae28d0b016180a0a03bc2b53bf14b5dc60f2ce6d27b1b8c4f65e597f0af",
+    "src\\main\\java\\com\\example\\proxy\\loadbalancer\\EstimatedWork.java": "9b54bfd0d8bfb16af5e3b0491b2e1a1ede42c5fe503af3eecb0812be93da750d",
+    "src\\main\\java\\com\\example\\proxy\\loadbalancer\\LeastConnectionsLoadBalancer.java": "2febf9e3f546f4f135a6b3f0db36f8f03832d2113d6beb427f84efeac6f10070",
+    "src\\main\\java\\com\\example\\proxy\\loadbalancer\\LoadBalancer.java": "6cbf926136053f571b416e34429f6e1d1693a0d02a927c6b7a8e4a19cddc5c7f",
+    "src\\main\\java\\com\\example\\proxy\\loadbalancer\\LoadBalancerFactory.java": "e8a5471bb4930194cd1634cd67ea7cbad7df2aec70910f5e66729455d8180465",
+    "src\\main\\java\\com\\example\\proxy\\loadbalancer\\RoundRobinLoadBalancer.java": "a73da7e229f96a2a7385ee36bd16c989e17b4d3d86bbeb7f197497b31ed0fe43",
+    "src\\main\\java\\com\\example\\proxy\\Main.java": "cccc02419c59b1602790db551d2f7191080ee3842df5e200b2f0594a7166c5aa",
+    "src\\main\\java\\com\\example\\proxy\\metrics\\BackendMetrics.java": "7da174d874d23272a60b0e6e18b3d3d8d7faf217dfc3caad625a32ff1f357e7e",
+    "src\\main\\java\\com\\example\\proxy\\metrics\\TrafficMetrics.java": "c0144175868ce30c9fd2dcf4e732a749cbdc007a2a0feb8587900f8984ceeb92",
+    "src\\main\\java\\com\\example\\proxy\\metrics\\TransportMetrics.java": "6782e32534abcd393eced9ab02c5a027052bad957211bca57d0bcac540467fe4",
+    "src\\main\\java\\com\\example\\proxy\\server\\BoundedRequestExecutor.java": "6d19b65ab54e16142ee237808a30d072a0ebe3ef93585df0c9a35388a30e7ab8",
+    "src\\main\\java\\com\\example\\proxy\\server\\HttpListenerPolicy.java": "35b964e14010b95113408aacb52d58dd760c038df70b342d2470a1d592497088",
+    "src\\main\\java\\com\\example\\proxy\\server\\MonitoringPage.java": "32f15938de475060c8e23d00e5bc2362619f2363e137be169086cbbcc5daedc6",
+    "src\\main\\java\\com\\example\\proxy\\server\\OperatorAuth.java": "c770e28acc54e65cb5948ad3475bb803871ef7f02024c91286757dcd842c9bc3",
+    "src\\main\\java\\com\\example\\proxy\\server\\OperatorCli.java": "418fa4911dc083a5879bb5ffad88c451256fb2521bff6d205dd6cdcc8ae60da1",
+    "src\\main\\java\\com\\example\\proxy\\server\\ReverseProxyServer.java": "d58e871e48013579ae0e52dcb51848f1b5f3942fccd66fa48aab593e4403317f",
+    "src\\main\\java\\com\\example\\proxy\\util\\AppLogger.java": "da708fe665b07c0e37618bcbfba66c0f81425850abbd044efc2971050db9ef17",
+    "src\\main\\java\\com\\example\\proxy\\util\\Json.java": "44d489cef6aafa8a49aa29b1e22d8c4b181d518850a6bf39228f5962b41e804c",
+    "src\\main\\java\\com\\example\\proxy\\util\\RequestDeadline.java": "672d2cc155b1e7d9835abcad00a86294f8c3362e2b60da44f6aac719e3c38857",
+    "src\\main\\java\\com\\example\\shop\\Database.java": "5d864557242c9a32061381801aba0d86ca5f2b787d365a319625438c71d7406a",
+    "src\\main\\java\\com\\example\\shop\\DocumentRepository.java": "642d5c4f4cb98dfb9183587de1dcdcb1b8069fbda434d9bda6320e1f68af9519",
+    "src\\main\\java\\com\\example\\shop\\JsonCodec.java": "4e954e22e24e1fd96a54373d99c3702c04d5096921e345772637b8c2f7d13a63",
+    "src\\main\\java\\com\\example\\shop\\OrderRepository.java": "db222a2f9e9333ebff902b5e7de8f5303e05e64588056bab391c2ea191e6ea03",
+    "src\\main\\java\\com\\example\\shop\\OrderRequest.java": "66a0599892f0e2a5df39810bf70c06e08368f08bea35efb6c0fd3f1ab7efb802",
+    "src\\main\\java\\com\\example\\shop\\ProductRepository.java": "4eafd1160e5e64c447ac72aa19fcf82c902189f2be665dc3ed5fc8e3488ebec1",
+    "src\\main\\java\\com\\example\\shop\\SamplePdf.java": "ebc03ac5bd2b5858d8e139a040d4aa53f6fb68272984520b07b7b6b9bc62445b",
+    "src\\main\\java\\com\\example\\shop\\SharedStorage.java": "87aa9b8ea7e43cfaeb234dc13a510cd89f864012a16e1fc9f8e125d02b9339a9",
+    "src\\main\\java\\com\\example\\shop\\ShopAdmin.java": "8e01a89863160ac5fce5946081ede5a9b7e2cde2d1b3cd335bb8050d4a1a2c5f",
+    "src\\main\\java\\com\\example\\shop\\ShopConfig.java": "83c6ef9afd72bd4fe9b268327554780d1290eb5d8ca459e8a3d3b546fd6db244",
+    "src\\main\\java\\com\\example\\shop\\ShopException.java": "12ccf4004d7898cf86696a12d82fe3580154216fdc9d25b42acac12781644bb7",
+    "src\\main\\java\\com\\example\\shop\\ShopHandler.java": "681fa31637863db4a7746af8e8ec8b34c84339bc87399c91e19de882395daeb1",
+    "src\\main\\java\\com\\example\\shop\\ShopPage.java": "2cd3467cc4b7bd16f6dbf447fd4a9ab5911f61b9cbb70753d1a94807ac756485",
+    "src\\main\\java\\com\\example\\store\\AssetCache.java": "473a2a95088ae82ef8b943c5c03ec42dbb4c143962824edd840222f45205b154",
+    "src\\main\\java\\com\\example\\store\\controller\\Http.java": "3475a88888a963a232dd7d61737302527abc18d356091273ab8be024231bd73b",
+    "src\\main\\java\\com\\example\\store\\controller\\StoreController.java": "5293f25519f507ef803248488496c9dfadcae23eae9d3f3795e8389973616554",
+    "src\\main\\java\\com\\example\\store\\dto\\Checkout.java": "efeca6d41c3328fc3cb25a46368d79f7033a2ae2a9c325bc3a402e7e51d97f40",
+    "src\\main\\java\\com\\example\\store\\RealCatalog.java": "baf0a6b9603ce0077cbace96b7f0c754d7c2148c4bb7477db68a05a6337bf04a",
+    "src\\main\\java\\com\\example\\store\\repository\\CatalogRepository.java": "3fdc0029cdd1e7d96f32c20d454a9e2d9f0a1cbfdad51127b2edaee740d92e3f",
+    "src\\main\\java\\com\\example\\store\\repository\\Sql.java": "1193ba24c4315bb56ef0d59af9d52a6991c82d01df2c8bd9076b7e0663837bb9",
+    "src\\main\\java\\com\\example\\store\\security\\Passwords.java": "b1bc71e69fbe88549d71464864c8226e6785b9d0a19cb8589603b6817c2a58cc",
+    "src\\main\\java\\com\\example\\store\\security\\SessionService.java": "ff8611aa7c785cb6ceda57f0cecabb898b373cac989368cf092e46783e818fcf",
+    "src\\main\\java\\com\\example\\store\\service\\CatalogService.java": "a240ad2ffc99057b40f096c2d6aae486c4198f66b221d9548e62e1ccd50354a0",
+    "src\\main\\java\\com\\example\\store\\service\\FileService.java": "74e48b1d987ef6c5d2da48b50174bc8817ff304c723d19977e5c9f06233ec51f",
+    "src\\main\\java\\com\\example\\store\\service\\OperationsService.java": "a1d7711a2af53b37ffb9ffeac339abe4f05f0c45236ea74616cdeaf4df24b6d8",
+    "src\\main\\java\\com\\example\\store\\service\\OrderService.java": "41a504b1dbfb54b63094043e790bddfa49cd5bd58727eb0176e5363d1686e95f",
+    "src\\main\\java\\com\\example\\store\\storage\\FileStorage.java": "3caa6d1af65257cda9715777f343eb0fc2ea857fb034920ebe39f593286071a3",
+    "src\\main\\java\\com\\example\\store\\storage\\ProductPdf.java": "894cba6c199d5a4689cb5cebddaa6d2f8e71ebfae47c6a932912337f16a79200",
+    "src\\main\\java\\com\\example\\store\\StoreAdmin.java": "47671a8ca036ef3b2411376d82abe1cb1f87785faaddf5b07baaa024fc1b22a5",
+    "src\\main\\java\\com\\example\\store\\StoreApplication.java": "1d4a92655382166df78aaa0de99dc7d62c898026ba26a9562dea49fc77a53e97",
+    "src\\main\\java\\com\\example\\store\\validation\\Input.java": "02fe2e7f13ec4a993d542a523042fa0c77b7d93bbe4798fec5c64dfe653c8cf9",
+    "src\\main\\resources\\web\\benchmark-comparison.html": "5d0b6bd9da26b8cf8a6dec9e048c9a09d28df6f75d5e4f48b1fd995b15e00741",
+    "src\\main\\resources\\web\\shop\\api.js": "e1d341df47da990f227ecd73c99fdadea6e9c87d97fddcaaabaa2db9526c1c9a",
+    "src\\main\\resources\\web\\shop\\index.html": "b948462b58c2a29550fb53af696223b3cd7e9b17fe591ea3e67cd5749a136922",
+    "src\\main\\resources\\web\\shop\\order-state.js": "cf3e255195abb6aee1315fb2bf7b8f8f13e8848d7b75c53ac802df4413fa8413",
+    "src\\main\\resources\\web\\shop\\shop.css": "7c816223f9806f6740cbbc05869d784a557d898bb98a8e6c3897e6644db1268c",
+    "src\\main\\resources\\web\\shop\\shop.js": "a22501b823389f9518cc18ec6f546d06b52deecd8d1dae8202c81f2a0617bfb6",
+    "src\\main\\resources\\web\\store\\admin.js": "dc68768b1380e463cbc32b0e4c482cd10078a90185a565fa2a21833ee37bb650",
+    "src\\main\\resources\\web\\store\\api.js": "19eadf503af2bbf24a58d392c23c47e12b65afc76cf6cc187d11bb913f0e4581",
+    "src\\main\\resources\\web\\store\\app.js": "e7e347fe1312cb1a07ea76fe2e8f039f0ab03455909678abc8f2c88886bd5a3b",
+    "src\\main\\resources\\web\\store\\cart.js": "63bf59c840fb5c068150d5a7c0a0b9bcc317d66ca2dad84eec1b86591026e3cd",
+    "src\\main\\resources\\web\\store\\checkout.js": "10ae1dd306544adf488c6b1aae83b58f53e8440495f1d73527ad1bff04f8007d",
+    "src\\main\\resources\\web\\store\\images\\real\\catalog.json": "3e1b12e3aca35b0220c858671f717971e65f8a1f50e585be2b12da695b97752e",
+    "src\\main\\resources\\web\\store\\images\\real\\fairphone-4-front.png": "65926ae94c06bde4dda9f0d612d11ed2b8208ec86fc43f9a77ffdc84efd6c6d6",
+    "src\\main\\resources\\web\\store\\images\\real\\fairphone-4-rear.png": "291f6572496e84d789632c028da5ce878b2fa2e9210446d6d2c34ebd4e70d25d",
+    "src\\main\\resources\\web\\store\\images\\real\\fairphone-5-front.jpg": "b420db960a87fd8d395352f23005461e8114f19e18ffc43ff795423f27e5be6d",
+    "src\\main\\resources\\web\\store\\images\\real\\fairphone-5-product.png": "ffabe575646f8890f2e738f3eb248a41e23fc91be4cf366d1bdcb8dba4755ae3",
+    "src\\main\\resources\\web\\store\\images\\real\\google-pixel-6-front.jpg": "6cce906f242f9afed484ff9898af4fbcdf5d02274583e3e0af5a1112535453e9",
+    "src\\main\\resources\\web\\store\\images\\real\\google-pixel-6-rear.jpg": "8a784dcc6f2e30b2f3707faf1f405c5f6e96d19112c79f3ebea96ef69300a242",
+    "src\\main\\resources\\web\\store\\images\\real\\google-pixel-8-front.jpg": "9889e328441c2dd4223bb8121a638596519a8ef958f23ef87d05abcfe330851f",
+    "src\\main\\resources\\web\\store\\images\\real\\google-pixel-8-rear.jpg": "a60ae8a37b5ffaf0693131fb14bd7570a46628b6da551d832c2543687d576853",
+    "src\\main\\resources\\web\\store\\images\\real\\nokia-x20-product.jpg": "a820652f1111d64ba9e9afd6e2b7d2824b0d476f68d55b93ec1cb39a414efec7",
+    "src\\main\\resources\\web\\store\\images\\real\\nothing-phone-1-rear-detail.jpg": "7bc9c11c72831b3293b0e433ef24090b60b36fa386104e3dd1e06a91da766ccc",
+    "src\\main\\resources\\web\\store\\images\\real\\nothing-phone-1-rear.jpg": "735aaa41f3e477868fee2cf55c3e6662bace0e90f7fa151bd146b9680578d29a",
+    "src\\main\\resources\\web\\store\\images\\real\\oneplus-6-front-1.jpg": "553feab4e59e3cc0db7828958f607787f64969ad6ed568997a83410842b37320",
+    "src\\main\\resources\\web\\store\\images\\real\\oneplus-6-front-2.jpg": "a5abe9b0b144cbd470182f0d3703fce2d1f3783a70a8390c843b547c983b086c",
+    "src\\main\\resources\\web\\store\\images\\real\\oneplus-9-pro-camera.jpg": "176b70be08db1b6bcb9f724cfa3ec32871251b109279e567e1553085e9238aa5",
+    "src\\main\\resources\\web\\store\\images\\real\\oneplus-9-pro-rear.jpg": "5e34f5a0956053cac7335f386bcc6c58be447c4268a89ad902e3f27ee09ad4e7",
+    "src\\main\\resources\\web\\store\\images\\real\\samsung-galaxy-s21-front.jpg": "6d640cb497cee78a25ca9c7211377ad80d3c0127e07b5c26dedd284030faa8d0",
+    "src\\main\\resources\\web\\store\\images\\real\\samsung-galaxy-s21-rear.jpg": "6b04f846a613da1eef946736db33dc407cc6d62d4a03823d88d28c09341679d9",
+    "src\\main\\resources\\web\\store\\images\\real\\samsung-galaxy-s22-front.jpg": "355c2adabccfd6fda69441a6ccd87bc593c5af2c00db65ce2dd889ca643d0205",
+    "src\\main\\resources\\web\\store\\images\\real\\samsung-galaxy-s22-rear.jpg": "c317ed9031185f527456c9802f3dfc6ef26ff44360018b1083146304ad80d9d5",
+    "src\\main\\resources\\web\\store\\images\\real\\samsung-galaxy-s23-ultra-rear.png": "0296ee178920c136c64610e03104678fea0be26978f54bde59b85dc7715e1459",
+    "src\\main\\resources\\web\\store\\images\\real\\sources.json": "b6321be2dbd043579e7c66d61e97cf3a27dfd8fd26caf9384ddd86ebd870c7fd",
+    "src\\main\\resources\\web\\store\\images\\real\\xiaomi-mi-11-front.jpg": "baa88753a1df30d224e8fcafb43d384a81484aa12bba9eb8204c14e2392284ef",
+    "src\\main\\resources\\web\\store\\index.html": "912666b58a12c08362835a4230a20dd11d0f36a618750cb435568cf1ae5c9338",
+    "src\\main\\resources\\web\\store\\operations.js": "efb042031df348979fce2be51f4bfafd51f5a85b7d0f3bf3c7cd2d8d7711017a",
+    "src\\main\\resources\\web\\store\\shop.css": "1b270ee9855285eddcfc5c5a1a09f191dd1a417af8e62f04b13d710705ccf4cf",
+    "src\\main\\resources\\web\\store\\site.js": "48eabbfed9a60a12b3c315f9506546149ac081d47df37d508ccfce3e51fc7506",
+    "src\\main\\resources\\web\\store\\store.css": "810e831dc44781d66234e382a2c88269dc19542d98ce239edd3beb8bacd87db7",
+    "src\\main\\resources\\web\\store\\views.js": "3e17a6ecb59452d9a09ee6b2bfa2c77b8fa4297e94ea03ef546ab03bd8a6e257"
+  }
+}

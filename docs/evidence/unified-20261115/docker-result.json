@@ -1,0 +1,192 @@
+{
+  "passed": true,
+  "project": "pbl4-acceptance-43676363709-1",
+  "checks": [
+    {
+      "check": "docker-version exit=0",
+      "passed": true
+    },
+    {
+      "check": "compose-version exit=0",
+      "passed": true
+    },
+    {
+      "check": "compose-config exit=0",
+      "passed": true
+    },
+    {
+      "check": "docker-build exit=0",
+      "passed": true
+    },
+    {
+      "check": "compose-up exit=0",
+      "passed": true
+    },
+    {
+      "check": "real Docker store starts with PostgreSQL and shared storage",
+      "passed": true
+    },
+    {
+      "check": "operator-metrics exit=0",
+      "passed": true
+    },
+    {
+      "check": "operator-metrics exit=0",
+      "passed": true
+    },
+    {
+      "check": "operator-metrics exit=0",
+      "passed": true
+    },
+    {
+      "check": "operator-metrics exit=0",
+      "passed": true
+    },
+    {
+      "check": "operator-metrics exit=0",
+      "passed": true
+    },
+    {
+      "check": "operator metrics works through docker exec into proxy loopback",
+      "passed": true
+    },
+    {
+      "check": "host bridge cannot access private management HTTP endpoint",
+      "passed": true
+    },
+    {
+      "check": "operator-token-missing exit=1",
+      "passed": true
+    },
+    {
+      "check": "container operator rejects missing token",
+      "passed": true
+    },
+    {
+      "check": "operator-token-wrong exit=1",
+      "passed": true
+    },
+    {
+      "check": "container operator rejects wrong token",
+      "passed": true
+    },
+    {
+      "check": "operator-strategy exit=0",
+      "passed": true
+    },
+    {
+      "check": "operator-drain exit=0",
+      "passed": true
+    },
+    {
+      "check": "operator-metrics exit=0",
+      "passed": true
+    },
+    {
+      "check": "Docker operator drain changes actual proxy state",
+      "passed": true
+    },
+    {
+      "check": "Docker traffic avoids drained backend",
+      "passed": true
+    },
+    {
+      "check": "operator-resume exit=0",
+      "passed": true
+    },
+    {
+      "check": "sql-before-order exit=0",
+      "passed": true
+    },
+    {
+      "check": "Docker creates a real shared session",
+      "passed": true
+    },
+    {
+      "check": "Docker checkout commits a real PostgreSQL order",
+      "passed": true
+    },
+    {
+      "check": "sql-after-order exit=0",
+      "passed": true
+    },
+    {
+      "check": "Docker SQL confirms one order and one stock decrement",
+      "passed": true
+    },
+    {
+      "check": "Docker serves verified IMAGE",
+      "passed": true
+    },
+    {
+      "check": "Docker serves verified IMAGE",
+      "passed": true
+    },
+    {
+      "check": "Docker serves verified PDF",
+      "passed": true
+    },
+    {
+      "check": "compose-restart exit=0",
+      "passed": true
+    },
+    {
+      "check": "operator-metrics exit=0",
+      "passed": true
+    },
+    {
+      "check": "operator-metrics exit=0",
+      "passed": true
+    },
+    {
+      "check": "operator-metrics exit=0",
+      "passed": true
+    },
+    {
+      "check": "operator-metrics exit=0",
+      "passed": true
+    },
+    {
+      "check": "operator-metrics exit=0",
+      "passed": true
+    },
+    {
+      "check": "operator-metrics exit=0",
+      "passed": true
+    },
+    {
+      "check": "same-key replay after Docker restart preserves the original order",
+      "passed": true
+    },
+    {
+      "check": "sql-after-restart exit=0",
+      "passed": true
+    },
+    {
+      "check": "order and stock persist across PostgreSQL/container restart",
+      "passed": true
+    },
+    {
+      "check": "shared file survives Docker volume restart",
+      "passed": true
+    },
+    {
+      "check": "shared file survives Docker volume restart",
+      "passed": true
+    },
+    {
+      "check": "shared file survives Docker volume restart",
+      "passed": true
+    },
+    {
+      "check": "docker-health-snapshot exit=0",
+      "passed": true
+    },
+    {
+      "check": "docker-watchdog exit=0",
+      "passed": true
+    }
+  ],
+  "scope": "fresh Linux GitHub runner; actual Docker Engine, PostgreSQL, files and operator exec",
+  "volumes_deleted": false
+}
