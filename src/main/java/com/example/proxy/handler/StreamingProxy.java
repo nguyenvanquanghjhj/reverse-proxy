@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.LongAdder;
 public final class StreamingProxy implements AutoCloseable {
     private static final long LIMIT=1024L*1024*1024;
     private static final Set<String> REQUEST_HEADERS=Set.of("range","if-range","if-none-match","if-match","accept","user-agent","via","x-request-id","x-forwarded-for","x-forwarded-proto");
-    private static final Set<String> RESPONSE_HEADERS=Set.of("etag","accept-ranges","content-range","content-type","content-disposition","last-modified","x-file-sha256","x-service-outcome");
+    private static final Set<String> RESPONSE_HEADERS=Set.of("etag","accept-ranges","content-range","content-type","content-disposition","last-modified","x-file-sha256","x-service-outcome","via");
     private final LongAdder started=new LongAdder(),completed=new LongAdder(),failed=new LongAdder(),active=new LongAdder(),bytesForwarded=new LongAdder();
     private final LongAdder downstreamFailures=new LongAdder(),upstreamFailures=new LongAdder(),timeouts=new LongAdder(),bodies=new LongAdder();
     public String metricsJson(){return "{\"started\":"+started.sum()+",\"completed\":"+completed.sum()+",\"failed\":"+failed.sum()+",\"active\":"+active.sum()+",\"bytes\":"+bytesForwarded.sum()+",\"downstreamFailures\":"+downstreamFailures.sum()+",\"upstreamFailures\":"+upstreamFailures.sum()+",\"timeouts\":"+timeouts.sum()+",\"openBodies\":"+bodies.sum()+"}";}
@@ -116,6 +116,7 @@ public final class StreamingProxy implements AutoCloseable {
                     headers.put(entry.getKey(),new ArrayList<>(entry.getValue()));
             headers.set("Cache-Control","no-store");
             headers.set("X-Content-Type-Options","nosniff");
+            headers.add("Via","1.1 pbl4");
             int status=response.statusCode();
             boolean noBody=method.equals("HEAD") || status==204 || status==304 || status==416;
             if(noBody){

@@ -124,6 +124,7 @@ def main():
             name=f'file-{size}.bin';full=transfer(name)
             check(full['status']==200 and full['bytes']==expected[name]['bytes'] and full['sha256']==expected[name]['sha256'],f'{size} MiB GET through real proxy SHA-256 byte equal')
             check(full['headers']['content-length']==str(expected[name]['bytes']),f'{size} MiB exact fixed-length framing')
+            check('1.1 pbl4' in full['headers'].get('via',''),f'{size} MiB proxy Via response header')
             head=transfer(name,'HEAD')
             check(head['status']==200 and head['bytes']==0 and head['headers']['content-length']==str(expected[name]['bytes']),f'{size} MiB HEAD representation length without body')
             for value,start,length in [('bytes=0-4095',0,4096),('bytes=100000-104095',100000,4096),('bytes=-4096',expected[name]['bytes']-4096,4096)]:

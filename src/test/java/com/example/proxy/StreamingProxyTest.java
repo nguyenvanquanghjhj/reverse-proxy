@@ -44,6 +44,7 @@ public final class StreamingProxyTest {
             var client=HttpClient.newHttpClient();
             var full=client.send(HttpRequest.newBuilder(URI.create(url)).GET().build(),HttpResponse.BodyHandlers.ofByteArray());
             check(full.statusCode()==200,"full status");check(Arrays.equals(data,full.body()),"full bytes");
+            check(full.headers().allValues("Via").contains("1.1 pbl4"),"streaming response identifies intermediary");
             var part=client.send(HttpRequest.newBuilder(URI.create(url)).header("Range","bytes=1024-4095").GET().build(),HttpResponse.BodyHandlers.ofByteArray());
             check(part.statusCode()==206,"partial status");check(Arrays.equals(Arrays.copyOfRange(data,1024,4096),part.body()),"range data");
             check(part.headers().firstValue("content-range").orElse("").equals("bytes 1024-4095/"+data.length),"range header");

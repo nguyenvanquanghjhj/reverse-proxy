@@ -59,10 +59,9 @@ public final class BoundedRequestExecutor implements Executor, AutoCloseable {
             return expires;
         }
         @Override public synchronized void run() {
-            if (!finished) {
-                if (System.nanoTime()<expires) schedule();
-                else owner.interrupt();
-            }
+            // A cancelled old timer may already be waiting for this monitor while
+            // forRoute schedules its replacement. It must not enqueue another timer.
+            if (!finished && System.nanoTime()>=expires) owner.interrupt();
         }
         @Override public synchronized void close() { finished=true; task.cancel(false); }
     }
