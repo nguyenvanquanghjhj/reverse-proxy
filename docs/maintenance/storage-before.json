@@ -1,0 +1,1595 @@
+{
+  "utc": "2026-11-15T06:38:33.344560+00:00",
+  "root": "D:\\PBL4",
+  "git_root": "D:\\PBL4\\reverse-proxy-demo",
+  "boundary": "D:/PBL4 excluding storage-maintenance-20261115; junctions/reparse points listed and never followed. Logical sums are per path; unique allocated bytes de-duplicate hardlinks. NTFS metadata and directory allocation excluded.",
+  "totals": {
+    "logical_bytes": 5416334781,
+    "allocated_bytes_per_path": 5437756544,
+    "unique_allocated_bytes": 5437756544,
+    "files": 25310
+  },
+  "categories": {
+    "logs_evidence": {
+      "logical_bytes": 796944763,
+      "allocated_bytes": 806684128,
+      "files": 6217
+    },
+    "database_backup": {
+      "logical_bytes": 471490985,
+      "allocated_bytes": 471771672,
+      "files": 11516
+    },
+    "media_resources": {
+      "logical_bytes": 142631963,
+      "allocated_bytes": 145830920,
+      "files": 1424
+    },
+    "archives_references_patches": {
+      "logical_bytes": 774598604,
+      "allocated_bytes": 775192856,
+      "files": 348
+    },
+    "reproducible_qa_payload": {
+      "logical_bytes": 2572155775,
+      "allocated_bytes": 2572156968,
+      "files": 27
+    },
+    "portable_toolchain": {
+      "logical_bytes": 463994988,
+      "allocated_bytes": 466860248,
+      "files": 2263
+    },
+    "git": {
+      "logical_bytes": 24605143,
+      "allocated_bytes": 24721632,
+      "files": 110
+    },
+    "build": {
+      "logical_bytes": 16905475,
+      "allocated_bytes": 18495664,
+      "files": 828
+    },
+    "protected_runtime_storage": {
+      "logical_bytes": 137571513,
+      "allocated_bytes": 139814632,
+      "files": 1676
+    },
+    "source_config_docs": {
+      "logical_bytes": 2615193,
+      "allocated_bytes": 3026264,
+      "files": 191
+    },
+    "cache": {
+      "logical_bytes": 12820379,
+      "allocated_bytes": 13201560,
+      "files": 710
+    }
+  },
+  "directories": {
+    "core-upgrade-acceptance-20261115/backup-restore": {
+      "logical_bytes": 8109635,
+      "allocated_bytes": 8197864,
+      "files": 49
+    },
+    "core-upgrade-acceptance-20261115/backup-restore-final": {
+      "logical_bytes": 8108768,
+      "allocated_bytes": 8197904,
+      "files": 49
+    },
+    "core-upgrade-acceptance-20261115/benchmark-01": {
+      "logical_bytes": 10900522,
+      "allocated_bytes": 11205384,
+      "files": 139
+    },
+    "core-upgrade-acceptance-20261115/browser-01": {
+      "logical_bytes": 29233327,
+      "allocated_bytes": 29550088,
+      "files": 160
+    },
+    "core-upgrade-acceptance-20261115/browser-final": {
+      "logical_bytes": 29232421,
+      "allocated_bytes": 29533704,
+      "files": 160
+    },
+    "core-upgrade-acceptance-20261115/browser-release": {
+      "logical_bytes": 29234842,
+      "allocated_bytes": 29541896,
+      "files": 160
+    },
+    "core-upgrade-acceptance-20261115/docker-artifact-feature": {
+      "logical_bytes": 170055,
+      "allocated_bytes": 205296,
+      "files": 37
+    },
+    "core-upgrade-acceptance-20261115/docker-artifact-main": {
+      "logical_bytes": 170024,
+      "allocated_bytes": 205296,
+      "files": 37
+    },
+    "core-upgrade-acceptance-20261115/github-docker-9d": {
+      "logical_bytes": 30924,
+      "allocated_bytes": 36864,
+      "files": 2
+    },
+    "core-upgrade-acceptance-20261115/github-docker-feature": {
+      "logical_bytes": 30933,
+      "allocated_bytes": 36864,
+      "files": 2
+    },
+    "core-upgrade-acceptance-20261115/github-docker-main": {
+      "logical_bytes": 30327,
+      "allocated_bytes": 32768,
+      "files": 2
+    },
+    "core-upgrade-acceptance-20261115/github-feature-416": {
+      "logical_bytes": 98942,
+      "allocated_bytes": 106496,
+      "files": 4
+    },
+    "core-upgrade-acceptance-20261115/github-main": {
+      "logical_bytes": 97433,
+      "allocated_bytes": 102400,
+      "files": 4
+    },
+    "core-upgrade-acceptance-20261115/java-main-linux": {
+      "logical_bytes": 256637,
+      "allocated_bytes": 296616,
+      "files": 66
+    },
+    "core-upgrade-acceptance-20261115/java-main-windows": {
+      "logical_bytes": 253841,
+      "allocated_bytes": 292432,
+      "files": 66
+    },
+    "core-upgrade-acceptance-20261115/java-native-final": {
+      "logical_bytes": 11090845,
+      "allocated_bytes": 11130272,
+      "files": 65
+    },
+    "core-upgrade-acceptance-20261115/java-native-source-final": {
+      "logical_bytes": 11091127,
+      "allocated_bytes": 11130248,
+      "files": 65
+    },
+    "core-upgrade-acceptance-20261115/operational-01": {
+      "logical_bytes": 5469696,
+      "allocated_bytes": 5581792,
+      "files": 70
+    },
+    "core-upgrade-acceptance-20261115/operational-final": {
+      "logical_bytes": 5391564,
+      "allocated_bytes": 5503976,
+      "files": 70
+    },
+    "core-upgrade-acceptance-20261115/operational-release": {
+      "logical_bytes": 5399623,
+      "allocated_bytes": 5512176,
+      "files": 70
+    },
+    "core-upgrade-acceptance-20261115/operations-live": {
+      "logical_bytes": 4534409,
+      "allocated_bytes": 4622936,
+      "files": 54
+    },
+    "core-upgrade-acceptance-20261115/postgres-data": {
+      "logical_bytes": 159267024,
+      "allocated_bytes": 159301216,
+      "files": 5023
+    },
+    "core-upgrade-acceptance-20261115/streaming-01": {
+      "logical_bytes": 525710631,
+      "allocated_bytes": 525797544,
+      "files": 57
+    },
+    "core-upgrade-acceptance-20261115/streaming-02": {
+      "logical_bytes": 517381919,
+      "allocated_bytes": 517471064,
+      "files": 62
+    },
+    "core-upgrade-acceptance-20261115/streaming-final": {
+      "logical_bytes": 517387454,
+      "allocated_bytes": 517479256,
+      "files": 62
+    },
+    "core-upgrade-acceptance-20261115/streaming-final-02": {
+      "logical_bytes": 517414331,
+      "allocated_bytes": 517507928,
+      "files": 64
+    },
+    "core-upgrade-acceptance-20261115/streaming-final-03": {
+      "logical_bytes": 517420570,
+      "allocated_bytes": 517516160,
+      "files": 65
+    },
+    "core-upgrade-acceptance-20261115": {
+      "logical_bytes": 2916061150,
+      "allocated_bytes": 2918808184,
+      "files": 6764
+    },
+    "final-acceptance-20261107/dependencies": {
+      "logical_bytes": 5202073,
+      "allocated_bytes": 5309976,
+      "files": 57
+    },
+    "final-acceptance-20261107/functional": {
+      "logical_bytes": 37794002,
+      "allocated_bytes": 38143496,
+      "files": 166
+    },
+    "final-acceptance-20261107/public-browser": {
+      "logical_bytes": 15282431,
+      "allocated_bytes": 15372288,
+      "files": 45
+    },
+    "final-acceptance-20261107/public-protocol": {
+      "logical_bytes": 1111046,
+      "allocated_bytes": 1123336,
+      "files": 27
+    },
+    "final-acceptance-20261107/research": {
+      "logical_bytes": 85611668,
+      "allocated_bytes": 86821648,
+      "files": 657
+    },
+    "final-acceptance-20261107/tests-final": {
+      "logical_bytes": 10939341,
+      "allocated_bytes": 10979384,
+      "files": 43
+    },
+    "final-acceptance-20261107/tests-first": {
+      "logical_bytes": 10938371,
+      "allocated_bytes": 10979440,
+      "files": 43
+    },
+    "final-acceptance-20261107": {
+      "logical_bytes": 195213662,
+      "allocated_bytes": 197202648,
+      "files": 1125
+    },
+    "pdf_review": {
+      "logical_bytes": 416430,
+      "allocated_bytes": 421888,
+      "files": 2
+    },
+    "reference-repos/Mobile_OnlineShop": {
+      "logical_bytes": 3729241,
+      "allocated_bytes": 4686376,
+      "files": 577
+    },
+    "reference-repos": {
+      "logical_bytes": 3729241,
+      "allocated_bytes": 4686376,
+      "files": 577
+    },
+    "reverse-proxy-demo/.git": {
+      "logical_bytes": 24047779,
+      "allocated_bytes": 24136408,
+      "files": 81
+    },
+    "reverse-proxy-demo/.github": {
+      "logical_bytes": 3471,
+      "allocated_bytes": 4096,
+      "files": 1
+    },
+    "reverse-proxy-demo/.runtime": {
+      "logical_bytes": 100349891,
+      "allocated_bytes": 102335472,
+      "files": 1572
+    },
+    "reverse-proxy-demo/.shop": {
+      "logical_bytes": 223323826,
+      "allocated_bytes": 223372960,
+      "files": 3649
+    },
+    "reverse-proxy-demo/config": {
+      "logical_bytes": 3054,
+      "allocated_bytes": 4096,
+      "files": 1
+    },
+    "reverse-proxy-demo/db": {
+      "logical_bytes": 8373,
+      "allocated_bytes": 17528,
+      "files": 6
+    },
+    "reverse-proxy-demo/deploy": {
+      "logical_bytes": 12117,
+      "allocated_bytes": 25456,
+      "files": 8
+    },
+    "reverse-proxy-demo/docs": {
+      "logical_bytes": 238172,
+      "allocated_bytes": 304808,
+      "files": 39
+    },
+    "reverse-proxy-demo/lib": {
+      "logical_bytes": 1221004,
+      "allocated_bytes": 1224704,
+      "files": 1
+    },
+    "reverse-proxy-demo/scripts": {
+      "logical_bytes": 439466,
+      "allocated_bytes": 540672,
+      "files": 44
+    },
+    "reverse-proxy-demo/shared-files": {
+      "logical_bytes": 4068688,
+      "allocated_bytes": 4308992,
+      "files": 95
+    },
+    "reverse-proxy-demo/src": {
+      "logical_bytes": 4871859,
+      "allocated_bytes": 5181856,
+      "files": 144
+    },
+    "reverse-proxy-demo/target": {
+      "logical_bytes": 25144185,
+      "allocated_bytes": 25885768,
+      "files": 422
+    },
+    "reverse-proxy-demo": {
+      "logical_bytes": 383768920,
+      "allocated_bytes": 387385128,
+      "files": 6069
+    },
+    "unified-acceptance-20261115/backup-restore": {
+      "logical_bytes": 3982076,
+      "allocated_bytes": 3995352,
+      "files": 15
+    },
+    "unified-acceptance-20261115/browser-acceptance-01": {
+      "logical_bytes": 16896512,
+      "allocated_bytes": 17073608,
+      "files": 95
+    },
+    "unified-acceptance-20261115/browser-acceptance-02": {
+      "logical_bytes": 24854070,
+      "allocated_bytes": 25126344,
+      "files": 145
+    },
+    "unified-acceptance-20261115/browser-acceptance-03": {
+      "logical_bytes": 29219241,
+      "allocated_bytes": 29521416,
+      "files": 160
+    },
+    "unified-acceptance-20261115/github-docker": {
+      "logical_bytes": 25329,
+      "allocated_bytes": 32768,
+      "files": 2
+    },
+    "unified-acceptance-20261115/github-docker-final": {
+      "logical_bytes": 25151,
+      "allocated_bytes": 28672,
+      "files": 2
+    },
+    "unified-acceptance-20261115/java-maven-27-reports": {
+      "logical_bytes": 11087729,
+      "allocated_bytes": 11125208,
+      "files": 59
+    },
+    "unified-acceptance-20261115/java-maven-complete-final-reports": {
+      "logical_bytes": 11089946,
+      "allocated_bytes": 11129608,
+      "files": 61
+    },
+    "unified-acceptance-20261115/java-maven-final-reports": {
+      "logical_bytes": 11087139,
+      "allocated_bytes": 11125624,
+      "files": 61
+    },
+    "unified-acceptance-20261115/java-native-before-health-wait-fix": {
+      "logical_bytes": 11089027,
+      "allocated_bytes": 11129656,
+      "files": 61
+    },
+    "unified-acceptance-20261115/java-native-complete-final-reports": {
+      "logical_bytes": 11088584,
+      "allocated_bytes": 11129616,
+      "files": 61
+    },
+    "unified-acceptance-20261115/java-native-final-reports": {
+      "logical_bytes": 11089459,
+      "allocated_bytes": 11129352,
+      "files": 59
+    },
+    "unified-acceptance-20261115/java-native-http2-fixture-failure": {
+      "logical_bytes": 11088489,
+      "allocated_bytes": 11129664,
+      "files": 61
+    },
+    "unified-acceptance-20261115/java-native-initial-reports": {
+      "logical_bytes": 11082844,
+      "allocated_bytes": 11121712,
+      "files": 59
+    },
+    "unified-acceptance-20261115/operational-01": {
+      "logical_bytes": 4437666,
+      "allocated_bytes": 4520176,
+      "files": 52
+    },
+    "unified-acceptance-20261115/operational-02": {
+      "logical_bytes": 5400369,
+      "allocated_bytes": 5508000,
+      "files": 69
+    },
+    "unified-acceptance-20261115/operational-03": {
+      "logical_bytes": 5358480,
+      "allocated_bytes": 5471200,
+      "files": 70
+    },
+    "unified-acceptance-20261115/operations-live": {
+      "logical_bytes": 4533079,
+      "allocated_bytes": 4614752,
+      "files": 55
+    },
+    "unified-acceptance-20261115/postgres-data": {
+      "logical_bytes": 101850425,
+      "allocated_bytes": 101872072,
+      "files": 2738
+    },
+    "unified-acceptance-20261115/reviewed-unified-release": {
+      "logical_bytes": 473992,
+      "allocated_bytes": 640216,
+      "files": 82
+    },
+    "unified-acceptance-20261115/source-before-normalization": {
+      "logical_bytes": 134769,
+      "allocated_bytes": 159920,
+      "files": 12
+    },
+    "unified-acceptance-20261115/tools": {
+      "logical_bytes": 1066597589,
+      "allocated_bytes": 1069836656,
+      "files": 2967
+    },
+    "unified-acceptance-20261115": {
+      "logical_bytes": 1355620023,
+      "allocated_bytes": 1360772456,
+      "files": 7062
+    },
+    "v6-evidence/acceptance-01": {
+      "logical_bytes": 14477255,
+      "allocated_bytes": 14726488,
+      "files": 109
+    },
+    "v6-evidence/acceptance-02": {
+      "logical_bytes": 1017410,
+      "allocated_bytes": 1135960,
+      "files": 53
+    },
+    "v6-evidence/acceptance-03": {
+      "logical_bytes": 1203817,
+      "allocated_bytes": 1324376,
+      "files": 55
+    },
+    "v6-evidence/acceptance-04": {
+      "logical_bytes": 3882545,
+      "allocated_bytes": 3957520,
+      "files": 36
+    },
+    "v6-evidence/acceptance-05": {
+      "logical_bytes": 20652100,
+      "allocated_bytes": 20858296,
+      "files": 101
+    },
+    "v6-evidence/acceptance-06": {
+      "logical_bytes": 37180308,
+      "allocated_bytes": 37512696,
+      "files": 163
+    },
+    "v6-evidence/acceptance-07": {
+      "logical_bytes": 37636385,
+      "allocated_bytes": 37975560,
+      "files": 166
+    },
+    "v6-evidence/after-public": {
+      "logical_bytes": 1695217,
+      "allocated_bytes": 1708032,
+      "files": 8
+    },
+    "v6-evidence/baseline-build": {
+      "logical_bytes": 11983794,
+      "allocated_bytes": 12452896,
+      "files": 226
+    },
+    "v6-evidence/before": {
+      "logical_bytes": 1663047,
+      "allocated_bytes": 1687552,
+      "files": 12
+    },
+    "v6-evidence/bulkhead-ab": {
+      "logical_bytes": 27895626,
+      "allocated_bytes": 28346600,
+      "files": 234
+    },
+    "v6-evidence/catalog-migration": {
+      "logical_bytes": 198104,
+      "allocated_bytes": 299696,
+      "files": 41
+    },
+    "v6-evidence/catalog-migration-02": {
+      "logical_bytes": 248963,
+      "allocated_bytes": 446912,
+      "files": 80
+    },
+    "v6-evidence/catalog-migration-03": {
+      "logical_bytes": 250385,
+      "allocated_bytes": 451200,
+      "files": 80
+    },
+    "v6-evidence/catalog-migration-04": {
+      "logical_bytes": 4189353,
+      "allocated_bytes": 4500768,
+      "files": 151
+    },
+    "v6-evidence/coldstart": {
+      "logical_bytes": 2720,
+      "allocated_bytes": 2744,
+      "files": 10
+    },
+    "v6-evidence/historical-head-build": {
+      "logical_bytes": 10062300,
+      "allocated_bytes": 10232080,
+      "files": 89
+    },
+    "v6-evidence/jfr-probe": {
+      "logical_bytes": 214803,
+      "allocated_bytes": 217520,
+      "files": 2
+    },
+    "v6-evidence/jfr-safe-probe": {
+      "logical_bytes": 245858,
+      "allocated_bytes": 250352,
+      "files": 4
+    },
+    "v6-evidence/parity-capture": {
+      "logical_bytes": 9597108,
+      "allocated_bytes": 9609520,
+      "files": 7
+    },
+    "v6-evidence/pilot": {
+      "logical_bytes": 3602513,
+      "allocated_bytes": 3917704,
+      "files": 183
+    },
+    "v6-evidence/protocol-before-after": {
+      "logical_bytes": 15966,
+      "allocated_bytes": 27624,
+      "files": 14
+    },
+    "v6-evidence/public-browser": {
+      "logical_bytes": 13535891,
+      "allocated_bytes": 13611008,
+      "files": 36
+    },
+    "v6-evidence/public-final": {
+      "logical_bytes": 14568003,
+      "allocated_bytes": 14647648,
+      "files": 40
+    },
+    "v6-evidence/public-real-catalog": {
+      "logical_bytes": 119028,
+      "allocated_bytes": 144288,
+      "files": 37
+    },
+    "v6-evidence/public-source-hashes": {
+      "logical_bytes": 1435,
+      "allocated_bytes": 4440,
+      "files": 2
+    },
+    "v6-evidence/public-source-hashes-02": {
+      "logical_bytes": 81573,
+      "allocated_bytes": 83264,
+      "files": 8
+    },
+    "v6-evidence/store-update": {
+      "logical_bytes": 43923,
+      "allocated_bytes": 49784,
+      "files": 10
+    },
+    "v6-evidence/v7-failures": {
+      "logical_bytes": 29429204,
+      "allocated_bytes": 29595832,
+      "files": 94
+    },
+    "v6-evidence/v7-final-research": {
+      "logical_bytes": 35117455,
+      "allocated_bytes": 36140176,
+      "files": 606
+    },
+    "v6-evidence/v7-pdf-rerun": {
+      "logical_bytes": 32183311,
+      "allocated_bytes": 32656360,
+      "files": 276
+    },
+    "v6-evidence/v7-profile": {
+      "logical_bytes": 26981217,
+      "allocated_bytes": 27101904,
+      "files": 73
+    },
+    "v6-evidence/v7-research": {
+      "logical_bytes": 77939873,
+      "allocated_bytes": 79096240,
+      "files": 652
+    },
+    "v6-evidence": {
+      "logical_bytes": 435439790,
+      "allocated_bytes": 442388600,
+      "files": 3709
+    },
+    ".": {
+      "logical_bytes": 5416334781,
+      "allocated_bytes": 5437756544,
+      "files": 25310
+    }
+  },
+  "top30_directories": [
+    {
+      "path": "core-upgrade-acceptance-20261115",
+      "logical_bytes": 2916061150,
+      "allocated_bytes": 2918808184,
+      "files": 6764
+    },
+    {
+      "path": "unified-acceptance-20261115",
+      "logical_bytes": 1355620023,
+      "allocated_bytes": 1360772456,
+      "files": 7062
+    },
+    {
+      "path": "unified-acceptance-20261115/tools",
+      "logical_bytes": 1066597589,
+      "allocated_bytes": 1069836656,
+      "files": 2967
+    },
+    {
+      "path": "core-upgrade-acceptance-20261115/streaming-01",
+      "logical_bytes": 525710631,
+      "allocated_bytes": 525797544,
+      "files": 57
+    },
+    {
+      "path": "core-upgrade-acceptance-20261115/streaming-final-03",
+      "logical_bytes": 517420570,
+      "allocated_bytes": 517516160,
+      "files": 65
+    },
+    {
+      "path": "core-upgrade-acceptance-20261115/streaming-final-02",
+      "logical_bytes": 517414331,
+      "allocated_bytes": 517507928,
+      "files": 64
+    },
+    {
+      "path": "core-upgrade-acceptance-20261115/streaming-final",
+      "logical_bytes": 517387454,
+      "allocated_bytes": 517479256,
+      "files": 62
+    },
+    {
+      "path": "core-upgrade-acceptance-20261115/streaming-02",
+      "logical_bytes": 517381919,
+      "allocated_bytes": 517471064,
+      "files": 62
+    },
+    {
+      "path": "v6-evidence",
+      "logical_bytes": 435439790,
+      "allocated_bytes": 442388600,
+      "files": 3709
+    },
+    {
+      "path": "core-upgrade-acceptance-20261115/streaming-01/public-downloads",
+      "logical_bytes": 415234904,
+      "allocated_bytes": 415236096,
+      "files": 4
+    },
+    {
+      "path": "core-upgrade-acceptance-20261115/streaming-final-03/public-downloads",
+      "logical_bytes": 407896103,
+      "allocated_bytes": 407896104,
+      "files": 5
+    },
+    {
+      "path": "core-upgrade-acceptance-20261115/streaming-02/public-downloads",
+      "logical_bytes": 407896064,
+      "allocated_bytes": 407896064,
+      "files": 4
+    },
+    {
+      "path": "core-upgrade-acceptance-20261115/streaming-final/public-downloads",
+      "logical_bytes": 407896064,
+      "allocated_bytes": 407896064,
+      "files": 4
+    },
+    {
+      "path": "core-upgrade-acceptance-20261115/streaming-final-02/public-downloads",
+      "logical_bytes": 407896064,
+      "allocated_bytes": 407896064,
+      "files": 4
+    },
+    {
+      "path": "reverse-proxy-demo",
+      "logical_bytes": 383768920,
+      "allocated_bytes": 387385128,
+      "files": 6069
+    },
+    {
+      "path": "unified-acceptance-20261115/tools/jdk21/jdk-21.0.13.0.2+1",
+      "logical_bytes": 343464884,
+      "allocated_bytes": 343957112,
+      "files": 486
+    },
+    {
+      "path": "unified-acceptance-20261115/tools/jdk21",
+      "logical_bytes": 343464884,
+      "allocated_bytes": 343957112,
+      "files": 486
+    },
+    {
+      "path": "reverse-proxy-demo/.shop",
+      "logical_bytes": 223323826,
+      "allocated_bytes": 223372960,
+      "files": 3649
+    },
+    {
+      "path": "unified-acceptance-20261115/tools/jdk21/jdk-21.0.13.0.2+1/lib",
+      "logical_bytes": 207000414,
+      "allocated_bytes": 207036448,
+      "files": 20
+    },
+    {
+      "path": "final-acceptance-20261107",
+      "logical_bytes": 195213662,
+      "allocated_bytes": 197202648,
+      "files": 1125
+    },
+    {
+      "path": "core-upgrade-acceptance-20261115/postgres-data",
+      "logical_bytes": 159267024,
+      "allocated_bytes": 159301216,
+      "files": 5023
+    },
+    {
+      "path": "unified-acceptance-20261115/tools/pg16/pgsql",
+      "logical_bytes": 126315345,
+      "allocated_bytes": 128418800,
+      "files": 1635
+    },
+    {
+      "path": "unified-acceptance-20261115/tools/pg16",
+      "logical_bytes": 126315345,
+      "allocated_bytes": 128418800,
+      "files": 1635
+    },
+    {
+      "path": "core-upgrade-acceptance-20261115/postgres-data/base",
+      "logical_bytes": 124637987,
+      "allocated_bytes": 124656440,
+      "files": 4945
+    },
+    {
+      "path": "reverse-proxy-demo/.shop/store-postgres",
+      "logical_bytes": 122613422,
+      "allocated_bytes": 122628544,
+      "files": 2348
+    },
+    {
+      "path": "unified-acceptance-20261115/postgres-data",
+      "logical_bytes": 101850425,
+      "allocated_bytes": 101872072,
+      "files": 2738
+    },
+    {
+      "path": "reverse-proxy-demo/.runtime/postgres",
+      "logical_bytes": 100349891,
+      "allocated_bytes": 102335472,
+      "files": 1572
+    },
+    {
+      "path": "reverse-proxy-demo/.runtime",
+      "logical_bytes": 100349891,
+      "allocated_bytes": 102335472,
+      "files": 1572
+    },
+    {
+      "path": "reverse-proxy-demo/.shop/store-postgres/base",
+      "logical_bytes": 87726653,
+      "allocated_bytes": 87729736,
+      "files": 2269
+    },
+    {
+      "path": "final-acceptance-20261107/research",
+      "logical_bytes": 85611668,
+      "allocated_bytes": 86821648,
+      "files": 657
+    }
+  ],
+  "top50_files": [
+    {
+      "path": "unified-acceptance-20261115/tools/postgresql-16.14-1-windows-x64-binaries.zip",
+      "logical_bytes": 325739757,
+      "allocated_bytes": 325742592,
+      "category": "archives_references_patches",
+      "identity": [
+        13554392667472792170,
+        4503599627448072
+      ],
+      "links": 1
+    },
+    {
+      "path": "core-upgrade-acceptance-20261115/streaming-01/public-downloads/file-256.bin",
+      "logical_bytes": 268435456,
+      "allocated_bytes": 268435456,
+      "category": "reproducible_qa_payload",
+      "identity": [
+        13554392667472792170,
+        2814749767199830
+      ],
+      "links": 1
+    },
+    {
+      "path": "core-upgrade-acceptance-20261115/streaming-02/public-downloads/file-256.bin",
+      "logical_bytes": 268435456,
+      "allocated_bytes": 268435456,
+      "category": "reproducible_qa_payload",
+      "identity": [
+        13554392667472792170,
+        844424930233388
+      ],
+      "links": 1
+    },
+    {
+      "path": "core-upgrade-acceptance-20261115/streaming-final/public-downloads/file-256.bin",
+      "logical_bytes": 268435456,
+      "allocated_bytes": 268435456,
+      "category": "reproducible_qa_payload",
+      "identity": [
+        13554392667472792170,
+        844424930234595
+      ],
+      "links": 1
+    },
+    {
+      "path": "core-upgrade-acceptance-20261115/streaming-final-02/public-downloads/file-256.bin",
+      "logical_bytes": 268435456,
+      "allocated_bytes": 268435456,
+      "category": "reproducible_qa_payload",
+      "identity": [
+        13554392667472792170,
+        844424930234731
+      ],
+      "links": 1
+    },
+    {
+      "path": "core-upgrade-acceptance-20261115/streaming-final-03/public-downloads/file-256.bin",
+      "logical_bytes": 268435456,
+      "allocated_bytes": 268435456,
+      "category": "reproducible_qa_payload",
+      "identity": [
+        13554392667472792170,
+        844424930236687
+      ],
+      "links": 1
+    },
+    {
+      "path": "unified-acceptance-20261115/tools/microsoft-jdk-21.0.13.0.2-windows-x64.zip",
+      "logical_bytes": 201450315,
+      "allocated_bytes": 201453568,
+      "category": "archives_references_patches",
+      "identity": [
+        13554392667472792170,
+        844424930224559
+      ],
+      "links": 1
+    },
+    {
+      "path": "unified-acceptance-20261115/tools/jdk21/jdk-21.0.13.0.2+1/lib/modules",
+      "logical_bytes": 141207998,
+      "allocated_bytes": 141209600,
+      "category": "portable_toolchain",
+      "identity": [
+        13554392667472792170,
+        844424930224663
+      ],
+      "links": 1
+    },
+    {
+      "path": "core-upgrade-acceptance-20261115/streaming-01/public-downloads/file-100.bin",
+      "logical_bytes": 104857600,
+      "allocated_bytes": 104857600,
+      "category": "reproducible_qa_payload",
+      "identity": [
+        13554392667472792170,
+        2814749767199829
+      ],
+      "links": 1
+    },
+    {
+      "path": "core-upgrade-acceptance-20261115/streaming-01/resumed-100.bin",
+      "logical_bytes": 104857600,
+      "allocated_bytes": 104857600,
+      "category": "reproducible_qa_payload",
+      "identity": [
+        13554392667472792170,
+        45035996273806370
+      ],
+      "links": 1
+    },
+    {
+      "path": "core-upgrade-acceptance-20261115/streaming-02/public-downloads/file-100.bin",
+      "logical_bytes": 104857600,
+      "allocated_bytes": 104857600,
+      "category": "reproducible_qa_payload",
+      "identity": [
+        13554392667472792170,
+        844424930233387
+      ],
+      "links": 1
+    },
+    {
+      "path": "core-upgrade-acceptance-20261115/streaming-02/resumed-100.bin",
+      "logical_bytes": 104857600,
+      "allocated_bytes": 104857600,
+      "category": "reproducible_qa_payload",
+      "identity": [
+        13554392667472792170,
+        45880421203938467
+      ],
+      "links": 1
+    },
+    {
+      "path": "core-upgrade-acceptance-20261115/streaming-final/public-downloads/file-100.bin",
+      "logical_bytes": 104857600,
+      "allocated_bytes": 104857600,
+      "category": "reproducible_qa_payload",
+      "identity": [
+        13554392667472792170,
+        844424930234594
+      ],
+      "links": 1
+    },
+    {
+      "path": "core-upgrade-acceptance-20261115/streaming-final/resumed-100.bin",
+      "logical_bytes": 104857600,
+      "allocated_bytes": 104857600,
+      "category": "reproducible_qa_payload",
+      "identity": [
+        13554392667472792170,
+        23643898043796865
+      ],
+      "links": 1
+    },
+    {
+      "path": "core-upgrade-acceptance-20261115/streaming-final-02/public-downloads/file-100.bin",
+      "logical_bytes": 104857600,
+      "allocated_bytes": 104857600,
+      "category": "reproducible_qa_payload",
+      "identity": [
+        13554392667472792170,
+        844424930234730
+      ],
+      "links": 1
+    },
+    {
+      "path": "core-upgrade-acceptance-20261115/streaming-final-02/resumed-100.bin",
+      "logical_bytes": 104857600,
+      "allocated_bytes": 104857600,
+      "category": "reproducible_qa_payload",
+      "identity": [
+        13554392667472792170,
+        43065671436833253
+      ],
+      "links": 1
+    },
+    {
+      "path": "core-upgrade-acceptance-20261115/streaming-final-03/public-downloads/file-100.bin",
+      "logical_bytes": 104857600,
+      "allocated_bytes": 104857600,
+      "category": "reproducible_qa_payload",
+      "identity": [
+        13554392667472792170,
+        844424930236686
+      ],
+      "links": 1
+    },
+    {
+      "path": "core-upgrade-acceptance-20261115/streaming-final-03/resumed-100.bin",
+      "logical_bytes": 104857600,
+      "allocated_bytes": 104857600,
+      "category": "reproducible_qa_payload",
+      "identity": [
+        13554392667472792170,
+        6755399441160624
+      ],
+      "links": 1
+    },
+    {
+      "path": "PBL4-final-acceptance-20261107.zip",
+      "logical_bytes": 90712203,
+      "allocated_bytes": 90714112,
+      "category": "archives_references_patches",
+      "identity": [
+        13554392667472792170,
+        1970324837143433
+      ],
+      "links": 1
+    },
+    {
+      "path": "unified-acceptance-20261115/tools/jdk21/jdk-21.0.13.0.2+1/lib/src.zip",
+      "logical_bytes": 53082420,
+      "allocated_bytes": 53084160,
+      "category": "archives_references_patches",
+      "identity": [
+        13554392667472792170,
+        844424930224657
+      ],
+      "links": 1
+    },
+    {
+      "path": "final-acceptance-20261107/research/proxy.log",
+      "logical_bytes": 43428878,
+      "allocated_bytes": 43429888,
+      "category": "logs_evidence",
+      "identity": [
+        13554392667472792170,
+        844424930223065
+      ],
+      "links": 1
+    },
+    {
+      "path": "v6-evidence/v7-research/proxy.log",
+      "logical_bytes": 41692304,
+      "allocated_bytes": 41693184,
+      "category": "logs_evidence",
+      "identity": [
+        13554392667472792170,
+        1125899906882888
+      ],
+      "links": 1
+    },
+    {
+      "path": "PBL4-v7-evidence.zip",
+      "logical_bytes": 35373362,
+      "allocated_bytes": 35377152,
+      "category": "archives_references_patches",
+      "identity": [
+        13554392667472792170,
+        844424930222286
+      ],
+      "links": 1
+    },
+    {
+      "path": "unified-acceptance-20261115/tools/docker-compose-windows-x86_64.exe",
+      "logical_bytes": 34616320,
+      "allocated_bytes": 34619392,
+      "category": "portable_toolchain",
+      "identity": [
+        13554392667472792170,
+        844424930226927
+      ],
+      "links": 1
+    },
+    {
+      "path": "core-upgrade-acceptance-20261115/streaming-01/public-downloads/file-32.bin",
+      "logical_bytes": 33554432,
+      "allocated_bytes": 33554432,
+      "category": "reproducible_qa_payload",
+      "identity": [
+        13554392667472792170,
+        2814749767199828
+      ],
+      "links": 1
+    },
+    {
+      "path": "core-upgrade-acceptance-20261115/streaming-02/public-downloads/file-32.bin",
+      "logical_bytes": 33554432,
+      "allocated_bytes": 33554432,
+      "category": "reproducible_qa_payload",
+      "identity": [
+        13554392667472792170,
+        844424930233386
+      ],
+      "links": 1
+    },
+    {
+      "path": "core-upgrade-acceptance-20261115/streaming-final/public-downloads/file-32.bin",
+      "logical_bytes": 33554432,
+      "allocated_bytes": 33554432,
+      "category": "reproducible_qa_payload",
+      "identity": [
+        13554392667472792170,
+        844424930234593
+      ],
+      "links": 1
+    },
+    {
+      "path": "core-upgrade-acceptance-20261115/streaming-final-02/public-downloads/file-32.bin",
+      "logical_bytes": 33554432,
+      "allocated_bytes": 33554432,
+      "category": "reproducible_qa_payload",
+      "identity": [
+        13554392667472792170,
+        844424930234729
+      ],
+      "links": 1
+    },
+    {
+      "path": "core-upgrade-acceptance-20261115/streaming-final-03/public-downloads/file-32.bin",
+      "logical_bytes": 33554432,
+      "allocated_bytes": 33554432,
+      "category": "reproducible_qa_payload",
+      "identity": [
+        13554392667472792170,
+        844424930236685
+      ],
+      "links": 1
+    },
+    {
+      "path": "reverse-proxy-demo/.shop/proxy.log",
+      "logical_bytes": 32559965,
+      "allocated_bytes": 32563200,
+      "category": "protected_runtime_storage",
+      "identity": [
+        13554392667472792170,
+        844424930303746
+      ],
+      "links": 1
+    },
+    {
+      "path": "reverse-proxy-demo/.runtime/postgres/bin/icudt67.dll",
+      "logical_bytes": 28399104,
+      "allocated_bytes": 28401664,
+      "category": "protected_runtime_storage",
+      "identity": [
+        13554392667472792170,
+        9570149208229561
+      ],
+      "links": 1
+    },
+    {
+      "path": "unified-acceptance-20261115/tools/pg16/pgsql/bin/icudt67.dll",
+      "logical_bytes": 28399104,
+      "allocated_bytes": 28401664,
+      "category": "portable_toolchain",
+      "identity": [
+        13554392667472792170,
+        9851624184954254
+      ],
+      "links": 1
+    },
+    {
+      "path": "reverse-proxy-demo/.git/objects/pack/pack-e70b0798561b0a9e5b4e5f019c6764471b2e2e9c.pack",
+      "logical_bytes": 23529660,
+      "allocated_bytes": 23531520,
+      "category": "git",
+      "identity": [
+        13554392667472792170,
+        18295873486193243
+      ],
+      "links": 1
+    },
+    {
+      "path": "unified-acceptance-20261115/tools/jdk21/jdk-21.0.13.0.2+1/jmods/java.base.jmod",
+      "logical_bytes": 22237621,
+      "allocated_bytes": 22241280,
+      "category": "portable_toolchain",
+      "identity": [
+        13554392667472792170,
+        844424930224604
+      ],
+      "links": 1
+    },
+    {
+      "path": "final-acceptance-20261107/git-diff.patch",
+      "logical_bytes": 19072098,
+      "allocated_bytes": 19075072,
+      "category": "archives_references_patches",
+      "identity": [
+        13554392667472792170,
+        1125899906932947
+      ],
+      "links": 1
+    },
+    {
+      "path": "v6-evidence/v7-failures/proxy.log",
+      "logical_bytes": 18037818,
+      "allocated_bytes": 18038784,
+      "category": "logs_evidence",
+      "identity": [
+        13554392667472792170,
+        844424930216303
+      ],
+      "links": 1
+    },
+    {
+      "path": "core-upgrade-acceptance-20261115/postgres-data/pg_wal/000000010000000000000005",
+      "logical_bytes": 16777216,
+      "allocated_bytes": 16777216,
+      "category": "database_backup",
+      "identity": [
+        13554392667472792170,
+        1125899906940837
+      ],
+      "links": 1
+    },
+    {
+      "path": "core-upgrade-acceptance-20261115/postgres-data/pg_wal/000000010000000000000006",
+      "logical_bytes": 16777216,
+      "allocated_bytes": 16777216,
+      "category": "database_backup",
+      "identity": [
+        13554392667472792170,
+        844424930232980
+      ],
+      "links": 1
+    },
+    {
+      "path": "reverse-proxy-demo/.shop/legacy-postgres/pg_wal/000000010000000000000002",
+      "logical_bytes": 16777216,
+      "allocated_bytes": 16777216,
+      "category": "protected_runtime_storage",
+      "identity": [
+        13554392667472792170,
+        562949953593102
+      ],
+      "links": 1
+    },
+    {
+      "path": "reverse-proxy-demo/.shop/legacy-postgres/pg_wal/000000010000000000000003",
+      "logical_bytes": 16777216,
+      "allocated_bytes": 16777216,
+      "category": "protected_runtime_storage",
+      "identity": [
+        13554392667472792170,
+        7881299347987170
+      ],
+      "links": 1
+    },
+    {
+      "path": "reverse-proxy-demo/.shop/store-postgres/pg_wal/00000001000000000000000A",
+      "logical_bytes": 16777216,
+      "allocated_bytes": 16777216,
+      "category": "protected_runtime_storage",
+      "identity": [
+        13554392667472792170,
+        844424930137221
+      ],
+      "links": 1
+    },
+    {
+      "path": "reverse-proxy-demo/.shop/store-postgres/pg_wal/00000001000000000000000B",
+      "logical_bytes": 16777216,
+      "allocated_bytes": 16777216,
+      "category": "protected_runtime_storage",
+      "identity": [
+        13554392667472792170,
+        5066549580792666
+      ],
+      "links": 1
+    },
+    {
+      "path": "unified-acceptance-20261115/postgres-data/pg_wal/000000010000000000000003",
+      "logical_bytes": 16777216,
+      "allocated_bytes": 16777216,
+      "category": "database_backup",
+      "identity": [
+        13554392667472792170,
+        4503599627463838
+      ],
+      "links": 1
+    },
+    {
+      "path": "unified-acceptance-20261115/postgres-data/pg_wal/000000010000000000000004",
+      "logical_bytes": 16777216,
+      "allocated_bytes": 16777216,
+      "category": "database_backup",
+      "identity": [
+        13554392667472792170,
+        82472168176318584
+      ],
+      "links": 1
+    },
+    {
+      "path": "unified-acceptance-20261115/tools/jdk21/jdk-21.0.13.0.2+1/bin/server/jvm.dll",
+      "logical_bytes": 14056760,
+      "allocated_bytes": 14057472,
+      "category": "portable_toolchain",
+      "identity": [
+        13554392667472792170,
+        844424930224806
+      ],
+      "links": 1
+    },
+    {
+      "path": "unified-acceptance-20261115/tools/jdk21/jdk-21.0.13.0.2+1/bin/server/classes.jsa",
+      "logical_bytes": 13434880,
+      "allocated_bytes": 13434880,
+      "category": "portable_toolchain",
+      "identity": [
+        13554392667472792170,
+        844424930224804
+      ],
+      "links": 1
+    },
+    {
+      "path": "unified-acceptance-20261115/tools/jdk21/jdk-21.0.13.0.2+1/bin/server/classes_nocoops.jsa",
+      "logical_bytes": 13434880,
+      "allocated_bytes": 13434880,
+      "category": "portable_toolchain",
+      "identity": [
+        13554392667472792170,
+        844424930224805
+      ],
+      "links": 1
+    },
+    {
+      "path": "v6-evidence/v7-pdf-rerun/proxy.log",
+      "logical_bytes": 13228339,
+      "allocated_bytes": 13230080,
+      "category": "logs_evidence",
+      "identity": [
+        13554392667472792170,
+        844424930220400
+      ],
+      "links": 1
+    },
+    {
+      "path": "unified-acceptance-20261115/tools/jdk21/jdk-21.0.13.0.2+1/jmods/java.desktop.jmod",
+      "logical_bytes": 12492030,
+      "allocated_bytes": 12492800,
+      "category": "portable_toolchain",
+      "identity": [
+        13554392667472792170,
+        844424930224616
+      ],
+      "links": 1
+    },
+    {
+      "path": "unified-acceptance-20261115/tools/jdk21/jdk-21.0.13.0.2+1/jmods/jdk.localedata.jmod",
+      "logical_bytes": 11953753,
+      "allocated_bytes": 11956224,
+      "category": "portable_toolchain",
+      "identity": [
+        13554392667472792170,
+        844424930224600
+      ],
+      "links": 1
+    }
+  ],
+  "reparse_points": [
+    {
+      "path": "core-upgrade-acceptance-20261115/streaming-02/linked-root",
+      "target": "\\\\?\\D:\\PBL4\\core-upgrade-acceptance-20261115\\streaming-02\\public-downloads"
+    },
+    {
+      "path": "core-upgrade-acceptance-20261115/streaming-final/linked-root",
+      "target": "\\\\?\\D:\\PBL4\\core-upgrade-acceptance-20261115\\streaming-final\\public-downloads"
+    },
+    {
+      "path": "core-upgrade-acceptance-20261115/streaming-final-02/linked-root",
+      "target": "\\\\?\\D:\\PBL4\\core-upgrade-acceptance-20261115\\streaming-final-02\\public-downloads"
+    },
+    {
+      "path": "core-upgrade-acceptance-20261115/streaming-final-03/linked-root",
+      "target": "\\\\?\\D:\\PBL4\\core-upgrade-acceptance-20261115\\streaming-final-03\\public-downloads"
+    }
+  ],
+  "errors": [
+    {
+      "path": "D:\\PBL4\\unified-acceptance-20261115\\backup-restore\\restored-files",
+      "error": "[WinError 5] Access is denied: 'D:\\\\PBL4\\\\unified-acceptance-20261115\\\\backup-restore\\\\restored-files'"
+    }
+  ],
+  "known_unreadable": {
+    "complete": false,
+    "known_files": [
+      {
+        "path": "store/0c20febc-d8a0-4e69-bec1-5152c54a5cee.bin",
+        "logical_bytes": 117819,
+        "allocated_bytes": null,
+        "sha256_verification": "NOT RUN access denied"
+      },
+      {
+        "path": "store/0ddb4a49-e30c-4401-a270-8bc7e30b95bc.bin",
+        "logical_bytes": 314505,
+        "allocated_bytes": null,
+        "sha256_verification": "NOT RUN access denied"
+      },
+      {
+        "path": "store/1d04de04-ca0f-4fbc-8e6f-e19b6529b09a.bin",
+        "logical_bytes": 141073,
+        "allocated_bytes": null,
+        "sha256_verification": "NOT RUN access denied"
+      },
+      {
+        "path": "store/1ecca0e9-b8c1-45f3-a50f-ad0ef9e167c4.bin",
+        "logical_bytes": 268714,
+        "allocated_bytes": null,
+        "sha256_verification": "NOT RUN access denied"
+      },
+      {
+        "path": "store/217df67c-ae50-488e-8a0c-695b378a1fcd.bin",
+        "logical_bytes": 1382,
+        "allocated_bytes": null,
+        "sha256_verification": "NOT RUN access denied"
+      },
+      {
+        "path": "store/396aebb6-bd96-43b3-a2aa-28a13be7829f.bin",
+        "logical_bytes": 357641,
+        "allocated_bytes": null,
+        "sha256_verification": "NOT RUN access denied"
+      },
+      {
+        "path": "store/48764aad-5015-49fd-bce2-aeb209348a30.bin",
+        "logical_bytes": 394193,
+        "allocated_bytes": null,
+        "sha256_verification": "NOT RUN access denied"
+      },
+      {
+        "path": "store/49cab563-46c5-40e9-ad5c-2379baf1b8f2.bin",
+        "logical_bytes": 107429,
+        "allocated_bytes": null,
+        "sha256_verification": "NOT RUN access denied"
+      },
+      {
+        "path": "store/4c7ff089-d83f-4907-a605-6d23b0b439e3.bin",
+        "logical_bytes": 50834,
+        "allocated_bytes": null,
+        "sha256_verification": "NOT RUN access denied"
+      },
+      {
+        "path": "store/4d18dfe8-1ea3-4615-b955-87d681bef49c.bin",
+        "logical_bytes": 1369,
+        "allocated_bytes": null,
+        "sha256_verification": "NOT RUN access denied"
+      },
+      {
+        "path": "store/4e7c106c-893a-4f82-9801-20ca1f52929c.bin",
+        "logical_bytes": 130528,
+        "allocated_bytes": null,
+        "sha256_verification": "NOT RUN access denied"
+      },
+      {
+        "path": "store/539b484e-c17d-4687-9462-a6c865c3c402.bin",
+        "logical_bytes": 122329,
+        "allocated_bytes": null,
+        "sha256_verification": "NOT RUN access denied"
+      },
+      {
+        "path": "store/63f5f20a-9025-4604-8951-34319d676fc0.bin",
+        "logical_bytes": 217462,
+        "allocated_bytes": null,
+        "sha256_verification": "NOT RUN access denied"
+      },
+      {
+        "path": "store/66acaf68-92c3-47cb-902b-81a3a4763a19.bin",
+        "logical_bytes": 245760,
+        "allocated_bytes": null,
+        "sha256_verification": "NOT RUN access denied"
+      },
+      {
+        "path": "store/8408c73f-0e44-4c65-832d-22c33656b08d.bin",
+        "logical_bytes": 297262,
+        "allocated_bytes": null,
+        "sha256_verification": "NOT RUN access denied"
+      },
+      {
+        "path": "store/850779b1-e16b-4e55-89bd-f0fd3e809780.bin",
+        "logical_bytes": 1381,
+        "allocated_bytes": null,
+        "sha256_verification": "NOT RUN access denied"
+      },
+      {
+        "path": "store/8916b5eb-3482-404d-8c80-9b4cb9d7750e.bin",
+        "logical_bytes": 1379,
+        "allocated_bytes": null,
+        "sha256_verification": "NOT RUN access denied"
+      },
+      {
+        "path": "store/8e46f781-704a-4f3a-a970-85b05e05da52.bin",
+        "logical_bytes": 1371,
+        "allocated_bytes": null,
+        "sha256_verification": "NOT RUN access denied"
+      },
+      {
+        "path": "store/90246d7d-5c99-4c95-9a38-17063bb8241b.bin",
+        "logical_bytes": 332828,
+        "allocated_bytes": null,
+        "sha256_verification": "NOT RUN access denied"
+      },
+      {
+        "path": "store/9a5f9e1d-1f92-4e2c-8162-0d8dddc3ad74.bin",
+        "logical_bytes": 1399,
+        "allocated_bytes": null,
+        "sha256_verification": "NOT RUN access denied"
+      },
+      {
+        "path": "store/9fdef562-07a3-46b5-9e14-6754ed6acc62.bin",
+        "logical_bytes": 107497,
+        "allocated_bytes": null,
+        "sha256_verification": "NOT RUN access denied"
+      },
+      {
+        "path": "store/a398f7a5-d0a8-4848-9e93-55759110ca40.bin",
+        "logical_bytes": 137541,
+        "allocated_bytes": null,
+        "sha256_verification": "NOT RUN access denied"
+      },
+      {
+        "path": "store/acc2cc0d-0836-438b-9585-d649aed75a0c.bin",
+        "logical_bytes": 1388,
+        "allocated_bytes": null,
+        "sha256_verification": "NOT RUN access denied"
+      },
+      {
+        "path": "store/b97ee704-856d-40e9-bf36-204ade6a7a4c.bin",
+        "logical_bytes": 190442,
+        "allocated_bytes": null,
+        "sha256_verification": "NOT RUN access denied"
+      },
+      {
+        "path": "store/be8aef5a-528b-46e7-87e7-502c486b7c72.bin",
+        "logical_bytes": 1365,
+        "allocated_bytes": null,
+        "sha256_verification": "NOT RUN access denied"
+      },
+      {
+        "path": "store/c8bc725a-b572-402c-936c-ab6a5121262f.bin",
+        "logical_bytes": 1363,
+        "allocated_bytes": null,
+        "sha256_verification": "NOT RUN access denied"
+      },
+      {
+        "path": "store/cfc6f554-c361-4e4d-be4f-7408005b1d74.bin",
+        "logical_bytes": 1415,
+        "allocated_bytes": null,
+        "sha256_verification": "NOT RUN access denied"
+      },
+      {
+        "path": "store/d216d79c-5eac-4a14-8fa5-5827c36a5102.bin",
+        "logical_bytes": 87519,
+        "allocated_bytes": null,
+        "sha256_verification": "NOT RUN access denied"
+      },
+      {
+        "path": "store/d9dafa88-6019-4049-999b-beb7fbdbb181.bin",
+        "logical_bytes": 1381,
+        "allocated_bytes": null,
+        "sha256_verification": "NOT RUN access denied"
+      },
+      {
+        "path": "store/e1dec5f1-3e91-4bba-a1e8-037ac7fde78d.bin",
+        "logical_bytes": 151089,
+        "allocated_bytes": null,
+        "sha256_verification": "NOT RUN access denied"
+      },
+      {
+        "path": "store/e3f98b5f-e1b7-4a2d-b941-bac9a64ec967.bin",
+        "logical_bytes": 1378,
+        "allocated_bytes": null,
+        "sha256_verification": "NOT RUN access denied"
+      },
+      {
+        "path": "store/f10ada81-d2ac-4622-b2ac-26536826dde2.bin",
+        "logical_bytes": 46841,
+        "allocated_bytes": null,
+        "sha256_verification": "NOT RUN access denied"
+      },
+      {
+        "path": "store/f2781d69-dc97-4484-9994-cad67c4d99e8.bin",
+        "logical_bytes": 185215,
+        "allocated_bytes": null,
+        "sha256_verification": "NOT RUN access denied"
+      },
+      {
+        "path": "store/f30434bb-371d-4d9e-b90b-f6882d9f4d73.bin",
+        "logical_bytes": 106438,
+        "allocated_bytes": null,
+        "sha256_verification": "NOT RUN access denied"
+      }
+    ],
+    "known_logical_bytes": 4127530,
+    "unlisted_files": "UNKNOWN"
+  }
+}

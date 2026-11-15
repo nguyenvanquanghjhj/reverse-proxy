@@ -1,7 +1,7 @@
 name: PBL4 integrated regression
 on:
   push:
-    branches: [main, feature/pbl4-unified-20261115, feature/pbl4-core-streaming-20261115]
+    branches: [main, feature/pbl4-unified-20261115, feature/pbl4-core-streaming-20261115, 'maintenance/**']
   pull_request:
   workflow_dispatch:
 permissions:
@@ -65,11 +65,7 @@ jobs:
       - name: Existing HTTP tooling tests (preserved from source bundle)
         run: python scripts/test_defense_live.py
       - name: Operations and database safeguard unit tests
-        run: |
-          python scripts/ops/test_ops.py
-          python scripts/ops/test_consistent_bundle.py
-          python scripts/ops/test_docker_operator.py
-          python scripts/ops/test_lan_benchmark.py
+        run: python -m unittest discover -s scripts/ops -p "test_*.py" -v
       - name: Compose syntax and dependency resolution (no deployment)
         env:
           PBL4_DB_PASSWORD: 'CI_NO_SECRET_VALUE_0123456789abcdef'
@@ -84,8 +80,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Docker disk usage before acceptance (runner only)
+        run: docker system df -v
       - name: Real Docker control plane and restart persistence in a new stack
         run: python scripts/ops/acceptance_docker_ci.py --out target/docker-acceptance
+      - name: Docker disk usage after acceptance (volumes retained)
+        if: always()
+        run: docker system df -v
       - name: Upload Docker runtime evidence
         if: always()
         uses: actions/upload-artifact@v4

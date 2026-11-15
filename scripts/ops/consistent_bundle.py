@@ -7,9 +7,9 @@ NEW files root. All writers MUST be stopped for the paired filesystem snapshot.
 No source database, original storage root or existing target is ever overwritten.
 
 Examples (run with all backend JVM writers stopped, PostgreSQL still online):
-  python scripts/ops/consistent_bundle.py backup-offline --out ..\\private-backups\\snapshot.tar.gz --ack STOPPED_ALL_WRITERS
-  python scripts/ops/consistent_bundle.py verify ..\\private-backups\\snapshot.tar.gz
-  python scripts/ops/consistent_bundle.py restore-new ..\\private-backups\\snapshot.tar.gz --target-db pbl4_restore_20261114 --new-files-root C:\\private\\pbl4-restored --ack CREATE_NEW_DATABASE_AND_FILES
+  python scripts/ops/consistent_bundle.py backup-offline --out ../private-backups/snapshot.tar.gz --ack STOPPED_ALL_WRITERS
+  python scripts/ops/consistent_bundle.py verify ../private-backups/snapshot.tar.gz
+  python scripts/ops/consistent_bundle.py restore-new ../private-backups/snapshot.tar.gz --target-db pbl4_restore_20261114 --new-files-root ../private-restored-files --ack CREATE_NEW_DATABASE_AND_FILES
 """
 from __future__ import annotations
 import argparse

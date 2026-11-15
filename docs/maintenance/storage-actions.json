@@ -1,0 +1,57 @@
+{
+  "lossless_ntfs_compression": {
+    "logs_evidence": {
+      "files": 531,
+      "logical_bytes": 397029835,
+      "allocated_before": 398139392,
+      "allocated_after": 148561920
+    },
+    "reproducible_qa_payload": {
+      "files": 26,
+      "logical_bytes": 2572155736,
+      "allocated_before": 2572156928,
+      "allocated_after": 481624064
+    },
+    "portable_toolchain": {
+      "files": 120,
+      "logical_bytes": 277749954,
+      "allocated_before": 277979136,
+      "allocated_after": 165621760
+    }
+  },
+  "old_files_sha256_equal": true,
+  "deleted_bytecode_files": 26,
+  "deleted_bytecode_bytes": 426904,
+  "new_qa_and_test_reports": {
+    "files": 164,
+    "allocated_saved": 446169088
+  },
+  "all_new_sha256_equal": true,
+  "full_receipts": {
+    "compression-receipts.json": {
+      "path": "D:\\PBL4\\storage-maintenance-20261115\\compression-receipts.json",
+      "bytes": 258787,
+      "sha256": "1c0122fda3956c7ca22616d6b88a261a0b75f5d722fe6019de931c0ddb8ac5ac"
+    },
+    "compression-new-qa.json": {
+      "path": "D:\\PBL4\\storage-maintenance-20261115\\compression-new-qa.json",
+      "bytes": 67014,
+      "sha256": "2f964528ef4619dd8badff6b5a3754e5e74b6e84a3bb09f92783b1bf4675713c"
+    },
+    "delete-regenerable-pyc.json": {
+      "path": "D:\\PBL4\\storage-maintenance-20261115\\delete-regenerable-pyc.json",
+      "bytes": 7506,
+      "sha256": "c31de8ea8cf1a1aafbe92b9c7d71b794b69341218ef14589cab74a6b2c9a2d4c"
+    },
+    "duplicates.json": {
+      "path": "D:\\PBL4\\storage-maintenance-20261115\\duplicates.json",
+      "bytes": 5484,
+      "sha256": "a64a2084a6d50d072e7558df42c753f11c084bea3fda2ad2600a42c6e269c221"
+    },
+    "git-largest-objects.json": {
+      "path": "D:\\PBL4\\storage-maintenance-20261115\\git-largest-objects.json",
+      "bytes": 5253,
+      "sha256": "c2037419092f14448bcfbce5154e7063b7c29fd687cced669d36e433ba92919c"
+    }
+  }
+}

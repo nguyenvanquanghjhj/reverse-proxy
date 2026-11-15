@@ -8,6 +8,10 @@ Java 21 reverse proxy, ba backend Java, PostgreSQL và shared storage. Mộc Sto
 
 Sao lưu đồng bộ DB và tệp dùng `scripts/ops/consistent_bundle.py`, với toàn bộ writer đã dừng, và chỉ restore vào database cùng thư mục **mới**. Hướng dẫn vận hành tại [OPERATIONS_UPGRADE.md](docs/OPERATIONS_UPGRADE.md). Giao diện hiện tại từ upstream yêu cầu đăng nhập và đặt hàng tại trang sản phẩm; QA trình duyệt kiểm đúng luồng này.
 
+## Bảo trì dung lượng
+
+[Kiểm kê và kết quả dọn dẹp](docs/maintenance/STORAGE_AUDIT.md) phân biệt kích thước nội dung với dung lượng cấp phát trên đĩa. [Danh mục công cụ vận hành](scripts/ops/README.md) ghi lệnh kiểm kê, backup/restore, acceptance và điều kiện bảo toàn dữ liệu; [deployment](deploy/README.md) dẫn tới Compose và kiểm thử restart. Dữ liệu QA, payload lớn và môi trường riêng được giữ ngoài checkout.
+
 ## Final Acceptance — 07/11/2026
 
 [Báo cáo nghiệm thu tổng hợp duy nhất](../final-acceptance-20261107/report.html) ghi PASS / FAIL / NOT RUN, lệnh tái hiện và đường dẫn raw CSV/JSON/screenshot. Đây là lần chạy mới từ source hiện tại; các số liệu V7 phía dưới là lịch sử.

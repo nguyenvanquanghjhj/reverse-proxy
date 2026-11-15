@@ -24,3 +24,14 @@ __pycache__/
 /pbl4-operations/
 *.dump
 *.tar.gz
+
+# Local maintenance/acceptance work belongs outside this checkout.
+/.maintenance/
+/.acceptance/
+/.m2/
+/.venv/
+/.pytest_cache/
+/postgres-data/
+/private-*.env
+/private-*-password.txt
+/storage-maintenance-*/
