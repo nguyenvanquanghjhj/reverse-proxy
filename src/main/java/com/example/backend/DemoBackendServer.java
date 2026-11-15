@@ -75,6 +75,8 @@ public final class DemoBackendServer implements AutoCloseable {
     private void handle(HttpExchange exchange) throws IOException {
         try (exchange) {
             String path = exchange.getRequestURI().getPath();
+            if (LargeFileHandler.matches(path) && Set.of("GET","HEAD").contains(exchange.getRequestMethod()))
+                com.example.proxy.util.RequestDeadline.forRoute(120000);
             switch (path) {
                 case "/health" -> {exchange.getResponseHeaders().set("X-Backend-Draining",Boolean.toString(healthy&&admission.draining()));respond(exchange, healthy && !admission.draining() ? 200 : 503, healthy&&admission.draining() ? "DRAINING" : healthy ? "UP" : "DOWN", "text/plain");}
                 case "/live" -> respond(exchange, healthy ? 200 : 503, healthy ? "UP" : "DOWN", "text/plain");
@@ -169,6 +171,9 @@ public final class DemoBackendServer implements AutoCloseable {
             if (!acquired) { respond(exchange, 503, "Backend queue timeout", "text/plain"); return; }
             active.incrementAndGet(); started = System.nanoTime();
             if (!healthy) { respond(exchange, 503, "Backend is down", "text/plain"); return; }
+            if (LargeFileHandler.matches(path)) {
+                LargeFileHandler.serve(exchange); completed.incrementAndGet(); return;
+            }
             if (store != null && StoreApplication.matches(path)) {
                 exchange.getResponseHeaders().set("X-Backend", "backend-" + getPort());
                 if(storeFaults.before(exchange))return;

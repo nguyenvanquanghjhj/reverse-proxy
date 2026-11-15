@@ -1,7 +1,7 @@
 name: PBL4 integrated regression
 on:
   push:
-    branches: [main, feature/pbl4-unified-20261115]
+    branches: [main, feature/pbl4-unified-20261115, feature/pbl4-core-streaming-20261115]
   pull_request:
   workflow_dispatch:
 permissions:

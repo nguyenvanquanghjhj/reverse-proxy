@@ -3,7 +3,6 @@ package com.example.proxy.server;
 import com.example.proxy.util.AppLogger;
 import com.example.proxy.util.RequestDeadline;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /** No task queue: also bounds JDK header parsing, before an HttpExchange reaches our handler. */
 public final class BoundedRequestExecutor implements Executor, AutoCloseable {
@@ -33,20 +32,39 @@ public final class BoundedRequestExecutor implements Executor, AutoCloseable {
             workers.execute(() -> {
                 Thread owner = Thread.currentThread();
                 long expires = RequestDeadline.afterMillis(timeoutMs);
-                AtomicBoolean finished = new AtomicBoolean();
-                ScheduledFuture<?> deadline = null;
-                try {
-                    deadline = timers.schedule(() -> {
-                        if (!finished.get()) owner.interrupt();
-                    }, Math.max(0, expires - System.nanoTime()), TimeUnit.NANOSECONDS);
-                    RequestDeadline.run(expires, command);
+                try (TaskDeadline deadline = new TaskDeadline(owner, expires)) {
+                    RequestDeadline.run(expires, command, deadline::forRoute);
                 } finally {
-                    finished.set(true);
-                    if (deadline != null) deadline.cancel(false);
                     slots.release();
                 }
             });
         } catch (RuntimeException failure) { slots.release(); throw failure; }
+    }
+    private final class TaskDeadline implements AutoCloseable, Runnable {
+        private final Thread owner;
+        private long expires;
+        private boolean finished, promoted;
+        private ScheduledFuture<?> task;
+        TaskDeadline(Thread owner, long expires) {
+            this.owner=owner; this.expires=expires; schedule();
+        }
+        private void schedule() {
+            task=timers.schedule(this,Math.max(0,expires-System.nanoTime()),TimeUnit.NANOSECONDS);
+        }
+        synchronized long forRoute(int timeoutMs) {
+            if (timeoutMs<1 || timeoutMs>120000) throw new IllegalArgumentException("Route deadline outside bounds");
+            if (!promoted && !finished && System.nanoTime()<expires && !owner.isInterrupted()) {
+                promoted=true; task.cancel(false); expires=RequestDeadline.afterMillis(timeoutMs); schedule();
+            }
+            return expires;
+        }
+        @Override public synchronized void run() {
+            if (!finished) {
+                if (System.nanoTime()<expires) schedule();
+                else owner.interrupt();
+            }
+        }
+        @Override public synchronized void close() { finished=true; task.cancel(false); }
     }
     synchronized void stopAccepting() { accepting = false; }
     int activeTasks() { return limit - slots.availablePermits(); }

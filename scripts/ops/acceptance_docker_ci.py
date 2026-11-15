@@ -34,6 +34,14 @@ def main():
     env.update(values)
     env_file.write_text(''.join(k+'='+v+'\n' for k,v in values.items()),encoding='utf-8');env_file.chmod(0o600)
     compose=['docker','compose','-p',project,'--env-file',str(env_file),'-f',str(COMPOSE)]
+    # Explicit isolated CI profile. Deployment defaults remain off; this new project
+    # tests streaming with a 64MiB proxy heap and a two-download bulkhead.
+    properties=(ROOT/'deploy/compose/proxy.properties').read_text()
+    properties+='\nproxy.streaming.enabled=true\nproxy.streaming.timeout.ms=120000\nproxy.pdf.bulkhead.max.inflight=2\n'
+    profile=out/'streaming-ci.properties';profile.write_text(properties)
+    override=out/'streaming-override.yaml'
+    override.write_text('services:\n  proxy:\n    environment:\n      JAVA_TOOL_OPTIONS: "-Xms16m -Xmx64m"\n    volumes:\n      - "'+profile.as_posix()+':/app/deploy/compose/streaming-ci.properties:ro"\n    command: ["java", "com.example.proxy.Main", "deploy/compose/streaming-ci.properties"]\n')
+    compose+=['-f',str(override)]
     checks=[];success=False
     def check(condition,label):
         checks.append({'check':label,'passed':bool(condition)})
@@ -76,6 +84,23 @@ def main():
                     b['capabilities'].get('order_create')=='AVAILABLE' for b in metrics['backends']):return metrics
             time.sleep(.5)
         raise AssertionError('All three Docker backends must recover with fresh capabilities')
+    large_files={}
+    def streaming_downloads(label):
+        for name,expected in large_files.items():
+            digest=hashlib.sha256();size=0
+            request=urllib.request.Request('http://127.0.0.1:8080/api/pbl4/files/'+name)
+            with urllib.request.urlopen(request,timeout=120) as response:
+                status=response.status;etag=response.headers['ETag']
+                while block:=response.read(32768):size+=len(block);digest.update(block)
+            check(status==200 and size==expected['bytes'] and digest.hexdigest()==expected['sha256'],label+' Docker '+name+' full SHA-256 under 64MiB heap')
+            request=urllib.request.Request('http://127.0.0.1:8080/api/pbl4/files/'+name,headers={'Range':'bytes=1048576-','If-Range':etag})
+            digest=hashlib.sha256();size=0
+            with urllib.request.urlopen(request,timeout=120) as response:
+                status=response.status;content_range=response.headers['Content-Range']
+                while block:=response.read(32768):size+=len(block);digest.update(block)
+            check(status==206 and size==expected['bytes']-1048576 and digest.hexdigest()==expected['tail_sha256'] and content_range==f'bytes 1048576-{expected["bytes"]-1}/{expected["bytes"]}',label+' Docker '+name+' If-Range resume SHA-256')
+        m=operator('metrics')
+        check(m['streaming']['active']==m['streaming']['openBodies']==m['downloadBulkhead']['active']==0,'Docker stream/body/bulkhead cleanup '+label)
     try:
         run('docker-version',['docker','version'])
         run('compose-version',['docker','compose','version'])
@@ -84,6 +109,20 @@ def main():
         run('compose-up',compose+['up','-d'],timeout=240)
         wait_ready();check(True,'real Docker store starts with PostgreSQL and shared storage')
         initial=wait_backends()
+        run('large-root',compose+['exec','-T','backend1','sh','-ec','mkdir -p /data/files/public-downloads && test -w /data/files/public-downloads'])
+        tile=bytes(range(256))*4096
+        staging=env_file.parent/'ci-public-file.bin'
+        for mib in (32,100,256):
+            name=f'ci-{mib}.bin';digest=hashlib.sha256();tail=hashlib.sha256()
+            with staging.open('wb') as file:
+                for index in range(mib):
+                    file.write(tile);digest.update(tile)
+                    if index:tail.update(tile)
+            large_files[name]={'bytes':mib*1048576,'sha256':digest.hexdigest(),'tail_sha256':tail.hexdigest()}
+            run('copy-'+name,compose+['cp',str(staging),'backend1:/data/files/public-downloads/.staged'])
+            run('publish-'+name,compose+['exec','-T','backend1','sh','-ec','chmod 444 /data/files/public-downloads/.staged && mv /data/files/public-downloads/.staged /data/files/public-downloads/'+name])
+        (out/'large-files.json').write_text(json.dumps(large_files,indent=2))
+        streaming_downloads('before-restart')
         check(isinstance(initial,dict),'operator metrics works through docker exec into proxy loopback')
         check(http('/__proxy/metrics')[0]==403,'host bridge cannot access private management HTTP endpoint')
         for name,value in [('missing',''),('wrong','wrong')]:
@@ -120,6 +159,7 @@ def main():
             fingerprints[file['url']]=file['sha256']
         run('compose-restart',compose+['restart','postgres','backend1','backend2','backend3','proxy'],timeout=180)
         wait_ready();wait_backends()
+        streaming_downloads('after-restart')
         status,data,_=http('/api/store/orders',body,headers,'POST')
         check(status==200 and json.loads(data)['id']==order['id'],'same-key replay after Docker restart preserves the original order')
         check(sql_snapshot('sql-after-restart')==after,'order and stock persist across PostgreSQL/container restart')

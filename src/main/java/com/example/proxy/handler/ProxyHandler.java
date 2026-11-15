@@ -24,6 +24,7 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
     private final ProxyConfig config;
     private final Dispatcher dispatcher;
     private final UpstreamTransport transport;
+    private final StreamingProxy streaming;
     private final ClientRateLimiter rateLimiter;
     private final IncomingRequestValidator validator;
     private final PriorityAdmission admission;
@@ -37,6 +38,7 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
         this.validator = new IncomingRequestValidator(config);
         this.dispatcher = dispatcher;
         this.transport = new UpstreamTransport(config);
+        this.streaming = new StreamingProxy(config);
         this.admission = new PriorityAdmission(config.getMaxInflight(),
                 config.getReservedCriticalSlots(), config.getQosMaxCriticalPerPeer());
         this.downloads=new DownloadBulkhead(config.getPdfBulkheadMaxInflight(),config.getPdfBulkheadQueueCapacity(),config.getPdfBulkheadWaitMs());
@@ -64,7 +66,11 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
             exchange.getResponseHeaders().set("X-Request-Id", id);
             // Register before checking closed: either close() sees this owner, or this check rejects it.
             if (closed.get()) { Thread.currentThread().interrupt(); exchange.close(); throw new IOException("Proxy handler is closed"); }
-            deadline = clientDeadline(RequestDeadline.currentOrNew(config.getRequestTimeoutMs()));
+            long expires = !management && config.isStreamingEnabled()
+                    && StreamingProxy.eligible(exchange.getRequestMethod(), exchange.getRequestURI().getPath())
+                    ? RequestDeadline.forRoute(config.getStreamingTimeoutMs())
+                    : RequestDeadline.currentOrNew(config.getRequestTimeoutMs());
+            deadline = clientDeadline(expires);
             if (management) {
                 boolean admitted = managementAdmission.tryAcquire();
                 try (exchange) {
@@ -81,7 +87,7 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
             if (deadline != null) deadline.close();
             owners.remove(Thread.currentThread());
             int status = exchange.getResponseCode();
-            if(!error.isEmpty())result.outcome=com.example.proxy.metrics.TrafficMetrics.Outcome.CLIENT_FAILURE;
+            if(!error.isEmpty() && result.outcome==null)result.outcome=com.example.proxy.metrics.TrafficMetrics.Outcome.CLIENT_FAILURE;
             metrics.requestCompleted(status, !error.isEmpty(), exchange.getResponseHeaders().getFirst("X-Proxy-Backend") != null);
             if (requestClass != null) traffic.completed(requestClass, status, !error.isEmpty(),
                     exchange.getResponseHeaders().getFirst("X-Proxy-Backend") != null, elapsedMs(started),result.outcome==null?
@@ -120,6 +126,8 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
     public String trafficJson() { return traffic.json(); }
     public String transportJson() { return transport.metricsJson(); }
     public String connectionPoolJson() { return transport.connectionPoolJson(); }
+    public String streamingJson() { return streaming.metricsJson(); }
+    public String streamingPrometheus() { return streaming.prometheus(); }
     public String downloadBulkheadJson(){return downloads.json();}
     public String qosJson() { return admission.json(); }
     public String trafficPrometheus() { return traffic.prometheus(); }
@@ -162,7 +170,7 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
                 sendFailure(exchange, 429, "Client request rate exceeded");
                 return;
             }
-            if(downloads.enabled()&&"DOCUMENT_DOWNLOAD".equals(Dispatcher.requestClass(exchange.getRequestMethod(),exchange.getRequestURI()))){
+            if(downloads.enabled() && ("DOCUMENT_DOWNLOAD".equals(Dispatcher.requestClass(exchange.getRequestMethod(),exchange.getRequestURI())) || StreamingProxy.eligible(exchange.getRequestMethod(),exchange.getRequestURI().getPath()))){
                 downloadTicket=downloads.acquire(expires);
                 if(downloadTicket==null){
                     exchange.getResponseHeaders().set("Retry-After","1");
@@ -196,6 +204,16 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
             long start = System.nanoTime();
             try (lease) {
                 try {
+                    if (config.isStreamingEnabled() && StreamingProxy.eligible(exchange.getRequestMethod(),exchange.getRequestURI().getPath())) {
+                        exchange.getResponseHeaders().set("X-Proxy-Strategy",lease.strategy());
+                        int status=streaming.transfer(exchange,lease.backend(),headers,expires);
+                        result.outcome=com.example.proxy.metrics.TrafficMetrics.classify(
+                            Dispatcher.requestClass(exchange.getRequestMethod(),exchange.getRequestURI()),status,false,true,null);
+                        if(status>=400)metrics.upstreamResponseError();
+                        if(status==503)lease.completeServiceFailure(elapsedMs(start));
+                        else lease.completeHttp(elapsedMs(start),status);
+                        return;
+                    }
                     response = transport.exchange(lease.backend(), exchange.getRequestMethod(), exchange.getRequestURI(), headers, body, expires);
                     String service=response.headers().entrySet().stream().filter(entry->entry.getKey().equalsIgnoreCase("X-Service-Outcome"))
                             .filter(entry->entry.getValue().size()==1).map(entry->entry.getValue().getFirst()).findFirst().orElse(null);
@@ -215,6 +233,15 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
                     lease.completePolicyRejection(elapsedMs(start));
                     sendFailure(exchange, 502, "Backend response exceeds proxy limits");
                     return;
+                } catch (StreamingProxy.DeadlineIOException e) {
+                    result.outcome=com.example.proxy.metrics.TrafficMetrics.Outcome.TIMEOUT;
+                    lease.completePolicyRejection(elapsedMs(start));
+                    if(exchange.getResponseCode()!=-1)throw e;
+                    sendFailure(exchange,504,"Streaming route timed out");return;
+                } catch (StreamingProxy.DownstreamIOException e) {
+                    result.outcome=com.example.proxy.metrics.TrafficMetrics.Outcome.CLIENT_FAILURE;
+                    lease.completeServiceFailure(elapsedMs(start));
+                    throw e;
                 } catch (SocketTimeoutException e) {
                     result.outcome=com.example.proxy.metrics.TrafficMetrics.Outcome.TIMEOUT;
                     metrics.upstreamTimeout();
@@ -223,6 +250,20 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
                     sendFailure(exchange, 504, "Backend timed out");
                     return;
                 } catch (IOException e) {
+                    if(exchange.getResponseCode()!=-1) {
+                        // A downstream disconnect must not mark a healthy backend as failed.
+                        if(e instanceof StreamingProxy.DownstreamIOException || e instanceof StreamingProxy.DeadlineIOException) {
+                            lease.completePolicyRejection(elapsedMs(start));
+                            result.outcome=e instanceof StreamingProxy.DownstreamIOException
+                                ? com.example.proxy.metrics.TrafficMetrics.Outcome.CLIENT_FAILURE
+                                : com.example.proxy.metrics.TrafficMetrics.Outcome.TIMEOUT;
+                        } else {
+                            lease.complete(elapsedMs(start),true,true);
+                            result.outcome=com.example.proxy.metrics.TrafficMetrics.Outcome.TRANSPORT_FAILURE;
+                            metrics.upstreamFailure(e);
+                        }
+                        throw e; // Cannot send a second HTTP response after committing headers.
+                    }
                     result.outcome=com.example.proxy.metrics.TrafficMetrics.Outcome.TRANSPORT_FAILURE;
                     log.warn("event=upstream_error request_id=" + exchange.getResponseHeaders().getFirst("X-Request-Id") + " error_type=" + e.getClass().getSimpleName());
                     metrics.upstreamFailure(e);
@@ -340,6 +381,7 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
         if (!closed.compareAndSet(false, true)) return;
         owners.forEach((thread, id) -> { log.warn("event=shutdown_cancel request_id=" + id); thread.interrupt(); });
         transport.close();
+        streaming.close();
         deadlines.shutdownNow();
     }
 }

@@ -12,6 +12,7 @@ x-store-env: &store-env
   STORE_ENV: demonstration
   STORE_ORIGIN: http://127.0.0.1:8080
   PBL4_BACKEND_BIND_HOST: 0.0.0.0
+  PBL4_LARGE_FILES_ROOT: /data/files/public-downloads
   PBL4_PROBE_TOKEN: ${PBL4_PROBE_TOKEN:?Set PBL4_PROBE_TOKEN in .env}
 services:
   postgres:

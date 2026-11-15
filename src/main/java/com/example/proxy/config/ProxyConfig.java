@@ -25,7 +25,10 @@ public final class ProxyConfig {
         isDecisionTraceEnabled(); getReservedCriticalSlots(); getQosMaxCriticalPerPeer();
         getPdfBulkheadMaxInflight();getPdfBulkheadQueueCapacity();getPdfBulkheadWaitMs();
         isManagementEnabled(); getManagementPort(); getManagementMaxTasks();
-        isConnectionPoolEnabled(); getUpstreamIdlePerBackend(); getUpstreamIdleTtlMs(); isCapabilityRoutingEnabled();
+        isConnectionPoolEnabled(); getUpstreamIdlePerBackend(); getUpstreamIdleTtlMs(); isCapabilityRoutingEnabled(); isStreamingEnabled();
+        getStreamingTimeoutMs();
+        if (isStreamingEnabled() && (getPdfBulkheadMaxInflight()<1 || getPdfBulkheadMaxInflight()>=getMaxInflight()))
+            throw new IllegalArgumentException("Streaming requires a download bulkhead smaller than total admission");
         isRateLimitEnabled(); getRateLimitPerSecond(); getRateLimitBurst(); getRateLimitMaxClients(); getRateLimitIdleMs();
         if (getRateLimitIdleMs() < 1000.0 * getRateLimitBurst() / getRateLimitPerSecond())
             throw new IllegalArgumentException("proxy.rate-limit.idle.ms must cover a full burst refill");
@@ -67,6 +70,8 @@ public final class ProxyConfig {
         if (!value.equals("true") && !value.equals("false")) throw new IllegalArgumentException(key + " must be true or false");
         return Boolean.parseBoolean(value);
     }
+    public boolean isStreamingEnabled() { return bool("proxy.streaming.enabled", false); }
+    public int getStreamingTimeoutMs() { return integer("proxy.streaming.timeout.ms",120000,100,120000); }
     public boolean isCapabilityRoutingEnabled() { return bool("proxy.capability-routing.enabled", false); }
     public boolean isConnectionPoolEnabled() { return bool("proxy.connection-pool.enabled", false); }
     public int getUpstreamIdlePerBackend() { return integer("proxy.connection-pool.max-idle-per-backend", 4, 1, 32); }

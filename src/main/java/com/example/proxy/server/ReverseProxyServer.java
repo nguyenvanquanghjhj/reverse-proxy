@@ -124,6 +124,7 @@ public final class ReverseProxyServer implements AutoCloseable {
                     body = snapshot.substring(0, snapshot.length() - 1) + ",\"backendRuntime\":" + dispatcher.backendRuntimeJson()
                         + "," + handler.countersJson() + ",\"traffic\":" + handler.trafficJson() + ",\"transport\":" + handler.transportJson()
                             + ",\"connectionPool\":" + handler.connectionPoolJson()
+                            + ",\"streaming\":" + handler.streamingJson()
                             + ",\"downloadBulkhead\":" + handler.downloadBulkheadJson()
                             + ",\"qos\":" + handler.qosJson()
                             + ",\"health_probe_failures\":" + healthChecker.healthFailures()
@@ -133,7 +134,7 @@ public final class ReverseProxyServer implements AutoCloseable {
                 } else if (path.equals("/__proxy/decision")) {
                     body = dispatcher.decisionJson();
                 } else if (path.equals("/__proxy/prometheus")) {
-                    body = handler.prometheus() + handler.trafficPrometheus() + dispatcher.prometheus()
+                    body = handler.prometheus() + handler.trafficPrometheus() + handler.streamingPrometheus() + dispatcher.prometheus()
                             + "# TYPE proxy_data_ingress_tasks gauge\nproxy_data_ingress_tasks " + getDataIngressTasks() + "\n"
                             + "# TYPE proxy_management_ingress_tasks gauge\nproxy_management_ingress_tasks " + getManagementIngressTasks() + "\n";
                 } else if (path.equals("/__proxy/health")) {
