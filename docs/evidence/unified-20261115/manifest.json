@@ -1,0 +1,57 @@
+{
+  "java-native.log": {
+    "sha256": "7f07ef820fd45a1fedc2ff5d17381379c8ea09c5c8cf953e7fe24aad2fae5717",
+    "bytes": 3843,
+    "original": "D:\\PBL4\\unified-acceptance-20261115\\25c-native-final.log"
+  },
+  "java-maven.log": {
+    "sha256": "d445ab7a3ca4aac728fef058c428f3f479c196439779ec08d2b3a439107e53ea",
+    "bytes": 6364,
+    "original": "D:\\PBL4\\unified-acceptance-20261115\\26-maven-final.log"
+  },
+  "python-operations.log": {
+    "sha256": "315d94c67a7bb7ad66f57d9bc99dc256761c456783070e800898fc495329fa4f",
+    "bytes": 2684,
+    "original": "D:\\PBL4\\unified-acceptance-20261115\\20-final-python-ops-tests.log"
+  },
+  "python-http-tools.log": {
+    "sha256": "ee18b1ad71325f0f385a8946476263a7ee773a891dffca7b7ac2d37d3c1b4e60",
+    "bytes": 2764,
+    "original": "D:\\PBL4\\unified-acceptance-20261115\\21-final-python-http-tests.log"
+  },
+  "operational-result.json": {
+    "sha256": "7746bd8d3fa02c79db78a4482a8d42a37eb92520cb14b12b101be92d991b35e6",
+    "bytes": 18763,
+    "original": "D:\\PBL4\\unified-acceptance-20261115\\operational-03\\result.json"
+  },
+  "jdbc-pool-off.log": {
+    "sha256": "23d2e72f01f8c35c4e4ad82c4d6852e6bb63bc034a39d47d850c103adc8420f1",
+    "bytes": 166,
+    "original": "D:\\PBL4\\unified-acceptance-20261115\\operational-03\\jdbc-false.log"
+  },
+  "jdbc-pool-on.log": {
+    "sha256": "19669086ab7bd9be55676a55049a47813411820378f45c7644a2f91d4e1244ed",
+    "bytes": 164,
+    "original": "D:\\PBL4\\unified-acceptance-20261115\\operational-03\\jdbc-true.log"
+  },
+  "backup-restore-result.json": {
+    "sha256": "0f5a0d4b08e2ba7f896888d17cc19aab0cbb440c8234945689b447e66bd5f773",
+    "bytes": 1792,
+    "original": "D:\\PBL4\\unified-acceptance-20261115\\backup-restore\\result.json"
+  },
+  "backup-table-fingerprints.json": {
+    "sha256": "af3094f1c0f70d0208c7a75f66becea9bb92022bf727fd1ce34c71653edf9370",
+    "bytes": 4553,
+    "original": "D:\\PBL4\\unified-acceptance-20261115\\backup-restore\\table-fingerprints.json"
+  },
+  "restored-store-audit.log": {
+    "sha256": "4bb94db95147301d73e449b732302e2ce8b0936b1b927a2ad5eaa93af8837be6",
+    "bytes": 61,
+    "original": "D:\\PBL4\\unified-acceptance-20261115\\backup-restore\\restored-store-audit.log"
+  },
+  "preservation-result.json": {
+    "sha256": "de93a3b9b21e777af4e2ef8743f14e83e0b002458c8151a94606a1d6178ee246",
+    "bytes": 540,
+    "original": "D:\\PBL4\\unified-acceptance-20261115\\preservation-result.json"
+  }
+}

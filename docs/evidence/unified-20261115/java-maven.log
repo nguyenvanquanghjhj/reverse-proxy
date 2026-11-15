@@ -1,0 +1,68 @@
+{"command": ["D:\\PBL4\\unified-acceptance-20261115\\tools\\maven\\apache-maven-3.10.0\\bin\\mvn.cmd", "-B", "--no-transfer-progress", "-Pshop", "test"], "cwd": "D:\\PBL4\\reverse-proxy-demo", "utc": "2026-11-15T04:06:40.195754+00:00"}
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -------------------< com.example:reverse-proxy-demo >-------------------
+[INFO] Building reverse-proxy-demo 2.0.0
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] Loaded 24494 auto-discovered prefixes for remote repository central (prefixes-central.txt)
+[INFO] Loaded 64 auto-discovered prefixes for remote repository apache.snapshots (prefixes-apache.snapshots.txt)
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ reverse-proxy-demo ---
+[INFO] Copying 40 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ reverse-proxy-demo ---
+[INFO] Changes detected - recompiling the module! :source
+[INFO] Compiling 70 source files with javac [debug release 21] to target\classes
+[INFO] 
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ reverse-proxy-demo ---
+[INFO] skip non existing resourceDirectory D:\PBL4\reverse-proxy-demo\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ reverse-proxy-demo ---
+[INFO] Changes detected - recompiling the module! :dependency
+[INFO] Compiling 29 source files with javac [debug release 21] to target\test-classes
+[INFO] 
+[INFO] --- surefire:3.5.4:test (default-test) @ reverse-proxy-demo ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- antrun:3.2.0:run (plain-java-tests) @ reverse-proxy-demo ---
+[INFO] Executing tasks
+[WARNING]      [echo] Surefire is intentionally disabled: ALL *Test.java mains run in TestSuite with 60s per-suite timeouts and XML reports in target/test-reports.
+[INFO]      [java] PASS com.example.proxy.AdaptiveDecisionTest (target\test-reports\com.example.proxy.AdaptiveDecisionTest.log)
+[INFO]      [java] PASS com.example.proxy.AssetCacheTest (target\test-reports\com.example.proxy.AssetCacheTest.log)
+[INFO]      [java] PASS com.example.proxy.CapabilityJsonStrictTest (target\test-reports\com.example.proxy.CapabilityJsonStrictTest.log)
+[INFO]      [java] PASS com.example.proxy.CapabilityRoutingTest (target\test-reports\com.example.proxy.CapabilityRoutingTest.log)
+[INFO]      [java] PASS com.example.proxy.ChunkMetadataTest (target\test-reports\com.example.proxy.ChunkMetadataTest.log)
+[INFO]      [java] PASS com.example.proxy.CircuitBreakerHttpTest (target\test-reports\com.example.proxy.CircuitBreakerHttpTest.log)
+[INFO]      [java] PASS com.example.proxy.CircuitBreakerTest (target\test-reports\com.example.proxy.CircuitBreakerTest.log)
+[INFO]      [java] PASS com.example.proxy.ConcurrentLifecycleTest (target\test-reports\com.example.proxy.ConcurrentLifecycleTest.log)
+[INFO]      [java] PASS com.example.proxy.DatabasePoolTest (target\test-reports\com.example.proxy.DatabasePoolTest.log)
+[INFO]      [java] PASS com.example.proxy.DispatcherTest (target\test-reports\com.example.proxy.DispatcherTest.log)
+[INFO]      [java] PASS com.example.proxy.handler.DownloadBulkheadTest (target\test-reports\com.example.proxy.handler.DownloadBulkheadTest.log)
+[INFO]      [java] PASS com.example.proxy.HardeningTest (target\test-reports\com.example.proxy.HardeningTest.log)
+[INFO]      [java] PASS com.example.proxy.HealthCheckerTest (target\test-reports\com.example.proxy.HealthCheckerTest.log)
+[INFO]      [java] PASS com.example.proxy.HttpIntermediaryTest (target\test-reports\com.example.proxy.HttpIntermediaryTest.log)
+[INFO]      [java] PASS com.example.proxy.HttpTransportTest (target\test-reports\com.example.proxy.HttpTransportTest.log)
+[INFO]      [java] PASS com.example.proxy.LifecycleTest (target\test-reports\com.example.proxy.LifecycleTest.log)
+[INFO]      [java] PASS com.example.proxy.ListenerResourceTest (target\test-reports\com.example.proxy.ListenerResourceTest.log)
+[INFO]      [java] PASS com.example.proxy.loadbalancer.EstimatedWorkTest (target\test-reports\com.example.proxy.loadbalancer.EstimatedWorkTest.log)
+[INFO]      [java] PASS com.example.proxy.ManagementListenerTest (target\test-reports\com.example.proxy.ManagementListenerTest.log)
+[INFO]      [java] PASS com.example.proxy.PriorityAdmissionSecurityTest (target\test-reports\com.example.proxy.PriorityAdmissionSecurityTest.log)
+[INFO]      [java] PASS com.example.proxy.PriorityAdmissionTest (target\test-reports\com.example.proxy.PriorityAdmissionTest.log)
+[INFO]      [java] PASS com.example.proxy.ProxyContractTest (target\test-reports\com.example.proxy.ProxyContractTest.log)
+[INFO]      [java] PASS com.example.proxy.RateLimiterTest (target\test-reports\com.example.proxy.RateLimiterTest.log)
+[INFO]      [java] PASS com.example.proxy.RequestDeadlineTest (target\test-reports\com.example.proxy.RequestDeadlineTest.log)
+[INFO]      [java] PASS com.example.proxy.SchedulerParityTest (target\test-reports\com.example.proxy.SchedulerParityTest.log)
+[INFO]      [java] PASS com.example.proxy.UpstreamPoolingAdversarialTest (target\test-reports\com.example.proxy.UpstreamPoolingAdversarialTest.log)
+[INFO]      [java] PASS com.example.proxy.UpstreamPoolingFailureTest (target\test-reports\com.example.proxy.UpstreamPoolingFailureTest.log)
+[INFO]      [java] PASS com.example.proxy.UpstreamPoolingTest (target\test-reports\com.example.proxy.UpstreamPoolingTest.log)
+[INFO]      [java] Passed 28 test mains; XML reports: target\test-reports
+[INFO] Executed tasks
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  03:10 min
+[INFO] Finished at: 2026-11-15T11:09:54+07:00
+[INFO] ------------------------------------------------------------------------
+
+RESULT: {"command": ["D:\\PBL4\\unified-acceptance-20261115\\tools\\maven\\apache-maven-3.10.0\\bin\\mvn.cmd", "-B", "--no-transfer-progress", "-Pshop", "test"], "cwd": "D:\\PBL4\\reverse-proxy-demo", "utc": "2026-11-15T04:06:40.195754+00:00", "name": "26-maven-final", "exit_code": 0, "seconds": 193.985, "log": "D:\\PBL4\\unified-acceptance-20261115\\26-maven-final.log"}

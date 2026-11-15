@@ -83,6 +83,10 @@ public final class ReverseProxyServer implements AutoCloseable {
                 ProxyHandler.sendError(exchange, 403, "Monitoring is loopback-only"); return;
             }
             String path = exchange.getRequestURI().getPath();
+            if ((path.equals("/__proxy/backend-drain") || path.equals("/__proxy/strategy"))
+                    && !com.example.proxy.server.OperatorAuth.authorized(exchange)) {
+                ProxyHandler.sendError(exchange, 403, "Operator authentication required"); return;
+            }
             String body;
             int status = 200;
             if(path.equals("/__proxy/backend-drain")){
@@ -119,7 +123,9 @@ public final class ReverseProxyServer implements AutoCloseable {
                     String snapshot = dispatcher.snapshotJson();
                     body = snapshot.substring(0, snapshot.length() - 1) + ",\"backendRuntime\":" + dispatcher.backendRuntimeJson()
                         + "," + handler.countersJson() + ",\"traffic\":" + handler.trafficJson() + ",\"transport\":" + handler.transportJson()
+                            + ",\"connectionPool\":" + handler.connectionPoolJson()
                             + ",\"downloadBulkhead\":" + handler.downloadBulkheadJson()
+                            + ",\"qos\":" + handler.qosJson()
                             + ",\"health_probe_failures\":" + healthChecker.healthFailures()
                             + ",\"data_ingress_tasks\":" + getDataIngressTasks()
                             + ",\"management_ingress_tasks\":" + getManagementIngressTasks()

@@ -1,0 +1,69 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "check": "backup-offline exit=0",
+      "passed": true
+    },
+    {
+      "check": "backup-verify exit=0",
+      "passed": true
+    },
+    {
+      "check": "restore-new exit=0",
+      "passed": true
+    },
+    {
+      "check": "all PostgreSQL table counts and full-row hashes match after real pg_dump/pg_restore",
+      "passed": true
+    },
+    {
+      "check": "every restored file SHA-256 matches source",
+      "passed": true
+    },
+    {
+      "check": "restored-store-check exit=0",
+      "passed": true
+    },
+    {
+      "check": "restored-store-audit exit=0",
+      "passed": true
+    },
+    {
+      "check": "restored-store-stats exit=0",
+      "passed": true
+    },
+    {
+      "check": "refuse-existing-database exit=2",
+      "passed": true
+    },
+    {
+      "check": "restore refusal leaves existing target and files untouched",
+      "passed": true
+    },
+    {
+      "check": "source DB and shared files unchanged by backup and restore",
+      "passed": true
+    },
+    {
+      "check": "restored separate app serves verified IMAGE bytes",
+      "passed": true
+    },
+    {
+      "check": "restored separate app serves verified IMAGE bytes",
+      "passed": true
+    },
+    {
+      "check": "restored separate app serves verified PDF bytes",
+      "passed": true
+    },
+    {
+      "check": "restored separate app serves verified PDF bytes",
+      "passed": true
+    }
+  ],
+  "archive": "D:\\PBL4\\unified-acceptance-20261115\\backup-restore\\coherent-private-dataset.tar.gz",
+  "source_database": "pbl4_operational_03",
+  "target_database": "pbl4_restored_20261115",
+  "restored_files": "D:\\PBL4\\unified-acceptance-20261115\\backup-restore\\restored-files"
+}

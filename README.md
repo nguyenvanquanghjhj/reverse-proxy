@@ -2,6 +2,12 @@
 
 Java 21 reverse proxy, ba backend Java, PostgreSQL và shared storage. Mộc Store là workload có transaction thật để nghiên cứu HTTP, concurrency, quá tải và lỗi. Phạm vi không mở rộng voucher, review, IMEI, bảo hành, POS, nhân viên hay thanh toán trực tuyến.
 
+## Nâng cấp hợp nhất — 15/11/2026
+
+Đã tích hợp từ một `PBL4_UNIFIED_RELEASE`, sau khi pull `origin/main`, trên branch riêng. [Biên bản nghiệm thu nâng cấp](docs/UNIFIED_ACCEPTANCE_20261115.md) ghi trạng thái và log thực của từng hạng mục; các kết quả 07/11 và V7 bên dưới là lịch sử. Capability routing phân biệt lỗi DB, static và business pause. Upstream connection pool mặc định `false`, QoS reservation mặc định `0`, JDBC pool local mặc định OFF; các chế độ bật chỉ được chạy trong môi trường kiểm thử riêng.
+
+Sao lưu đồng bộ DB và tệp dùng `scripts/ops/consistent_bundle.py`, với toàn bộ writer đã dừng, và chỉ restore vào database cùng thư mục **mới**. Hướng dẫn vận hành tại [OPERATIONS_UPGRADE.md](docs/OPERATIONS_UPGRADE.md). Giao diện hiện tại từ upstream yêu cầu đăng nhập và đặt hàng tại trang sản phẩm; QA trình duyệt kiểm đúng luồng này.
+
 ## Final Acceptance — 07/11/2026
 
 [Báo cáo nghiệm thu tổng hợp duy nhất](../final-acceptance-20261107/report.html) ghi PASS / FAIL / NOT RUN, lệnh tái hiện và đường dẫn raw CSV/JSON/screenshot. Đây là lần chạy mới từ source hiện tại; các số liệu V7 phía dưới là lịch sử.
@@ -67,7 +73,7 @@ Phân biệt: TCP connection có thể chưa gửi HTTP; ingress task có thể 
 
 ## Hợp đồng HTTP và các lỗi đã sửa
 
-Không tuyên bố hỗ trợ toàn bộ HTTP/1.1. Listener/parser request thuộc JDK; parser response và transport do dự án triển khai. Chỉ chuyển tiếp origin-form; không có CONNECT tunnel, Upgrade/WebSocket, HTTP/2, TLS termination, streaming response hoặc connection pool upstream.
+Không tuyên bố hỗ trợ toàn bộ HTTP/1.1. Listener/parser request thuộc JDK; parser response và transport do dự án triển khai. Chỉ chuyển tiếp origin-form; không có CONNECT tunnel, Upgrade/WebSocket, HTTP/2, TLS termination hoặc streaming response. Upstream connection pool là opt-in, mặc định OFF, chỉ tái sử dụng GET có framing hoàn chỉnh.
 
 | Trường hợp | Hành vi trong phạm vi kiểm thử |
 |---|---|
@@ -104,7 +110,7 @@ Proxy không tự retry GET hay POST. Checkout mất response sau commit chuyể
 | Socket upstream | Connect 500 ms; read 3 giây; tổng request 5 giây |
 | Backend executor | 128 task, deadline 10 giây |
 | Backend ứng dụng | 8 worker, 64 executing + waiting; chờ worker tối đa 3 giây |
-| Store Database instance | Semaphore tối đa 8 connection, chờ phép 500 ms; không dùng connection pool |
+| Store Database instance | Semaphore tối đa 8 connection, chờ phép 500 ms; JDBC pool opt-in qua `SHOP_DB_POOL_ENABLED`, local mặc định OFF |
 | File | Ảnh tối đa 512 KiB; PDF demo 256 KiB; key do server sinh, SHA-256 khi đọc |
 | Metrics | Ring hữu hạn 2048 mẫu, nhóm request cố định; timeline trình duyệt 80 sự kiện |
 
@@ -252,4 +258,4 @@ Bật thử bằng `proxy.pdf.bulkhead.max.inflight=8`; queue/wait cấu hình t
 
 `src/main`, `src/test`, `scripts`, `config`, `db/migrations`, `pom.xml`; JDBC trong `lib`, PostgreSQL portable trong `.runtime`; `.env.store`, `.shop`, `shared-files` là cấu hình/dữ liệu local. `target` là build có thể tái tạo khi đã dừng JVM. Giữ migration và giấy phép ảnh; không xóa tùy tiện file đang được DB tham chiếu. Không commit credential/database/profile có secret. JFR dùng profile riêng đã tắt InitialEnvironmentVariable/InitialSystemProperty trước khi ghi.
 
-Giới hạn còn lại: chỉ đo một máy Windows/loopback, chưa LAN/VM/loss/jitter/packet capture; không có upstream pooling hay retry tự động; buffering có giới hạn nhưng chưa streaming; HttpServer có giới hạn parser riêng và không phải một proxy HTTP tổng quát. Demo bind loopback; quản trị local không thay thế thiết kế authentication/TLS cho Internet. Không tuyên bố production-ready hay đã tối ưu toàn diện.
+Giới hạn còn lại: chỉ đo một máy Windows/loopback, chưa LAN/VM/loss/jitter/packet capture; upstream pooling vẫn OFF và không retry tự động; buffering có giới hạn nhưng chưa streaming; HttpServer có giới hạn parser riêng và không phải một proxy HTTP tổng quát. Demo bind loopback; quản trị local không thay thế thiết kế authentication/TLS cho Internet. Không tuyên bố production-ready hay đã tối ưu toàn diện.

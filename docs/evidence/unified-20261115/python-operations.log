@@ -1,0 +1,27 @@
+{"command": ["C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python312\\python.EXE", "-m", "unittest", "discover", "-s", "scripts/ops", "-p", "test_*.py", "-v"], "cwd": "D:\\PBL4\\reverse-proxy-demo", "utc": "2026-11-15T03:32:26.848114+00:00"}
+test_coherent_archive_verify_and_restore_to_new (test_consistent_bundle.SnapshotTest.test_coherent_archive_verify_and_restore_to_new) ... ok
+test_refuse_backup_without_ack (test_consistent_bundle.SnapshotTest.test_refuse_backup_without_ack) ... ok
+test_refuse_changed_archive (test_consistent_bundle.SnapshotTest.test_refuse_changed_archive) ... ok
+test_refuse_symlink (test_consistent_bundle.SnapshotTest.test_refuse_symlink) ... ok
+test_refuse_tar_path_traversal (test_consistent_bundle.SnapshotTest.test_refuse_tar_path_traversal) ... ok
+test_refuse_when_backend_ports_open (test_consistent_bundle.SnapshotTest.test_refuse_when_backend_ports_open) ... ok
+test_exec_fail_closed (test_docker_operator.OperatorTest.test_exec_fail_closed) ... ok
+test_internal_exec_and_no_control_plane_publication (test_docker_operator.OperatorTest.test_internal_exec_and_no_control_plane_publication) ... ok
+test_internal_metrics_json (test_docker_operator.OperatorTest.test_internal_metrics_json) ... ok
+test_reject_injection (test_docker_operator.OperatorTest.test_reject_injection) ... ok
+test_evidence_is_finite_and_grounded (test_lan_benchmark.LanTest.test_evidence_is_finite_and_grounded) ... ok
+test_safe_urls (test_lan_benchmark.LanTest.test_safe_urls) ... ok
+test_env_parser (test_ops.OpsTest.test_env_parser) ... ok
+test_hash (test_ops.OpsTest.test_hash) ... ok
+test_manifest_refuses_path_traversal (test_ops.OpsTest.test_manifest_refuses_path_traversal) ... ok
+test_pg_dump_archive_manifest_and_verify (test_ops.OpsTest.test_pg_dump_archive_manifest_and_verify) ... {"backup": "C:\\Users\\admin\\AppData\\Local\\Temp\\tmps5xt105l\\out\\pbl4-20261115T033228337259Z.dump", "manifest": "C:\\Users\\admin\\AppData\\Local\\Temp\\tmps5xt105l\\out\\pbl4-20261115T033228337259Z.json"}
+ok
+test_snapshot (test_ops.OpsTest.test_snapshot) ... ok
+test_watchdog_debounce (test_ops.OpsTest.test_watchdog_debounce) ... ok
+
+----------------------------------------------------------------------
+Ran 18 tests in 4.540s
+
+OK
+
+RESULT: {"command": ["C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python312\\python.EXE", "-m", "unittest", "discover", "-s", "scripts/ops", "-p", "test_*.py", "-v"], "cwd": "D:\\PBL4\\reverse-proxy-demo", "utc": "2026-11-15T03:32:26.848114+00:00", "name": "20-final-python-ops-tests", "exit_code": 0, "seconds": 5.235, "log": "D:\\PBL4\\unified-acceptance-20261115\\20-final-python-ops-tests.log"}

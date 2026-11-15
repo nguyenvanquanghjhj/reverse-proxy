@@ -1,0 +1,74 @@
+--- original/install.py
++++ reviewed/install.py
+@@ -74,7 +74,8 @@
+     target = root / rel
+     p = target
+     while p != root:
+-        if p.is_symlink(): raise RuntimeError(f'Symlink in output path {p}')
++        if p.is_symlink() or getattr(p, 'is_junction', lambda: False)():
++            raise RuntimeError(f'Symlink or junction in output path {p}')
+         p = p.parent
+     return target
+ 
+@@ -177,8 +178,8 @@
+ def format_diff(plan: Plan) -> str:
+     patches=[]
+     for rel, new_bytes in sorted(plan.modifications.items()):
+-        before=plan.originals[rel].decode('utf-8')
+-        after=new_bytes.decode('utf-8')
++        before=plan.originals[rel].decode('utf-8').replace('\r\n', '\n')
++        after=new_bytes.decode('utf-8').replace('\r\n', '\n')
+         lines=list(difflib.unified_diff(before.splitlines(keepends=True), after.splitlines(keepends=True),
+                                         fromfile='a/'+rel if before else '/dev/null',tofile='b/'+rel))
+         patches.append('diff --git a/'+rel+' b/'+rel+'\n'+('new file mode 100644\n' if not before else '')+''.join(lines))
+@@ -245,7 +246,7 @@
+             if path.is_relative_to(root):
+                 raise RuntimeError('Write diff outside the git checkout to avoid source alterations')
+             path.parent.mkdir(parents=True,exist_ok=True)
+-            path.write_text(format_diff(plan),encoding='utf-8')
++            path.write_text(format_diff(plan),encoding='utf-8',newline='\n')
+             print('Unified diff:',path)
+         if args.apply:
+             apply_plan(root,plan)
+--- original/layers/base8/apply_patch.py
++++ reviewed/layers/base8/apply_patch.py
+@@ -240,12 +240,12 @@
+          '    private final Map<String, ArrayDeque<IdleSocket>> idleSockets = new HashMap<>();\n'
+          '    private record IdleSocket(Socket socket,long sinceNanos) {}\n'
+          '    private long poolHits, poolMisses, poolDiscards;'),
+-        ('                 config.getMaxBodyBytes(), config.getMaxHeaderBytes(), config.getMaxHeaderCount(), config.getMaxChunkMetadataBytes());',
+-         '                 config.getMaxBodyBytes(), config.getMaxHeaderBytes(), config.getMaxHeaderCount(), config.getMaxChunkMetadataBytes(),\n'
++        ('                config.getMaxBodyBytes(), config.getMaxHeaderBytes(), config.getMaxHeaderCount(), config.getMaxChunkMetadataBytes());',
++         '                config.getMaxBodyBytes(), config.getMaxHeaderBytes(), config.getMaxHeaderCount(), config.getMaxChunkMetadataBytes(),\n'
+          '                 config.isConnectionPoolEnabled(), config.getUpstreamIdlePerBackend(), config.getUpstreamIdleTtlMs());'),
+         ('this(connectTimeoutMs, readTimeoutMs, requestTimeoutMs, maxBodyBytes, maxHeaderBytes, 100, ProxyConfig.DEFAULT_MAX_CHUNK_METADATA_BYTES);',
+          'this(connectTimeoutMs, readTimeoutMs, requestTimeoutMs, maxBodyBytes, maxHeaderBytes, 100, ProxyConfig.DEFAULT_MAX_CHUNK_METADATA_BYTES, false, 4, 10000);'),
+-        ('    private UpstreamTransport(int connectTimeoutMs, int readTimeoutMs, int requestTimeoutMs,\n                               int maxBodyBytes, int maxHeaderBytes, int maxHeaderCount, int maxChunkMetadataBytes) {',
++        ('    private UpstreamTransport(int connectTimeoutMs, int readTimeoutMs, int requestTimeoutMs,\n                              int maxBodyBytes, int maxHeaderBytes, int maxHeaderCount, int maxChunkMetadataBytes) {',
+          '    private UpstreamTransport(int connectTimeoutMs, int readTimeoutMs, int requestTimeoutMs,\n'
+          '                               int maxBodyBytes, int maxHeaderBytes, int maxHeaderCount, int maxChunkMetadataBytes,\n'
+          '                               boolean pooling, int maxIdlePerBackend, int idleTtlMs) {'),
+--- original/tests/test_integrator.py
++++ reviewed/tests/test_integrator.py
+@@ -5,6 +5,7 @@
+ import hashlib
+ import importlib.util
+ import json
++import os
+ import subprocess
+ import sys
+ import tempfile
+@@ -159,7 +160,12 @@
+     def test_refuse_symlinks(self):
+         with tempfile.TemporaryDirectory() as tmp:
+             root=Path(tmp)
+-            (root/'src').symlink_to(root,target_is_directory=True)
++            if os.name == 'nt':
++                subprocess.run(['cmd', '/c', 'mklink', '/J', str(root/'src'), str(root)],
++                               check=True, capture_output=True)
++                self.assertTrue((root/'src').is_junction())
++            else:
++                (root/'src').symlink_to(root,target_is_directory=True)
+             with self.assertRaises(RuntimeError):install.safe_target(root,'src/main/java/S.java')
+ 
+ 

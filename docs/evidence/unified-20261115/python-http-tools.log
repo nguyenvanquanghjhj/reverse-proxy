@@ -1,0 +1,23 @@
+{"command": ["C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python312\\python.EXE", "scripts/test_defense_live.py"], "cwd": "D:\\PBL4\\reverse-proxy-demo", "utc": "2026-11-15T03:32:32.178240+00:00"}
+  Running warmup-ROUND_ROBIN: 2 requests, concurrency 4
+  Running ROUND_ROBIN: 21 requests, concurrency 4
+  Running warmup-LEAST_CONNECTIONS: 2 requests, concurrency 4
+  Running LEAST_CONNECTIONS: 21 requests, concurrency 4
+  Running warmup-ADAPTIVE: 2 requests, concurrency 4
+  Running ADAPTIVE: 21 requests, concurrency 4
+  Restored original strategy: ADAPTIVE
+   ROUND_ROBIN {'attempted': 21, 'successful': 21, 'http_errors': 0, 'client_errors': 0, 'p50_ms_all': 2.79, 'p95_ms_all': 3.82, 'p95_ms_success': 3.82, 'distribution': {'127.0.0.1:9001': 7, '127.0.0.1:9002': 7, '127.0.0.1:9003': 7}}
+   LEAST_CONNECTIONS {'attempted': 21, 'successful': 21, 'http_errors': 0, 'client_errors': 0, 'p50_ms_all': 2.38, 'p95_ms_all': 3.35, 'p95_ms_success': 3.35, 'distribution': {'127.0.0.1:9001': 7, '127.0.0.1:9002': 7, '127.0.0.1:9003': 7}}
+   ADAPTIVE {'attempted': 21, 'successful': 21, 'http_errors': 0, 'client_errors': 0, 'p50_ms_all': 2.48, 'p95_ms_all': 2.98, 'p95_ms_success': 2.98, 'distribution': {'127.0.0.1:9001': 7, '127.0.0.1:9002': 7, '127.0.0.1:9003': 7}}
+Evidence saved to: C:\Users\admin\AppData\Local\Temp\tmp0w25g1fy\comparison
+  Running before-drain: 21 requests, concurrency 4
+  Running during-drain: 21 requests, concurrency 4
+  Restored backend drain=false
+  Running after-resume: 21 requests, concurrency 4
+   before-drain {'attempted': 21, 'successful': 21, 'http_errors': 0, 'client_errors': 0, 'p50_ms_all': 2.46, 'p95_ms_all': 3.18, 'p95_ms_success': 3.18, 'distribution': {'127.0.0.1:9001': 7, '127.0.0.1:9002': 7, '127.0.0.1:9003': 7}}
+   during-drain {'attempted': 21, 'successful': 21, 'http_errors': 0, 'client_errors': 0, 'p50_ms_all': 2.5, 'p95_ms_all': 3.17, 'p95_ms_success': 3.17, 'distribution': {'127.0.0.1:9002': 11, '127.0.0.1:9003': 10}}
+   after-resume {'attempted': 21, 'successful': 21, 'http_errors': 0, 'client_errors': 0, 'p50_ms_all': 3.44, 'p95_ms_all': 6.54, 'p95_ms_success': 6.54, 'distribution': {'127.0.0.1:9001': 7, '127.0.0.1:9002': 7, '127.0.0.1:9003': 7}}
+Evidence saved to: C:\Users\admin\AppData\Local\Temp\tmp0w25g1fy\drain
+PASS: isolated mock compare/drain, raw evidence, report generation, state restoration
+
+RESULT: {"command": ["C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python312\\python.EXE", "scripts/test_defense_live.py"], "cwd": "D:\\PBL4\\reverse-proxy-demo", "utc": "2026-11-15T03:32:32.178240+00:00", "name": "21-final-python-http-tests", "exit_code": 0, "seconds": 1.546, "log": "D:\\PBL4\\unified-acceptance-20261115\\21-final-python-http-tests.log"}

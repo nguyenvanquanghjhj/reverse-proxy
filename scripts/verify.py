@@ -5,8 +5,9 @@ from lab import Lab, BASE, PORTS, fetch, get, ROOT
 import store
 
 def main():
-    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--out',type=Path,required=True);args=parser.parse_args()
-    os.chdir(ROOT);store.configure(ROOT/'.env.store');lab=None;checks=[]
+    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--out',type=Path,required=True)
+    parser.add_argument('--env-file',type=Path,default=ROOT/'.env.store');args=parser.parse_args()
+    os.chdir(ROOT);store.configure(args.env_file);lab=None;checks=[]
     def check(value,label):
         checks.append({'check':label,'passed':bool(value)})
         if not value:raise AssertionError(label)
@@ -91,97 +92,8 @@ def main():
         fetch('http://127.0.0.1:19001/__test/store-fault?delay_ms=0',b'',{'X-Test-Token':lab.fault},'POST')
         time.sleep(.6)
         # Real browser journey and responsive/print evidence from the private dataset.
-        from playwright.sync_api import sync_playwright
-        with sync_playwright() as p:
-            browser=p.chromium.launch(channel='msedge',headless=True);context=browser.new_context(viewport={'width':1440,'height':1000});page=context.new_page();errors=[]
-            page.on('pageerror',lambda e:errors.append(str(e)));shots=lab.out/'screens';shots.mkdir()
-            # Renaming/reordering media must not move the wrong attribution/caption onto another image.
-            original_photo=next(f for f in products[0]['files'] if f['kind']=='IMAGE')
-            edit_url=BASE+'/api/store/admin/files/'+original_photo['id']
-            check(fetch(edit_url,{'display_name':'QA renamed photograph','position':3},ah,'PATCH')[0]==200,'admin can rename and reorder a photograph')
-            try:
-                live=get(BASE+'/api/store/products/1');first_photo=next(f for f in live['files'] if f['kind']=='IMAGE')
-                expected_caption=next(f['caption'] for f in live['source_metadata']['images'] if f['sha256']==first_photo['sha256'])
-                page.goto(BASE+'/shop/products/1');page.wait_for_load_state('networkidle');page.locator('[data-image="0"]').click();page.locator('#main-image').evaluate('(image)=>image.decode()')
-                page.locator('.gallery').screenshot(path=str(shots/'gallery-reordered.png'))
-                check(page.locator('#main-image').get_attribute('alt')==expected_caption and page.locator('.photo-caption').inner_text().startswith(expected_caption),'caption and attribution follow image hash after rename/reorder')
-            finally:
-                check(fetch(edit_url,{'display_name':original_photo['display_name'],'position':original_photo['position']},ah,'PATCH')[0]==200,'restore private gallery order')
-            for product in products:
-                for width in (390,1440):
-                    page.set_viewport_size({'width':width,'height':1000})
-                    page.goto(BASE+'/shop/products/'+str(product['id']));page.wait_for_load_state('networkidle')
-                    check(page.locator('h1').inner_text()==product['name'],'rendered model '+str(product['id'])+' '+str(width))
-                    for button in page.locator('[data-image]').all():
-                        button.click();page.locator('#main-image').evaluate('(image)=>image.decode()')
-                        check(page.locator('#main-image').evaluate('(image)=>image.naturalWidth>0'),'gallery decodes '+str(product['id'])+' '+str(width))
-                        if width==1440:page.locator('.gallery').screenshot(path=str(shots/f"phone-{product['id']}-photo-{button.get_attribute('data-image')}.png"))
-                    page.screenshot(path=str(shots/f"phone-{product['id']}-{width}.png"),full_page=True)
-            page.goto(BASE+'/shop/sources');page.wait_for_load_state('networkidle')
-            check(page.locator('.product-sources').count()==12,'public manufacturer sources and per-photo license credits')
-            page.screenshot(path=str(shots/'sources.png'),full_page=True)
-            page.set_viewport_size({'width':1440,'height':1000})
-            page.goto(BASE+'/shop/products/1');page.wait_for_load_state('networkidle')
-            page.locator('button[value="buy"]').click();page.wait_for_url('**/shop/checkout');page.wait_for_load_state('networkidle')
-            page.locator('[name="recipient"]').fill('Browser buyer');page.locator('[name="phone"]').fill('0900000000');page.locator('[name="address"]').fill('Browser private test address')
-            page.screenshot(path=str(shots/'checkout.png'),full_page=True);page.locator('#checkout-form button[type="submit"]').click();page.wait_for_url('**/shop/orders/*');page.wait_for_load_state('networkidle')
-            order_id=page.url.rsplit('/',1)[1];check(len(order_id)==36,'browser checkout committed order and navigated to confirmation');page.screenshot(path=str(shots/'confirmation.png'),full_page=True)
-            check(lab.sql("SELECT count(*) total FROM st_orders WHERE id='"+order_id+"'")[0]['total']==1,'browser confirmation exists in PostgreSQL')
-            v=lab.product['variants'][0];stale={'product_id':1,'variant_id':v['id'],'quantity':1,'name':lab.product['name'],'sku':v['sku'],'color':v['color'],'storage_gb':v['storage_gb'],'price_vnd':v['price_vnd'],'image':'/api/store/images/00000000-0000-0000-0000-000000000000'}
-            page.evaluate('(line)=>localStorage.setItem("moc.cart.v1",JSON.stringify([line]))',stale);page.goto(BASE+'/shop/cart');page.wait_for_load_state('networkidle')
-            expected_image=next(f['url'] for f in lab.product['files'] if f['kind']=='IMAGE')
-            check(page.locator('.cart-item img').get_attribute('src')==expected_image,'old cart refreshes retired artwork URL in first render');page.screenshot(path=str(shots/'cart-refreshed.png'),full_page=True)
-            page.evaluate('localStorage.removeItem("moc.cart.v1")');page.reload();page.wait_for_load_state('networkidle')
-            # Commit the order but deliberately drop its HTTP response at the browser boundary.
-            lost=browser.new_context();lost_page=lost.new_page();lost_page.goto(BASE+'/shop/products/1');lost_page.wait_for_load_state('networkidle')
-            lost_page.locator('button[value="buy"]').click();lost_page.wait_for_url('**/shop/checkout');lost_page.wait_for_load_state('networkidle')
-            for name,value in [('recipient','Unknown result buyer'),('phone','0900000000'),('address','Private lost response test address')]:lost_page.locator('[name="'+name+'"]').fill(value)
-            before_unknown=lab.sql('SELECT count(*) total FROM st_orders')[0]['total']
-            def drop_response(route):
-                response=route.fetch();check(response.status==201,'unknown-result fixture actually committed');route.abort('failed')
-            lost_page.route('**/api/store/orders',drop_response)
-            lost_page.locator('#checkout-form button[type="submit"]').click();lost_page.locator('#retry-order').wait_for()
-            lost_page.screenshot(path=str(shots/'unknown-result.png'),full_page=True)
-            check(lost_page.locator('#checkout-form button[type="submit"]').is_disabled(),'UNKNOWN_RESULT prevents new submit')
-            lost_page.unroute('**/api/store/orders',drop_response);lost_page.locator('#retry-order').click();lost_page.wait_for_url('**/shop/orders/*')
-            check(lab.sql('SELECT count(*) total FROM st_orders')[0]['total']==before_unknown+1,'lost response replay does not create another order');lost.close()
-            page.goto(BASE+'/shop/login?next=admin');page.wait_for_load_state('networkidle');page.locator('[name="email"]').fill(lab.env['STORE_ADMIN_EMAIL']);page.locator('[name="password"]').fill(lab.env['STORE_ADMIN_PASSWORD']);page.locator('#auth-form button[type="submit"]').click();page.wait_for_url(BASE+'/admin');page.wait_for_load_state('networkidle')
-            page.goto(BASE+'/shop/search?q=zzzz-no-such-phone');page.wait_for_load_state('networkidle');check(page.locator('.product-card').count()==0,'empty search is an explicit state');page.screenshot(path=str(shots/'empty-search.png'),full_page=True)
-            page.goto(BASE+'/shop/cart');page.wait_for_load_state('networkidle');check(page.locator('.empty').count()==1,'empty cart after checkout');page.screenshot(path=str(shots/'empty-cart.png'),full_page=True)
-            page.goto(BASE+'/shop');page.wait_for_load_state('networkidle');context.set_offline(True)
-            page.locator('a[href="/shop/products"]').first.click();page.locator('#retry-page').wait_for();page.screenshot(path=str(shots/'offline.png'),full_page=True)
-            context.set_offline(False);page.locator('#retry-page').click();page.locator('.product-card').first.wait_for();check(page.locator('.product-card').count()>0,'offline state recovers without losing navigation')
-            pending=[]
-            def hold_catalog(route):pending.append(route)
-            page.route('**/api/store/products?*',hold_catalog);page.goto(BASE+'/shop',wait_until='domcontentloaded');page.locator('.loading').wait_for();page.screenshot(path=str(shots/'loading.png'),full_page=True)
-            page.wait_for_timeout(150);check(bool(pending),'loading fixture holds a real catalog request')
-            for route in pending:route.continue_()
-            page.unroute('**/api/store/products?*',hold_catalog)
-            page.locator('.hero').wait_for();check(page.locator('.hero').count()==1,'loading resolves to live catalog')
-            page.goto(BASE+'/shop/products/1');page.wait_for_load_state('networkidle');page.locator('button[value="buy"]').click();page.wait_for_url('**/shop/checkout');page.wait_for_load_state('networkidle')
-            if page.locator('#new-checkout').count():
-                check(page.locator('#checkout-form').count()==0,'confirmed intent cannot silently become another order')
-                page.locator('#new-checkout').click();page.wait_for_url('**/shop/cart');page.locator('a[href="/shop/checkout"]').click();page.wait_for_url('**/shop/checkout');page.locator('#checkout-form').wait_for()
-            page.locator('[name="phone"]').fill('abc');check(not page.locator('[name="phone"]').evaluate('(input)=>input.checkValidity()'),'phone validation rejects malformed input');page.screenshot(path=str(shots/'validation.png'),full_page=True)
-            current=get(BASE+'/api/store/availability');paused={**enabled,'sales_enabled':False,'version':current['version']};check(fetch(BASE+'/api/store/admin/operations',paused,ah,'PUT')[0]==200,'pause fixture for customer UI')
-            page.reload();page.wait_for_load_state('networkidle');check(page.locator('#checkout-form button[type="submit"]').is_disabled(),'customer checkout visibly disabled during sales pause');page.screenshot(path=str(shots/'sales-paused.png'),full_page=True)
-            current=get(BASE+'/api/store/availability');fetch(BASE+'/api/store/admin/operations',{**enabled,'version':current['version']},ah,'PUT')
-            routes=[('home','/shop'),('catalog','/shop/products'),('detail','/shop/products/1'),('cart','/shop/cart'),('account','/shop/account'),('admin','/admin'),('admin-products','/admin/products'),('admin-orders','/admin/orders'),('media','/admin/documents?product=1'),('operations','/admin/operations'),('dashboard','/__proxy/dashboard')]
-            layout=[]
-            for width in (320,390,768,1024,1440):
-                page.set_viewport_size({'width':width,'height':1000})
-                for name,path in routes:
-                    page.goto(BASE+path);page.wait_for_load_state('networkidle')
-                    # Load lazy artwork before full-page capture and print checks.
-                    page.evaluate("async()=>{document.querySelectorAll('img[loading]').forEach(i=>i.loading='eager');await Promise.all([...document.images].map(i=>i.decode().catch(()=>{})));}")
-                    page.screenshot(path=str(shots/(f'{name}-{width}.png')),full_page=True)
-                    overflow=page.evaluate('document.documentElement.scrollWidth>innerWidth+1');layout.append({'route':path,'width':width,'overflow':overflow})
-                    check(not overflow,'page overflow '+name+' '+str(width))
-                    if width==1440 and name in ('home','media','dashboard'):
-                        page.emulate_media(media='print');check(not page.locator('.skip').is_visible() if page.locator('.skip').count() else True,'print hides skip '+name)
-                        page.pdf(path=str(shots/(name+'.pdf')),format='A4',print_background=True);page.emulate_media(media='screen')
-            check(not errors,'no browser JavaScript errors');(lab.out/'layout.json').write_text(json.dumps(layout,indent=2))
-            browser.close()
+        from verify_site import verify_browser
+        verify_browser(lab,check,products,ah)
         metrics=get(BASE+'/__proxy/metrics');check(metrics['transport']['activeSockets']<=3,'bounded socket count after requests')
         check(metrics['transport']['connected']>0 and metrics['transport']['bytesRead']>0,'real transport instrumentation recorded')
         lab.java('com.example.store.StoreAdmin','audit')

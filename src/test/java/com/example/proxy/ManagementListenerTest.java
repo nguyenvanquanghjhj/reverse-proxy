@@ -125,11 +125,15 @@ public final class ManagementListenerTest {
             }
         }
         for (var entry : Map.of("proxy.management.enabled", "yes", "proxy.management.port", "65536",
-                "proxy.management.max.handler.tasks", "0", "proxy.connection-pool.enabled", "true").entrySet()) {
+                "proxy.management.max.handler.tasks", "0", "proxy.connection-pool.enabled", "yes",
+                "proxy.connection-pool.max-idle-per-backend", "0", "proxy.connection-pool.idle-ttl.ms", "499").entrySet()) {
             Properties p = settings(); p.setProperty(entry.getKey(), entry.getValue());
             try { config(p, 9001); throw new AssertionError("invalid config accepted"); }
             catch (IllegalArgumentException expected) { check(expected.getMessage().contains(entry.getKey()), "config key in error"); }
         }
+        Properties pooled = settings(); pooled.setProperty("proxy.connection-pool.enabled", "true");
+        check(config(pooled, 9001).isConnectionPoolEnabled(), "supported pooling opt-in is accepted");
+        check(!config(settings(), 9001).isConnectionPoolEnabled(), "pooling remains disabled by default");
         System.out.println("ManagementListenerTest PASS: isolation, limits, deadlines, rate exemption, compatibility, bind rollback, shutdown");
     }
     private static void startupFailure(int backend) throws Exception {

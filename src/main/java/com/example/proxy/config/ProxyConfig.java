@@ -22,11 +22,10 @@ public final class ProxyConfig {
         getRecoverySuccesses(); getEwmaAlpha(); getInitialLatencyMs(); getExplorationInterval();
         getHealthCheckPath(); getMetricsPath(); getMaxHeaderCount(); getShutdownGraceSeconds(); getMaxHandlerTasks();
         isCircuitBreakerEnabled(); getCircuitFailureThreshold(); getCircuitOpenDurationMs(); getCircuitHalfOpenMaxProbes();
-        isDecisionTraceEnabled();
+        isDecisionTraceEnabled(); getReservedCriticalSlots(); getQosMaxCriticalPerPeer();
         getPdfBulkheadMaxInflight();getPdfBulkheadQueueCapacity();getPdfBulkheadWaitMs();
         isManagementEnabled(); getManagementPort(); getManagementMaxTasks();
-        if (bool("proxy.connection-pool.enabled", false))
-            throw new IllegalArgumentException("proxy.connection-pool.enabled=true is not supported; pooling is not implemented");
+        isConnectionPoolEnabled(); getUpstreamIdlePerBackend(); getUpstreamIdleTtlMs(); isCapabilityRoutingEnabled();
         isRateLimitEnabled(); getRateLimitPerSecond(); getRateLimitBurst(); getRateLimitMaxClients(); getRateLimitIdleMs();
         if (getRateLimitIdleMs() < 1000.0 * getRateLimitBurst() / getRateLimitPerSecond())
             throw new IllegalArgumentException("proxy.rate-limit.idle.ms must cover a full burst refill");
@@ -67,6 +66,16 @@ public final class ProxyConfig {
         String value = values.getProperty(key, Boolean.toString(fallback)).trim();
         if (!value.equals("true") && !value.equals("false")) throw new IllegalArgumentException(key + " must be true or false");
         return Boolean.parseBoolean(value);
+    }
+    public boolean isCapabilityRoutingEnabled() { return bool("proxy.capability-routing.enabled", false); }
+    public boolean isConnectionPoolEnabled() { return bool("proxy.connection-pool.enabled", false); }
+    public int getUpstreamIdlePerBackend() { return integer("proxy.connection-pool.max-idle-per-backend", 4, 1, 32); }
+    public int getUpstreamIdleTtlMs() { return integer("proxy.connection-pool.idle-ttl.ms", 10000, 500, 120000); }
+    public int getQosMaxCriticalPerPeer() {
+        return integer("proxy.qos.max.critical.per.peer", Math.min(4, getMaxInflight()), 1, getMaxInflight());
+    }
+    public int getReservedCriticalSlots() {
+        return integer("proxy.qos.reserved.critical", 0, 0, getMaxInflight() - 1);
     }
     public boolean isCircuitBreakerEnabled() { return bool("proxy.circuit-breaker.enabled", true); }
     public boolean isDecisionTraceEnabled() { return bool("adaptive.decision-trace.enabled", false); }

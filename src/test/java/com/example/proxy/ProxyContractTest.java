@@ -90,6 +90,15 @@ public final class ProxyContractTest {
                     proxy_rate_limit_capacity_rejected_total 0
                     # TYPE proxy_rate_limit_clients gauge
                     proxy_rate_limit_clients 0
+                    # TYPE proxy_qos_active gauge
+                    proxy_qos_active 0
+                    # TYPE proxy_qos_reserved_slots gauge
+                    proxy_qos_reserved_slots 0
+                    # TYPE proxy_qos_rejections_total counter
+                    proxy_qos_rejections_total{class="normal"} 0
+                    proxy_qos_rejections_total{class="critical"} 0
+                    # TYPE proxy_qos_peer_cap_rejections_total counter
+                    proxy_qos_peer_cap_rejections_total 0
                     """;
             check(handler.prometheus().equals(expectedPrometheus), "exact Prometheus schema, order and values");
             clean(handler);

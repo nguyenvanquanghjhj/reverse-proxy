@@ -17,6 +17,12 @@ public final class UpstreamTransport implements AutoCloseable {
             "proxy-authenticate", "proxy-authorization", "te", "trailer", "transfer-encoding", "upgrade");
     private final int connectTimeoutMs, readTimeoutMs, requestTimeoutMs, maxBodyBytes, maxHeaderBytes;
     private final int maxHeaderCount, maxChunkMetadataBytes;
+    private final boolean pooling;
+    private final int maxIdlePerBackend;
+    private final long idleTtlNanos;
+    private final Map<String, ArrayDeque<IdleSocket>> idleSockets = new HashMap<>();
+    private record IdleSocket(Socket socket,long sinceNanos) {}
+    private long poolHits, poolMisses, poolDiscards;
     private final Set<Socket> activeSockets = ConcurrentHashMap.newKeySet();
     private final AtomicBoolean closed = new AtomicBoolean();
     private final com.example.proxy.metrics.TransportMetrics metrics = new com.example.proxy.metrics.TransportMetrics();
@@ -26,14 +32,16 @@ public final class UpstreamTransport implements AutoCloseable {
 
     public UpstreamTransport(ProxyConfig config) {
         this(config.getConnectTimeoutMs(), config.getReadTimeoutMs(), config.getRequestTimeoutMs(),
-                config.getMaxBodyBytes(), config.getMaxHeaderBytes(), config.getMaxHeaderCount(), config.getMaxChunkMetadataBytes());
+                config.getMaxBodyBytes(), config.getMaxHeaderBytes(), config.getMaxHeaderCount(), config.getMaxChunkMetadataBytes(),
+                 config.isConnectionPoolEnabled(), config.getUpstreamIdlePerBackend(), config.getUpstreamIdleTtlMs());
     }
     public UpstreamTransport(int connectTimeoutMs, int readTimeoutMs, int requestTimeoutMs,
                              int maxBodyBytes, int maxHeaderBytes) {
-        this(connectTimeoutMs, readTimeoutMs, requestTimeoutMs, maxBodyBytes, maxHeaderBytes, 100, ProxyConfig.DEFAULT_MAX_CHUNK_METADATA_BYTES);
+        this(connectTimeoutMs, readTimeoutMs, requestTimeoutMs, maxBodyBytes, maxHeaderBytes, 100, ProxyConfig.DEFAULT_MAX_CHUNK_METADATA_BYTES, false, 4, 10000);
     }
     private UpstreamTransport(int connectTimeoutMs, int readTimeoutMs, int requestTimeoutMs,
-                              int maxBodyBytes, int maxHeaderBytes, int maxHeaderCount, int maxChunkMetadataBytes) {
+                               int maxBodyBytes, int maxHeaderBytes, int maxHeaderCount, int maxChunkMetadataBytes,
+                               boolean pooling, int maxIdlePerBackend, int idleTtlMs) {
         if (connectTimeoutMs <= 0 || readTimeoutMs <= 0 || requestTimeoutMs <= 0 || maxBodyBytes <= 0 || maxHeaderBytes <= 0 || maxHeaderCount <= 0 || maxChunkMetadataBytes <= 0)
             throw new IllegalArgumentException("Timeouts and limits must be positive");
         this.connectTimeoutMs = connectTimeoutMs;
@@ -43,9 +51,42 @@ public final class UpstreamTransport implements AutoCloseable {
         this.maxHeaderBytes = maxHeaderBytes;
         this.maxHeaderCount = maxHeaderCount;
         this.maxChunkMetadataBytes = maxChunkMetadataBytes;
+        this.pooling=pooling;this.maxIdlePerBackend=maxIdlePerBackend;
+        this.idleTtlNanos=TimeUnit.MILLISECONDS.toNanos(idleTtlMs);
         deadlines.setRemoveOnCancelPolicy(true);
+        if (pooling) deadlines.scheduleAtFixedRate(this::expireIdle, 5, 5, TimeUnit.SECONDS);
     }
     public record Response(int status, Map<String, List<String>> headers, byte[] body) { }
+    public synchronized String connectionPoolJson() {
+        int idleCount=idleSockets.values().stream().mapToInt(ArrayDeque::size).sum();
+        return "{\"enabled\":"+pooling+",\"idle\":"+idleCount
+            +",\"hits\":"+poolHits+",\"misses\":"+poolMisses+",\"discards\":"+poolDiscards+"}";
+    }
+    private synchronized Socket borrowIdle(String endpoint) {
+        var q=idleSockets.get(endpoint);
+        while(q!=null&&!q.isEmpty()) {
+            var entry=q.removeLast();
+            if (System.nanoTime()-entry.sinceNanos() >= idleTtlNanos || (entry.socket().isClosed() || !entry.socket().isConnected()
+                    || entry.socket().isInputShutdown() || entry.socket().isOutputShutdown())) {
+                closeQuietly(entry.socket());poolDiscards++;continue;
+            }
+            poolHits++;return entry.socket();
+        }
+        poolMisses++;return null;
+    }
+    private synchronized boolean returnIdle(String endpoint,Socket socket) {
+        if(closed.get() || socket.isClosed())return false;
+        var q=idleSockets.computeIfAbsent(endpoint,ignored->new ArrayDeque<>());
+        if(q.size()>=maxIdlePerBackend)return false;
+        q.addLast(new IdleSocket(socket,System.nanoTime()));return true;
+    }
+    private synchronized void expireIdle() {
+        long now=System.nanoTime();
+        for(var queue:idleSockets.values()) queue.removeIf(entry -> {
+            boolean expired=now-entry.sinceNanos()>=idleTtlNanos || entry.socket().isClosed();
+            if(expired){closeQuietly(entry.socket());poolDiscards++;}return expired;
+        });
+    }
     public int activeSocketCount() { return activeSockets.size(); }
     public int deadlineTaskCount() { return deadlines.getQueue().size(); }
     public Response exchange(BackendServer backend, String method, URI uri,
@@ -83,9 +124,12 @@ public final class UpstreamTransport implements AutoCloseable {
         Framing requestFraming = framing(normalized);
         if (requestFraming.length >= 0 && requestFraming.length != body.length)
             throw new ProtocolException("Request Content-Length differs from buffered body");
+        // Pool only read-only requests, and only responses with complete, self-delimited framing.
+        boolean tryPool=pooling && body.length==0 && method.equals("GET");
+        String endpoint=host+":"+port;
         String authority = (host.contains(":") && !host.startsWith("[") ? "[" + host + "]" : host) + ":" + port;
         StringBuilder head = new StringBuilder(method).append(' ').append(target).append(" HTTP/1.1\r\n")
-                .append("Host: ").append(authority).append("\r\nConnection: close\r\n")
+                .append("Host: ").append(authority).append(tryPool?"\r\nConnection: keep-alive\r\n":"\r\nConnection: close\r\n")
                 .append("Content-Length: ").append(body.length).append("\r\n");
         for (Map.Entry<String, List<String>> entry : endToEndHeaders(headers).entrySet()) {
             if (entry.getKey().equalsIgnoreCase("host") || entry.getKey().equalsIgnoreCase("content-length")) continue;
@@ -101,21 +145,25 @@ public final class UpstreamTransport implements AutoCloseable {
         long remaining = expires - System.nanoTime();
         if (remaining <= 0 || Thread.currentThread().isInterrupted()) throw new SocketTimeoutException("Request deadline exceeded");
         int remainingMs = (int) Math.min(Integer.MAX_VALUE, Math.max(1, TimeUnit.NANOSECONDS.toMillis(remaining)));
-        Socket socket = new Socket();
+        Socket socket = tryPool ? borrowIdle(endpoint) : null;
+        boolean reused=socket!=null;
+        if(socket==null)socket=new Socket();
+        final Socket requestSocket=socket;
         long exchangeStarted = System.nanoTime();
+        boolean reusable=false;
         boolean success = false;
         metrics.started();
-        try (socket) {
+        try {
             activeSockets.add(socket);
             if (closed.get()) throw new IOException("Transport is closed");
             ScheduledFuture<?> deadline;
-            try { deadline = deadlines.schedule(() -> closeQuietly(socket), remaining, TimeUnit.NANOSECONDS); }
+            try { deadline = deadlines.schedule(() -> closeQuietly(requestSocket), remaining, TimeUnit.NANOSECONDS); }
             catch (RejectedExecutionException shutdown) { throw new IOException("Transport is closed", shutdown); }
             try {
                 long connecting = System.nanoTime();
-                socket.connect(new InetSocketAddress(host, port), Math.min(connectTimeoutMs, remainingMs));
+                if(!reused)socket.connect(new InetSocketAddress(host, port), Math.min(connectTimeoutMs, remainingMs));
                 long connected = System.nanoTime();
-                metrics.connected(connected - connecting);
+                if(!reused)metrics.connected(connected - connecting);
                 socket.setSoTimeout(Math.min(readTimeoutMs, remainingMs));
                 socket.setTcpNoDelay(true);
                 OutputStream out = new BufferedOutputStream(socket.getOutputStream());
@@ -136,9 +184,10 @@ public final class UpstreamTransport implements AutoCloseable {
                         return n;
                     }
                 };
-                Response response = readResponse(new BufferedInputStream(counted), method);
+                ParsedResponse parsed = readResponseFramed(new BufferedInputStream(counted), method);
                 success = true;
-                return response;
+                reusable=tryPool && parsed.reusable();
+                return parsed.response();
             } catch (IOException failure) {
                 if (System.nanoTime() >= expires && !(failure instanceof SocketTimeoutException)) {
                     SocketTimeoutException timeout = new SocketTimeoutException("Upstream exchange deadline exceeded");
@@ -147,9 +196,17 @@ public final class UpstreamTransport implements AutoCloseable {
                 }
                 throw failure;
             } finally { deadline.cancel(false); }
-        } finally { activeSockets.remove(socket); metrics.finished(System.nanoTime() - exchangeStarted, success); }
+        } finally {
+            activeSockets.remove(socket);
+            if(!reusable || !returnIdle(endpoint,socket))closeQuietly(socket);
+            metrics.finished(System.nanoTime()-exchangeStarted,success);
+        }
     }
+    private record ParsedResponse(Response response,boolean reusable) {}
     private Response readResponse(InputStream in, String method) throws IOException {
+        return readResponseFramed(in,method).response();
+    }
+    private ParsedResponse readResponseFramed(InputStream in, String method) throws IOException {
         HeaderBudget budget = new HeaderBudget(maxHeaderBytes, maxHeaderCount);
         for (int interim = 0; interim < 16; interim++) {
             String statusLine = readLine(in, maxHeaderBytes, budget);
@@ -169,7 +226,11 @@ public final class UpstreamTransport implements AutoCloseable {
                 if (framing.length > maxBodyBytes) throw new BodyLimitException("Upstream body exceeds limit");
                 body = readExactly(in, (int) framing.length);
             } else body = readUntilEof(in);
-            return new Response(status, endToEndHeaders(headers), body);
+            boolean keepAlive = statusLine.startsWith("HTTP/1.1 ")
+                && (!noBody && (framing.chunked || framing.length >= 0))
+                && !headers.getOrDefault("connection",List.of()).stream()
+                    .anyMatch(v -> v.toLowerCase(Locale.ROOT).contains("close"));
+            return new ParsedResponse(new Response(status, endToEndHeaders(headers), body),keepAlive);
         }
         throw new ProtocolException("Too many informational responses");
     }
@@ -314,5 +375,6 @@ public final class UpstreamTransport implements AutoCloseable {
         if (!closed.compareAndSet(false, true)) return;
         activeSockets.forEach(UpstreamTransport::closeQuietly);
         deadlines.shutdownNow();
+        synchronized(this){ for(var queue:idleSockets.values()) for(var entry:queue)closeQuietly(entry.socket());idleSockets.clear(); }
     }
 }

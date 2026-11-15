@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "protected_file_count": 5323,
+  "current_file_count": 5323,
+  "changed_protected_paths": [],
+  "original_local_edit_byte_identical": true,
+  "branch": "feature/pbl4-unified-20261115",
+  "tracked_private_paths": [],
+  "ignored_paths": [
+    "deploy/compose/.env",
+    "config/lan.properties",
+    ".env.store",
+    ".shop",
+    ".runtime",
+    "shared-files"
+  ],
+  "scope": "Existing .shop, .runtime, shared-files, .env.store and migration files compared byte-for-byte; QA data is outside checkout."
+}

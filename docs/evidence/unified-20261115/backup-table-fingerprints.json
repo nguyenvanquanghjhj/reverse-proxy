@@ -1,0 +1,158 @@
+{
+  "source": {
+    "v6_2b54c0146001.jdbc_acceptance_off": {
+      "rows": 48,
+      "digest": "c70a74b2ed01bf9657ec5fe9c127b69b"
+    },
+    "v6_2b54c0146001.jdbc_acceptance_on": {
+      "rows": 48,
+      "digest": "c70a74b2ed01bf9657ec5fe9c127b69b"
+    },
+    "v6_2b54c0146001.order_items": {
+      "rows": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "v6_2b54c0146001.orders": {
+      "rows": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "v6_2b54c0146001.product_documents": {
+      "rows": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "v6_2b54c0146001.products": {
+      "rows": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "v6_2b54c0146001.shop_schema_version": {
+      "rows": 5,
+      "digest": "e910e973bcd32c4c1955ca77d7ce6d82"
+    },
+    "v6_2b54c0146001.st_categories": {
+      "rows": 3,
+      "digest": "7760a3a13f97ad8e2226a55e9ec6fbae"
+    },
+    "v6_2b54c0146001.st_files": {
+      "rows": 34,
+      "digest": "e30d1987e9c4439c9c8ff2f861cc3e4e"
+    },
+    "v6_2b54c0146001.st_login_limits": {
+      "rows": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "v6_2b54c0146001.st_operations": {
+      "rows": 1,
+      "digest": "224386c5ae826e5dff30431e52727974"
+    },
+    "v6_2b54c0146001.st_operations_history": {
+      "rows": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "v6_2b54c0146001.st_order_history": {
+      "rows": 379,
+      "digest": "d6a96ca2c17ad33533c073098ca83fdf"
+    },
+    "v6_2b54c0146001.st_order_items": {
+      "rows": 379,
+      "digest": "cfc14279c5ab38b232689c81fa0c7e42"
+    },
+    "v6_2b54c0146001.st_orders": {
+      "rows": 379,
+      "digest": "b3868ac078887d667d26c6afb7c2de4d"
+    },
+    "v6_2b54c0146001.st_products": {
+      "rows": 12,
+      "digest": "f4fdcef0d800c81249479be915ae6d86"
+    },
+    "v6_2b54c0146001.st_sessions": {
+      "rows": 8,
+      "digest": "add2aa97ecb4e39dc0a7d557f79dae6f"
+    },
+    "v6_2b54c0146001.st_users": {
+      "rows": 1,
+      "digest": "9c5194675c612170a7c2f2e4a60511a0"
+    },
+    "v6_2b54c0146001.st_variants": {
+      "rows": 24,
+      "digest": "e768bb87695e75b19b617624772ce2e1"
+    }
+  },
+  "restored": {
+    "v6_2b54c0146001.jdbc_acceptance_off": {
+      "rows": 48,
+      "digest": "c70a74b2ed01bf9657ec5fe9c127b69b"
+    },
+    "v6_2b54c0146001.jdbc_acceptance_on": {
+      "rows": 48,
+      "digest": "c70a74b2ed01bf9657ec5fe9c127b69b"
+    },
+    "v6_2b54c0146001.order_items": {
+      "rows": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "v6_2b54c0146001.orders": {
+      "rows": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "v6_2b54c0146001.product_documents": {
+      "rows": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "v6_2b54c0146001.products": {
+      "rows": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "v6_2b54c0146001.shop_schema_version": {
+      "rows": 5,
+      "digest": "e910e973bcd32c4c1955ca77d7ce6d82"
+    },
+    "v6_2b54c0146001.st_categories": {
+      "rows": 3,
+      "digest": "7760a3a13f97ad8e2226a55e9ec6fbae"
+    },
+    "v6_2b54c0146001.st_files": {
+      "rows": 34,
+      "digest": "e30d1987e9c4439c9c8ff2f861cc3e4e"
+    },
+    "v6_2b54c0146001.st_login_limits": {
+      "rows": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "v6_2b54c0146001.st_operations": {
+      "rows": 1,
+      "digest": "224386c5ae826e5dff30431e52727974"
+    },
+    "v6_2b54c0146001.st_operations_history": {
+      "rows": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "v6_2b54c0146001.st_order_history": {
+      "rows": 379,
+      "digest": "d6a96ca2c17ad33533c073098ca83fdf"
+    },
+    "v6_2b54c0146001.st_order_items": {
+      "rows": 379,
+      "digest": "cfc14279c5ab38b232689c81fa0c7e42"
+    },
+    "v6_2b54c0146001.st_orders": {
+      "rows": 379,
+      "digest": "b3868ac078887d667d26c6afb7c2de4d"
+    },
+    "v6_2b54c0146001.st_products": {
+      "rows": 12,
+      "digest": "f4fdcef0d800c81249479be915ae6d86"
+    },
+    "v6_2b54c0146001.st_sessions": {
+      "rows": 8,
+      "digest": "add2aa97ecb4e39dc0a7d557f79dae6f"
+    },
+    "v6_2b54c0146001.st_users": {
+      "rows": 1,
+      "digest": "9c5194675c612170a7c2f2e4a60511a0"
+    },
+    "v6_2b54c0146001.st_variants": {
+      "rows": 24,
+      "digest": "e768bb87695e75b19b617624772ce2e1"
+    }
+  }
+}

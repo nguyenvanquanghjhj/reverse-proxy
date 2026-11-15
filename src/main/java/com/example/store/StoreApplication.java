@@ -17,7 +17,7 @@ import java.util.*;
 
 /** Full store module hosted by each existing backend listener. No second server, no synthetic work. */
 public final class StoreApplication {
-    private record Asset(byte[] bytes,String mime) {}
+    private record Asset(byte[] bytes,String mime,String etag) {}
     private final Map<String,Asset> assets=new HashMap<>();private final StoreController controller;private final OperationsService operations;
     private static final AppLogger LOG=AppLogger.of(StoreApplication.class);
     public static boolean enabled(){String value=System.getenv().getOrDefault("STORE_ENABLED","false");if(!Set.of("true","false").contains(value))throw new IllegalArgumentException("STORE_ENABLED=true|false");return value.equals("true");}
@@ -28,7 +28,7 @@ public final class StoreApplication {
         var sessions=new SessionService(db);controller=new StoreController(new CatalogRepository(db),new CatalogService(db),new OrderService(db),new FileService(db,storage),sessions,operations);
         for(String file:List.of("index.html","store.css","shop.css","app.js","site.js","api.js","cart.js","checkout.js","views.js","admin.js","operations.js"))try(var in=getClass().getResourceAsStream("/web/store/"+file)){
             if(in==null)throw new IOException("Store resource missing: "+file);byte[] bytes=in.readNBytes(262145);if(bytes.length>262144)throw new IOException("Store resource exceeds budget");
-            assets.put(file,new Asset(bytes,file.endsWith(".css")?"text/css; charset=utf-8":file.endsWith(".js")?"text/javascript; charset=utf-8":"text/html; charset=utf-8"));}
+            assets.put(file,new Asset(bytes,file.endsWith(".css")?"text/css; charset=utf-8":file.endsWith(".js")?"text/javascript; charset=utf-8":"text/html; charset=utf-8",AssetCache.etag(bytes)));}
     }
     public Map<String,Object> dependencies(){return operations.dependencies();}
     public static boolean matches(String path){return path.equals("/")||path.equals("/shop")||path.startsWith("/shop/")||path.equals("/admin")||path.startsWith("/admin/")||path.startsWith("/store/assets/")||path.equals("/api/store")||path.startsWith("/api/store/");}
@@ -41,6 +41,13 @@ public final class StoreApplication {
             Http.method(e,"GET","HEAD");
             if(path.equals("/admin")||path.startsWith("/admin/")){var s=controller.session(e);if(s==null||s.userId()==null){h.set("Location","/shop/login?next=admin");e.sendResponseHeaders(303,-1);return;}SessionService.admin(s);}
             Asset asset=path.startsWith("/store/assets/")?assets.get(path.substring(14)):assets.get("index.html");if(asset==null)throw Input.missing();
+            if(path.startsWith("/store/assets/")) {
+                h.set("Cache-Control", "public, no-cache, must-revalidate");
+                h.set("ETag",asset.etag());
+                if(AssetCache.notModified(e.getRequestHeaders().get("If-None-Match"),asset.etag())) {
+                    e.sendResponseHeaders(304,-1);return;
+                }
+            }
             Http.send(e,200,asset.bytes(),asset.mime());
         }catch(ShopException ex){error(e,ex.status,ex.code,ex.getMessage());}
         catch(SQLException ex){String code=ex.getSQLState()==null?"":ex.getSQLState();if(code.equals("23505"))error(e,409,"DUPLICATE","SKU, danh mục hoặc email đã được sử dụng.");else if(code.startsWith("23"))error(e,422,"DATA_CONSTRAINT","Dữ liệu không hợp lệ hoặc đang được sử dụng.");else error(e,503,"DATABASE_UNAVAILABLE","Cửa hàng tạm thời chưa thể xử lý. Vui lòng kiểm tra lại kết quả trước khi thử lại.");}
