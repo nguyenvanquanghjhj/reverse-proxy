@@ -4,7 +4,7 @@ import com.example.proxy.backend.BackendServer;
 import com.example.proxy.config.ProxyConfig;
 import com.example.proxy.handler.UpstreamTransport;
 import com.example.proxy.server.ReverseProxyServer;
-import com.example.backend.DemoBackendServer;
+import com.example.backend.BackendApplicationServer;
 import com.sun.net.httpserver.HttpServer;
 import java.io.*;
 import java.net.*;
@@ -64,7 +64,7 @@ public final class HttpTransportTest {
         }
     }
     private static void backendDemoPage() throws Exception {
-        try (DemoBackendServer backend = new DemoBackendServer(0, 4, 1, 0, 4);
+        try (BackendApplicationServer backend = new BackendApplicationServer(0, 4, 1, 0, 4);
              HttpClient client = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build()) {
             backend.start();
             String direct = "http://127.0.0.1:" + backend.getPort();
@@ -73,6 +73,14 @@ public final class HttpTransportTest {
             check(page.headers().firstValue("Cache-Control").orElse("").equals("no-store"), "demo bypasses browser cache");
             check(page.body().contains("data-backend=\"" + backend.getPort() + "\"") && page.body().contains(Long.toString(ProcessHandle.current().pid())), "HTML contains real port and PID");
             check(page.body().contains("data-via-proxy=\"false\"") && !page.body().contains("@@"), "direct page renders all placeholders");
+            var console = get(client, direct + "/workload");
+            check(console.statusCode() == 200 && console.body().contains("href=\"/workload\"")
+                    && console.body().contains("id=\"batch-send\""), "canonical workload console retains interactive research controls");
+            try (var compatibility = new com.example.backend.DemoBackendServer(0, 2, 0, 0, 2)) {
+                compatibility.start();
+                check(get(client, "http://127.0.0.1:" + compatibility.getPort() + "/demo").statusCode() == 200,
+                        "saved experiments retain the old backend constructor and route");
+            }
             check(!page.body().contains("Ảnh chụp khi tải trang") && !page.body().contains("Thông tin ảnh chụp của trang")
                     && !page.body().contains("Một lần bấm gửi 300 yêu cầu GET thật"), "removed confusing snapshot and batch copy");
             var backendMetrics = get(client, direct + "/metrics");

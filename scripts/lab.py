@@ -3,7 +3,8 @@ import argparse, concurrent.futures as futures, csv, hashlib, json, math, os
 from pathlib import Path
 import platform, random, secrets, socket, subprocess, sys, threading, time, urllib.request, urllib.error,io
 from datetime import datetime, timezone
-import shop_demo as runtime
+import app_runtime as runtime
+from qa_paths import evidence_path
 import store
 import xml.etree.ElementTree as ET
 try:import psutil
@@ -45,6 +46,7 @@ def tcp_snapshot():
 
 class Lab:
     def __init__(self,out):
+        out=evidence_path(out)
         self.out=out;out.mkdir(parents=True,exist_ok=False)
         self.children={};self.env=os.environ.copy();self.schema='v6_'+secrets.token_hex(6)
         self.fault=secrets.token_hex(32);self.logs=[];self.sequence=0
@@ -124,7 +126,7 @@ class LargePdf{public static void main(String[] a)throws Exception{var c=ShopCon
         proc=self.children.pop(name,None)
         if proc and proc.poll() is None:proc.terminate();proc.wait(timeout=15)
     def backend(self,port,delay=0):
-        self.launch(str(port),['com.example.backend.DemoBackendServer',str(port),'4',str(delay),'0'])
+        self.launch(str(port),['com.example.backend.BackendApplicationServer',str(port),'4',str(delay),'0'])
         runtime.wait_ready(f'http://127.0.0.1:{port}/health')
     def profile(self,delays):
         for port,delay in zip(PORTS,delays):

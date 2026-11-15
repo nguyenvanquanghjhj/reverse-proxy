@@ -22,6 +22,7 @@ import psutil
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from lab import Lab,BASE,PORTS,ROOT,fetch,get,runtime,tcp_snapshot
 import store
+from qa_paths import evidence_path, new_evidence_path, release_generated_inputs
 
 
 class StreamLab(Lab):
@@ -37,8 +38,9 @@ class StreamLab(Lab):
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--env-file',type=Path,required=True)
-    parser.add_argument('--out',type=Path,required=True)
-    args=parser.parse_args();out=args.out.resolve();out.mkdir(parents=True,exist_ok=False)
+    parser.add_argument('--out',type=Path,default=None)
+    parser.add_argument('--retain-fixtures',action='store_true',help='Keep reproducible large input files after PASS; failures always retain them')
+    args=parser.parse_args();out=evidence_path(args.out or new_evidence_path('streaming'));out.mkdir(parents=True,exist_ok=False)
     store.configure(args.env_file);os.chdir(ROOT)
     public=out/'public-downloads';public.mkdir()
     os.environ['PBL4_LARGE_FILES_ROOT']=str(public)
@@ -245,8 +247,21 @@ def main():
         passed=True
     finally:
         if lab and hasattr(lab,'children'):lab.close()
+        cleanup_error=None
+        if passed and not args.retain_fixtures:
+            artifacts={str(Path('public-downloads')/name):metadata for name,metadata in expected.items()}
+            artifacts['resumed-100.bin']=expected['file-100.bin']
+            artifacts['public-downloads/replace.bin']={'bytes':1048576,'sha256':hashlib.sha256(b'r'*1048576).hexdigest()}
+            try:
+                release_generated_inputs(out,artifacts,{'large_files':'Repeat bytes(range(251))*4177 in chunks, truncated to sizes in files.json',
+                    'resume':'Identical bytes to file-100.bin after Range reconstruction','replacement':'1048576 copies of byte r',
+                    'policy':'Only inputs generated in this new run; all measurements, SHA, logs, screenshots and PostgreSQL/store files retained'})
+            except Exception as error:
+                passed=False;cleanup_error=error
         (out/'transfers.json').write_text(json.dumps(transfers,indent=2))
-        (out/'result.json').write_text(json.dumps({'passed':passed,'checks':checks,'scope':'three real JVMs, real PostgreSQL, Windows/Linux loopback; not multi-host LAN','data_retained':True},indent=2))
+        (out/'result.json').write_text(json.dumps({'passed':passed,'checks':checks,'scope':'three real JVMs, real PostgreSQL, Windows/Linux loopback; not multi-host LAN',
+            'data_retained':True,'evidence_retained':True,'fixture_inputs_retained':args.retain_fixtures or not passed},indent=2))
+        if cleanup_error:raise cleanup_error
     print('Streaming live acceptance PASS:',len(checks),flush=True)
 
 

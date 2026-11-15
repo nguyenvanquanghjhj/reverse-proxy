@@ -1,6 +1,6 @@
 package com.example.proxy;
 
-import com.example.backend.DemoBackendServer;
+import com.example.backend.BackendApplicationServer;
 import com.example.proxy.backend.BackendServer;
 import com.example.proxy.config.ProxyConfig;
 import com.example.proxy.server.ReverseProxyServer;
@@ -16,7 +16,7 @@ import java.util.function.BooleanSupplier;
 
 public final class ManagementListenerTest {
     public static void main(String[] args) throws Exception {
-        try (var backend = new DemoBackendServer(0, 4, 0, 0, 4)) {
+        try (var backend = new BackendApplicationServer(0, 4, 0, 0, 4)) {
             backend.start();
             try (var proxy = new ReverseProxyServer(config(settings(), backend.getPort()));
                  var client = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build()) {

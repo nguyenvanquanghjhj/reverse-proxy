@@ -10,7 +10,7 @@ def main():
     os.chdir(ROOT);store.configure(ROOT/'.env.store');lab=None
     try:
         lab=Lab.__new__(Lab);lab.__init__(args.out.resolve());lab.stop(str(PORTS[0]))
-        lab.launch(str(PORTS[0]),['com.example.backend.DemoBackendServer',str(PORTS[0]),'4','0','0'],lab.out/'backend-startup.jfr')
+        lab.launch(str(PORTS[0]),['com.example.backend.BackendApplicationServer',str(PORTS[0]),'4','0','0'],lab.out/'backend-startup.jfr')
         runtime.wait_ready(f'http://127.0.0.1:{PORTS[0]}/health');lab.proxy('ROUND_ROBIN','diagnostic',jfr=True)
         tree=ET.parse(lab.out/'safe-profile.jfc')
         for name in ('jdk.SocketRead','jdk.SocketWrite','jdk.FileRead','jdk.FileWrite','jdk.JavaMonitorEnter','jdk.VirtualThreadPinned'):

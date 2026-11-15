@@ -20,6 +20,7 @@ HERE=Path(__file__).resolve().parent
 sys.path.insert(0,str(HERE.parent))
 from lab import Lab, BASE, PORTS, fetch, get, ROOT, runtime
 import store
+from qa_paths import evidence_path, new_evidence_path
 
 
 class AcceptanceLab(Lab):
@@ -42,8 +43,9 @@ class AcceptanceLab(Lab):
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--env-file',type=Path,required=True)
-    parser.add_argument('--out',type=Path,required=True)
+    parser.add_argument('--out',type=Path,default=None)
     args=parser.parse_args()
+    args.out=evidence_path(args.out or new_evidence_path('operational'))
     os.chdir(ROOT)
     store.configure(args.env_file)
     os.environ['SHOP_DB_POOL_ENABLED']='true'
