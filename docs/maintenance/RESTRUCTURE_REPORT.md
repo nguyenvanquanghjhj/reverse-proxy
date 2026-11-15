@@ -297,7 +297,7 @@ Thư mục cha/con lồng nhau; không cộng tổng các dòng. Đây là nguy�
 | Compose config | PASS | CLI thực, không deploy | [13-compose.log](D:/PBL4/evidence/restructure-20261115/13-compose.log) |
 | Bảo toàn dữ liệu / historical moves | PASS | 5323 + 23233 files SHA | preservation-result.json / moves-sha-verification.json trong evidence root |
 | RR/LC/Adaptive thực nghiệm | PASS | 18 runs, giữ cả HTTP errors | [11-algorithms.log](D:/PBL4/evidence/restructure-20261115/11-algorithms.log); bảng dưới |
-| Linux/Windows CI + Docker restart | NOT RUN | Chưa push tại lúc tạo báo cáo; cập nhật FINAL.md | GitHub Actions branch → main |
+| Linux/Windows CI + Docker restart (source branch) | PASS | 4/4 jobs; 68 Docker checks; main cuối xem FINAL.md | https://github.com/nguyenvanquanghjhj/reverse-proxy/actions/runs/43693122171 |
 | Docker Engine/disk/cache local | NOT RUN | Không có Engine; không prune volumes | [environment-limits-final.log](D:/PBL4/evidence/restructure-20261115/environment-limits-final.log) |
 | LAN nhiều máy | NOT RUN | Không có host thứ hai | Loopback và Docker bridge không được gọi là LAN |
 | SHA/allocation subtree restore cũ bị ACL | NOT RUN | Giữ nguyên; không có quyền enumerate | before.json / after.json errors |
@@ -369,3 +369,5 @@ Không quét tài liệu khác ngoài vùng PBL4 được xác định.
 ## Git và release
 
 Chỉ push khi toàn bộ regression local bắt buộc PASS. Branch CI phải PASS 4/4 trước normal merge; main cuối cũng phải PASS 4/4. Không force-push/reset/rewrite history. Receipt local cuối và CI commit chính xác được ghi trong FINAL.md và acceptance-results.json ngoài Git để không phải ghi SHA tự tham chiếu vào commit. Phần UNKNOWN cũ không bị thay đổi và không được xóa.
+
+Branch CI đã xác nhận: [43693122171](https://github.com/nguyenvanquanghjhj/reverse-proxy/actions/runs/43693122171), SHA `6a21038d3c2cccc0ec4c28790fddb3a4136b9676`, conclusion `success`. Final main CI có receipt riêng trong FINAL.md.
