@@ -1,12 +1,14 @@
 """V6 store/proxy acceptance against a new private PostgreSQL schema, never the review store."""
 import argparse, concurrent.futures as futures, hashlib, json, os, secrets, sys, time
 from pathlib import Path
+from qa_paths import new_evidence_path
 from lab import Lab, BASE, PORTS, fetch, get, ROOT
 import store
 
 def main():
-    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--out',type=Path,required=True)
-    parser.add_argument('--env-file',type=Path,default=ROOT/'.env.store');args=parser.parse_args()
+    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--out',type=Path,default=None)
+    parser.add_argument('--env-file',type=Path,required=True);args=parser.parse_args()
+    args.out=args.out or new_evidence_path('store')
     os.chdir(ROOT);store.configure(args.env_file);lab=None;checks=[]
     def check(value,label):
         checks.append({'check':label,'passed':bool(value)})

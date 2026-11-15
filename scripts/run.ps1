@@ -1,4 +1,7 @@
-param([ValidateSet('start','stop','status','build')][string]$Action = 'start')
+param(
+    [ValidateSet('start','stop','status','build')][string]$Action = 'start',
+    [string]$EnvFile = ''
+)
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
@@ -27,6 +30,15 @@ try {
         & (Join-Path $PSScriptRoot 'build.ps1')
         return
     }
+    if (-not [string]::IsNullOrWhiteSpace($EnvFile)) {
+        # An explicit environment owns its DB lifecycle; never initialize or stop
+        # the default store cluster while operating an isolated QA/deployment.
+        $selectedEnv = [IO.Path]::GetFullPath($EnvFile)
+        if (-not (Test-Path -LiteralPath $selectedEnv -PathType Leaf)) { throw 'Environment file does not exist.' }
+        python scripts/store.py --env-file $selectedEnv $Action
+        if ($LASTEXITCODE -ne 0) { throw "Store $Action failed for the selected environment." }
+        return
+    }
     if ($Action -eq 'stop') {
         python scripts/store.py stop
         if ($LASTEXITCODE -ne 0) { throw 'Application shutdown failed.' }
@@ -50,7 +62,7 @@ try {
     if ($firstRun) {
         if (Test-Path -LiteralPath $data) { throw 'Database already exists. Restore .env.store before starting.' }
         if (-not (Test-Path "$pg/initdb.exe")) {
-            python scripts/shop_prepare.py --postgres-windows
+            python scripts/prepare_runtime.py --postgres-windows
             if ($LASTEXITCODE -ne 0) { throw 'Runtime dependency preparation failed.' }
         }
         New-Item -ItemType Directory -Path '.shop' -Force | Out-Null
@@ -70,7 +82,7 @@ try {
         [IO.File]::WriteAllLines((Join-Path $root '.env.store'), $config, [Text.UTF8Encoding]::new($false))
     }
     if (-not (Test-Path 'lib/postgresql-42.7.14.jar')) {
-        python scripts/shop_prepare.py
+        python scripts/prepare_runtime.py
         if ($LASTEXITCODE -ne 0) { throw 'JDBC preparation failed.' }
     }
     if (Test-Path (Join-Path $data 'PG_VERSION')) {

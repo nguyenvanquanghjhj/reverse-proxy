@@ -20,7 +20,7 @@ foreach ($directory in @($targetRoot, (Join-Path $targetRoot 'standalone'))) {
     }
 }
 # IDE/Maven may own target/classes. Standalone builds never read, clean or write it.
-foreach ($name in @('standalone/classes', 'standalone/test-classes', 'reverse-proxy-demo.jar')) {
+foreach ($name in @('standalone/classes', 'standalone/test-classes', 'reverse-proxy.jar', 'reverse-proxy-demo.jar')) {
     $outputPath = Join-Path $targetRoot $name
     if (Test-Path -LiteralPath $outputPath) {
         $resolvedPath = (Resolve-Path -LiteralPath $outputPath).ProviderPath
@@ -51,7 +51,7 @@ if (Test-Path -LiteralPath $resourcesPath) {
     if ($resourceLinks.Count -gt 0) { throw 'Refusing linked build resources.' }
     Get-ChildItem -LiteralPath $resourcesPath -Force | Copy-Item -Destination $classesPath -Recurse -Force
 }
-$jarPath = Join-Path $targetRoot 'reverse-proxy-demo.jar'
+$jarPath = Join-Path $targetRoot 'reverse-proxy.jar'
 & $java21.Jar --create --file $jarPath --main-class com.example.proxy.Main -C $classesPath .
 if ($LASTEXITCODE -ne 0) { throw "jar failed (exit $LASTEXITCODE)." }
 Write-Host "Built $jarPath (Java 21 bytecode)."

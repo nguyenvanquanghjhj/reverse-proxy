@@ -22,6 +22,7 @@ import psutil
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from lab import Lab,BASE,PORTS,ROOT,fetch,get,runtime,tcp_snapshot
 import store
+from qa_paths import evidence_path, new_evidence_path
 
 
 class StreamLab(Lab):
@@ -37,8 +38,8 @@ class StreamLab(Lab):
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--env-file',type=Path,required=True)
-    parser.add_argument('--out',type=Path,required=True)
-    args=parser.parse_args();out=args.out.resolve();out.mkdir(parents=True,exist_ok=False)
+    parser.add_argument('--out',type=Path,default=None)
+    args=parser.parse_args();out=evidence_path(args.out or new_evidence_path('streaming'));out.mkdir(parents=True,exist_ok=False)
     store.configure(args.env_file);os.chdir(ROOT)
     public=out/'public-downloads';public.mkdir()
     os.environ['PBL4_LARGE_FILES_ROOT']=str(public)

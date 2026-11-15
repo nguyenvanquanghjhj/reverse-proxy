@@ -4,7 +4,7 @@ import com.sun.management.OperatingSystemMXBean;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import com.example.shop.ShopConfig;
-import com.example.shop.ShopHandler;
+import com.example.shop.LegacyShopApi;
 import com.example.store.StoreApplication;
 import com.example.shop.JsonCodec;
 import java.io.IOException;
@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.*;
 /** HTTP host for the store, legacy API compatibility, file service and explicit research workloads. */
 public final class BackendApplicationServer implements AutoCloseable {
     private final HttpServer server;
-    private final ShopHandler shop;
+    private final LegacyShopApi shop;
     private final StoreApplication store;
     private final StoreFaults storeFaults=new StoreFaults();
     private final com.example.proxy.server.BoundedRequestExecutor executor = new com.example.proxy.server.BoundedRequestExecutor(128,10000);
@@ -48,7 +48,7 @@ public final class BackendApplicationServer implements AutoCloseable {
         this.capacity = capacity; this.delayMs = delayMs; this.cpuBudget = cpuBudget;
         research = new WorkloadHandler(
                 () -> new WorkloadHandler.State(getPort(), this.capacity, active.get(), queued.get(), this.delayMs), completed);
-        shop = ShopConfig.enabled() ? new ShopHandler(ShopConfig.environment()) : null;
+        shop = ShopConfig.enabled() ? new LegacyShopApi(ShopConfig.environment()) : null;
         store = StoreApplication.enabled() ? new StoreApplication(ShopConfig.environment()) : null;
         workers = new Semaphore(capacity, true);
         admission = new RequestAdmission(capacity * 8); // Executing plus waiting; reject excess immediately.
