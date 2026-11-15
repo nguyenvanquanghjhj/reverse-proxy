@@ -124,7 +124,7 @@ class LargePdf{public static void main(String[] a)throws Exception{var c=ShopCon
         proc=self.children.pop(name,None)
         if proc and proc.poll() is None:proc.terminate();proc.wait(timeout=15)
     def backend(self,port,delay=0):
-        self.launch(str(port),['com.example.backend.DemoBackendServer',str(port),'4',str(delay),'0'])
+        self.launch(str(port),['com.example.backend.BackendApplicationServer',str(port),'4',str(delay),'0'])
         runtime.wait_ready(f'http://127.0.0.1:{port}/health')
     def profile(self,delays):
         for port,delay in zip(PORTS,delays):

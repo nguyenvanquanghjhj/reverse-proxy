@@ -178,7 +178,7 @@ def backend(data, port):
     if name in data and creation(data[name]['pid']) == data[name]['birth']:
         return
     free_port(port)
-    launch(name, ['com.example.backend.DemoBackendServer', str(port), '8', '0', '0'], data)
+    launch(name, ['com.example.backend.BackendApplicationServer', str(port), '8', '0', '0'], data)
     wait_ready(f'http://127.0.0.1:{port}/health')
 
 def start(data, strategy, trace=True):

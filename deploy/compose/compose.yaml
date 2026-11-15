@@ -47,7 +47,7 @@ services:
       context: ../..
       dockerfile: deploy/compose/Dockerfile
     environment: *store-env
-    command: ['java','com.example.backend.DemoBackendServer','9001','8','10']
+    command: ['java','com.example.backend.BackendApplicationServer','9001','8','10']
     volumes:
       - store-files:/data/files
     depends_on:
@@ -56,10 +56,10 @@ services:
     networks: [private]
   backend2:
     <<: *backend
-    command: ['java','com.example.backend.DemoBackendServer','9002','8','10']
+    command: ['java','com.example.backend.BackendApplicationServer','9002','8','10']
   backend3:
     <<: *backend
-    command: ['java','com.example.backend.DemoBackendServer','9003','8','10']
+    command: ['java','com.example.backend.BackendApplicationServer','9003','8','10']
   proxy:
     build:
       context: ../..

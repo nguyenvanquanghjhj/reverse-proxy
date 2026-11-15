@@ -100,7 +100,7 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
             };
             // Query/body/credentials and arbitrary path segments never enter logs.
             String path = exchange.getRequestURI().getPath();
-            if (!Set.of("/", "/work", "/slow", "/compute", "/echo", "/demo", "/products", "/orders",
+            if (!Set.of("/", "/work", "/slow", "/compute", "/echo", "/workload", "/demo", "/products", "/orders",
                     "/download", "/__proxy/metrics", "/__proxy/health", "/__proxy/prometheus").contains(path == null ? "" : path)) path = "/<redacted>";
             log.info("event=request_completed request_id=" + id + " method=" + Json.quote(exchange.getRequestMethod())
                     + " path=" + Json.quote(path) + " backend=" + Json.quote(Optional.ofNullable(exchange.getResponseHeaders().getFirst("X-Proxy-Backend")).orElse(""))

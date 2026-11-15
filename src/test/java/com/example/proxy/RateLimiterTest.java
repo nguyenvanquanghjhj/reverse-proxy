@@ -1,6 +1,6 @@
 package com.example.proxy;
 
-import com.example.backend.DemoBackendServer;
+import com.example.backend.BackendApplicationServer;
 import com.example.proxy.backend.BackendServer;
 import com.example.proxy.config.ProxyConfig;
 import com.example.proxy.handler.ClientRateLimiter;
@@ -38,7 +38,7 @@ public final class RateLimiterTest {
         System.out.println("RateLimiterTest PASS: quota, refill, eviction, concurrency, spoofing, HTTP 429, cleanup, management exemption");
     }
     private static void integration() throws Exception {
-        try(var backend=new DemoBackendServer(0,4,0,0,4)) {
+        try(var backend=new BackendApplicationServer(0,4,0,0,4)) {
             backend.start();Properties p=settings();p.setProperty("proxy.rate-limit.requests-per-second","0.1");
             p.setProperty("proxy.rate-limit.idle.ms","20000");
             try(var proxy=new ReverseProxyServer(config(p,backend.getPort()));var client=HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build()) {
