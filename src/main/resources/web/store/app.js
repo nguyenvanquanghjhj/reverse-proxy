@@ -1,24 +1,145 @@
-import {api,session,identity,setIdentity,e} from './api.js';
-import {view,empty,errorBox} from './views.js';
-import {adminView} from './admin.js';
-import {count} from './cart.js';
+import { api, session, identity, setIdentity, e } from "./api.js";
+import { errorBox } from "./views.js";
+import { adminView } from "./admin.js";
+import { render as renderShop } from "./site.js";
 
-const app=document.querySelector('#app');let revision=0,categories=[],toastTimer;
-export function toast(message,error=false){const node=document.querySelector('#toast');clearTimeout(toastTimer);node.textContent=message;node.className=error?'visible toast-error':'visible';toastTimer=setTimeout(()=>node.className='',4500);}
-export function confirm(message){const dialog=document.querySelector('#confirm-dialog');document.querySelector('#confirm-text').textContent=message;return new Promise(resolve=>{dialog.addEventListener('close',()=>resolve(dialog.returnValue==='ok'),{once:true});dialog.showModal();});}
-export function go(path,replace=false){if(replace)history.replaceState({},'',path);else history.pushState({},'',path);queueMicrotask(render);}
-function shell(){const user=identity()?.user;return `<div class="announcement">Điện thoại có thật. Lựa chọn rõ ràng. <span>Giá và tồn kho là dữ liệu mẫu.</span></div><header class="site-header"><div class="header-main"><a class="wordmark" href="/shop" aria-label="Mộc trang chủ">mộc<span aria-hidden="true">•</span></a><form class="header-search" id="header-search" role="search"><label class="sr-only" for="global-search">Tìm điện thoại</label><input id="global-search" name="q" placeholder="Bạn đang tìm chiếc điện thoại nào?" maxlength="100" required><button aria-label="Tìm kiếm">⌕</button></form><nav class="header-actions" aria-label="Tài khoản và giỏ hàng"><a href="/shop/lookup" class="lookup-link">Tra cứu đơn</a><a href="/shop/account" aria-label="Tài khoản">${user?(user.role==='ADMIN'?'Quản trị':e(user.name.split(' ').pop())):'Tài khoản'}</a><a class="cart-link" href="/shop/cart">Giỏ hàng <span class="cart-count">${count()}</span></a>${user?'<button id="logout" class="text-button">Đăng xuất</button>':''}</nav></div><nav class="category-nav" aria-label="Bộ sưu tập"><a href="/shop/products">Tất cả điện thoại</a>${categories.map(c=>`<a href="/shop/categories/${e(c.slug)}">${e(c.name)}</a>`).join('')}<a href="/shop/products?sort=new">Mới trong bộ sưu tập ↗</a></nav></header><div id="sales-notice" hidden></div><main id="main" tabindex="-1"><div class="loading" role="status"><span></span>Đang chuẩn bị lựa chọn của bạn…</div></main><footer class="site-footer"><div><a class="wordmark" href="/shop">mộc<span aria-hidden="true">•</span></a><p>Công nghệ vừa vặn.<br>Lựa chọn thuộc về bạn.</p></div><div><h2>Khám phá</h2><a href="/shop/sources">Nguồn ảnh & thông số</a><a href="/shop/products">Điện thoại</a><a href="/shop/cart">Giỏ hàng</a><a href="/shop/lookup">Tra cứu đơn</a></div><div><h2>Tài khoản</h2><a href="/shop/login">Đăng nhập</a><a href="/shop/register">Đăng ký</a><a href="/shop/account/orders">Lịch sử mua hàng</a></div><div><h2>Thông tin mua sắm</h2><p>Giao hàng đồng giá 30.000 ₫.<br>Thanh toán khi nhận hàng (COD).</p><p>Tên và thông số thuộc các model có thật. Giá và tồn kho minh họa cho đồ án; không phải báo giá hay cam kết khả dụng.</p></div><div class="footer-bottom"><span>© 2026 Mộc Store</span><a href="/admin">Quản trị cửa hàng ↗</a></div></footer>`;}
-async function render(){const version=++revision,url=new URL(location.href),path=url.pathname;
- const admin=path.startsWith('/admin');document.body.classList.toggle('admin-mode',admin);
- app.innerHTML=admin?adminShell():shell();bindShell();const root=document.querySelector('#main');
- if(!path.startsWith('/admin'))api('/availability').then(state=>{if(version!==revision)return;const notice=document.querySelector('#sales-notice');if(!state.sales_enabled){notice.className='announcement';notice.hidden=false;notice.textContent='Cửa hàng tạm ngừng nhận đơn mới. Bạn vẫn có thể xem sản phẩm và tra cứu đơn.';}}).catch(()=>{});
- try{const page=path.startsWith('/admin')?await adminView({path,url,go,toast,confirm}):await view({path,url,go,toast,confirm});if(version!==revision)return;root.innerHTML=page.html;page.bind?.(root);root.dataset.route=url.pathname+url.search;root.focus({preventScroll:true});window.scrollTo({top:0,behavior:'instant'});document.title=(root.querySelector('h1')?.textContent||'Điện thoại cho nhịp sống của bạn')+' — Mộc';}
- catch(error){if(version!==revision)return;root.innerHTML=`<div class="page-heading"><p class="eyebrow">MỘC / THÔNG BÁO</p><h1>${error.status===404?'Không tìm thấy nội dung':'Chưa thể mở trang này'}</h1></div>${errorBox(error.message)}<div class="actions"><button id="retry-page">Thử lại</button><a class="button secondary" href="/shop">Về trang chủ</a></div>`;root.querySelector('#retry-page').onclick=render;}
+const app = document.querySelector("#app"),
+  theme = document.querySelector("#theme");
+const SHOP_CSS = "/store/assets/shop.css",
+  ADMIN_CSS = "/store/assets/store.css";
+let revision = 0,
+  toastTimer;
+
+export function toast(message, error = false) {
+  const node = document.querySelector("#toast");
+  clearTimeout(toastTimer);
+  node.textContent = message;
+  node.className = error ? "visible toast-error" : "visible";
+  toastTimer = setTimeout(() => (node.className = ""), 4500);
 }
-function adminShell(){return `<header class="admin-top"><a class="wordmark" href="/admin">mộc<span aria-hidden="true">•</span></a><span class="admin-top-label">KHÔNG GIAN QUẢN TRỊ</span><nav aria-label="Tài khoản quản trị"><a href="/shop">Xem cửa hàng ↗</a><span>${e(identity()?.user?.name||'Khách')}</span>${identity()?.user?'<button id="logout" class="secondary">Đăng xuất</button>':'<a href="/shop/login?next=admin">Đăng nhập</a>'}</nav></header><main id="main" tabindex="-1"><div class="loading" role="status">Đang tải dữ liệu quản trị…</div></main>`;}
-function bindShell(){const search=document.querySelector('#header-search');if(search)search.onsubmit=event=>{event.preventDefault();go('/shop/search?'+new URLSearchParams(new FormData(event.target)));};const logout=document.querySelector('#logout');if(logout)logout.onclick=async()=>{logout.disabled=true;try{await api('/auth/logout',{method:'POST'});setIdentity(null);await session(true);go('/shop/login');}catch(err){toast(err.message,true);logout.disabled=false;}};}
-document.addEventListener('click',event=>{const a=event.target.closest('a[href]');if(!a||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||a.target||a.download)return;const url=new URL(a.href,location.href);if(url.origin!==location.origin||a.getAttribute('href').startsWith('#')||url.pathname.startsWith('/api/')||url.pathname.startsWith('/__proxy/'))return;event.preventDefault();go(url.pathname+url.search);});
-window.addEventListener('popstate',render);window.addEventListener('cartchange',()=>document.querySelectorAll('.cart-count').forEach(n=>n.textContent=count()));
-try{const [_,data]=await Promise.all([session(),api('/categories')]);categories=data.items;}catch(error){toast(error.message,true);}await render();
+export function confirm(message) {
+  const dialog = document.querySelector("#confirm-dialog");
+  document.querySelector("#confirm-text").textContent = message;
+  return new Promise((resolve) => {
+    dialog.addEventListener(
+      "close",
+      () => resolve(dialog.returnValue === "ok"),
+      { once: true },
+    );
+    dialog.showModal();
+  });
+}
+export function go(path, replace = false) {
+  if (replace) history.replaceState({}, "", path);
+  else history.pushState({}, "", path);
+  queueMicrotask(render);
+}
 
-document.addEventListener('error',event=>{const img=event.target;if(img.tagName!=='IMG'||img.dataset.failed)return;img.dataset.failed='true';img.hidden=true;const fallback=document.createElement('span');fallback.className='image-fallback';fallback.textContent='Ảnh đang được cập nhật';img.after(fallback);},true);
+// Khu quản trị giữ nguyên giao diện cũ (store.css); khách hàng dùng shop.css.
+function adminShell() {
+  return `<header class="admin-top"><a class="wordmark" href="/admin">mộc<span aria-hidden="true">•</span></a><span class="admin-top-label">KHÔNG GIAN QUẢN TRỊ</span><nav aria-label="Tài khoản quản trị"><a href="/shop">Xem cửa hàng ↗</a><span>${e(identity()?.user?.name || "Khách")}</span>${identity()?.user ? '<button id="logout" class="secondary">Đăng xuất</button>' : '<a href="/shop/login?next=admin">Đăng nhập</a>'}</nav></header><main id="main" tabindex="-1"><div class="loading" role="status">Đang tải dữ liệu quản trị…</div></main>`;
+}
+
+async function render() {
+  const version = ++revision,
+    url = new URL(location.href),
+    path = url.pathname,
+    admin = path.startsWith("/admin");
+  const css = admin ? ADMIN_CSS : SHOP_CSS;
+  if (theme.getAttribute("href") !== css) theme.setAttribute("href", css);
+  document.body.classList.toggle("admin-mode", admin);
+  const ctx = {
+    path,
+    url,
+    go,
+    toast,
+    confirm,
+    current: () => version === revision,
+  };
+  if (!admin) {
+    try {
+      await renderShop(app, ctx);
+    } catch (error) {
+      if (ctx.current())
+        ((app.innerHTML = `<div class="wrap"><div class="empty"><h1>Chưa mở được cửa hàng</h1><p>${e(error.message)}</p><button type="button" id="retry-page">Thử lại</button></div></div>`),
+          (document.querySelector("#retry-page").onclick = render));
+    }
+    return;
+  }
+  app.innerHTML = adminShell();
+  const logout = document.querySelector("#logout");
+  if (logout)
+    logout.onclick = async () => {
+      logout.disabled = true;
+      try {
+        await api("/auth/logout", { method: "POST" });
+        setIdentity(null);
+        await session(true);
+        go("/shop/login");
+      } catch (err) {
+        toast(err.message, true);
+        logout.disabled = false;
+      }
+    };
+  const root = document.querySelector("#main");
+  try {
+    const page = await adminView(ctx);
+    if (!ctx.current()) return;
+    root.innerHTML = page.html;
+    page.bind?.(root);
+    root.dataset.route = url.pathname + url.search;
+    root.focus({ preventScroll: true });
+    window.scrollTo({ top: 0, behavior: "instant" });
+    document.title =
+      (root.querySelector("h1")?.textContent || "Quản trị") + " — Mộc";
+  } catch (error) {
+    if (!ctx.current()) return;
+    root.innerHTML = `<div class="page-heading"><p class="eyebrow">MỘC / THÔNG BÁO</p><h1>${error.status === 404 ? "Không tìm thấy nội dung" : "Chưa thể mở trang này"}</h1></div>${errorBox(error.message)}<div class="actions"><button id="retry-page">Thử lại</button><a class="button secondary" href="/shop">Về trang chủ</a></div>`;
+    root.querySelector("#retry-page").onclick = render;
+  }
+}
+document.addEventListener("click", (event) => {
+  const a = event.target.closest("a[href]");
+  if (
+    !a ||
+    event.button !== 0 ||
+    event.metaKey ||
+    event.ctrlKey ||
+    event.shiftKey ||
+    event.altKey ||
+    a.target ||
+    a.download
+  )
+    return;
+  const url = new URL(a.href, location.href);
+  if (
+    url.origin !== location.origin ||
+    a.getAttribute("href").startsWith("#") ||
+    url.pathname.startsWith("/api/") ||
+    url.pathname.startsWith("/__proxy/")
+  )
+    return;
+  event.preventDefault();
+  go(url.pathname + url.search);
+});
+window.addEventListener("popstate", render);
+try {
+  await session();
+} catch (error) {
+  toast(error.message, true);
+}
+await render();
+document.addEventListener(
+  "error",
+  (event) => {
+    const img = event.target;
+    if (img.tagName !== "IMG" || img.dataset.failed) return;
+    img.dataset.failed = "true";
+    img.hidden = true;
+    const fallback = document.createElement("span");
+    fallback.className = "image-fallback";
+    fallback.textContent = "Ảnh đang được cập nhật";
+    img.after(fallback);
+  },
+  true,
+);
