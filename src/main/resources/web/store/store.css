@@ -2668,7 +2668,7 @@ main {
   }
 }
 
-/* V6: operational layouts, media workspace and separate print presentation. */
+/* Operational layouts, media workspace and print styles. */
 :root{--muted:#56665e;--radius:16px;--shadow:0 6px 22px #20362b08}
 .hero{min-height:480px;background:linear-gradient(120deg,#e4e9dc,#eeeae0);border:1px solid #dce2d1}
 .hero h1{letter-spacing:-.055em}.hero-art>img{filter:drop-shadow(0 22px 20px #253c3020)}

@@ -10,7 +10,7 @@ required variables.
 Compose launches `com.example.backend.BackendApplicationServer`; the old Java
 name is a compatibility adapter for archived experiments. Maven/native artifacts
 are named `reverse-proxy`; image runtime still uses `/app/classes:/app/lib/*`.
-`STORE_ENABLED=true` selects the one Mộc Store UI. Legacy product/order/document
+`STORE_ENABLED=true` enables the Mộc Store interface. Legacy product/order/document
 APIs remain separately compatible and retain their schema and transactions.
 
 Runtime volumes are data, not build cache. Do not remove volumes during cleanup.

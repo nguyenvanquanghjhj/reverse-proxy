@@ -1,4 +1,4 @@
-"""V6 store/proxy acceptance against a new private PostgreSQL schema, never the review store."""
+"""Store/proxy acceptance in a new private PostgreSQL schema, separate from the local store."""
 import argparse, concurrent.futures as futures, hashlib, json, os, secrets, sys, time
 from pathlib import Path
 from qa_paths import new_evidence_path

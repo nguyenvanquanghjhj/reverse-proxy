@@ -18,15 +18,17 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run.ps1 status
 Lần đầu, launcher chuẩn bị JDBC/PostgreSQL portable, tạo database riêng ở
 `127.0.0.1:55434`, migrate, seed và tạo mật khẩu admin ngẫu nhiên. Thông tin admin:
 `.shop/admin-access.txt`; cấu hình riêng: `.env.store`. Các lần sau giữ database,
-files và đơn hàng; `start` không migrate/seed/reset ngầm. Checkout hiện tại giữ
-đường dẫn để bảo toàn cấu hình và dữ liệu local.
+files và đơn hàng; `start` không migrate/seed/reset ngầm.
 
 | Giao diện | URL |
 |---|---|
-| Mộc Store chính thức | http://127.0.0.1:8080/shop |
+| Mộc Store | http://127.0.0.1:8080/shop |
 | Quản trị cửa hàng | http://127.0.0.1:8080/admin |
 | Dashboard / control plane | http://127.0.0.1:8080/__proxy/dashboard |
-| Workload console nghiên cứu | http://127.0.0.1:8080/workload |
+| Thử tải HTTP (Workload Console) | http://127.0.0.1:8080/workload |
+
+Cửa hàng yêu cầu đăng nhập và đặt hàng tại trang chi tiết sản phẩm. `/shop`
+chuyển sang `/admin/shop` trong trình duyệt; `/admin` yêu cầu quyền quản trị.
 
 ```powershell
 python scripts/store.py stop                  # dừng JVM, giữ PostgreSQL
@@ -57,7 +59,7 @@ của `store.py`, chỉ chạy trên DB được chọn.
 | Reverse proxy | `com.example.proxy.Main`, `com.example.proxy.*` | HTTP transport, routing, admission, health, metrics, dashboard |
 | Backend HTTP host | `com.example.backend.BackendApplicationServer` | Listener, health/control, worker/admission, dispatch ứng dụng |
 | Workload nghiên cứu | `WorkloadHandler`, `WorkloadConsole`, `/workload` | Synthetic HTTP/CPU/download, quan sát request |
-| Mộc Store | `com.example.store.*`, `src/main/resources/web/store` | Giao diện duy nhất, session, catalog, order, image/PDF, admin |
+| Mộc Store | `com.example.store.*`, `src/main/resources/web/store` | Giao diện khách hàng và quản trị, phiên đăng nhập, sản phẩm, đơn hàng, ảnh/PDF |
 | Shared DB / compatibility API | `com.example.shop.*`, `LegacyShopApi` | JDBC/config/JSON, hợp đồng product/order/document lịch sử |
 | Khởi chạy | `scripts/store.py`, `scripts/run.ps1` | Setup rõ ràng, start/stop/status, bảo vệ process identity |
 | Runtime nội bộ | `scripts/app_runtime.py`, `scripts/prepare_runtime.py` | Theo dõi JVM, chuẩn bị dependency |
@@ -65,8 +67,8 @@ của `store.py`, chỉ chạy trên DB được chọn.
 | Vận hành / deployment | [scripts/ops](scripts/ops/README.md), [deploy](deploy/README.md) | Backup/restore, health, drain, Docker, LAN |
 
 `DemoBackendServer`, `shop_demo.py`, `shop_prepare.py` và `/demo` là adapter tương
-thích cho runner đã lưu; không chứa implementation thứ hai. Launcher mới dùng tên
-canonical trong bảng. `/products`, `/orders`, `/download` là workload tổng hợp;
+thích cho runner đã lưu; không chứa implementation thứ hai. Các launcher dùng
+entrypoint trong bảng. `/products`, `/orders`, `/download` là workload tổng hợp;
 `/api/store/*` là Mộc Store. API `/api/products`, `/api/orders` và document cũ vẫn
 giữ cùng schema/migration/dữ liệu. `SHOP_ENABLED=true` bật API tương thích;
 `STORE_ENABLED=true` bật Mộc Store và sở hữu `/shop`. Khi chỉ bật API cũ, giao diện
@@ -78,7 +80,7 @@ giữ provenance hiện có; không mở rộng nghiệp vụ bán hàng.
 
 ## HTTP streaming và opt-in
 
-[HTTP Streaming](docs/HTTP_STREAMING.md) **đã tích hợp**, tắt mặc định. Tuyến đọc
+[HTTP streaming](docs/HTTP_STREAMING.md) tắt mặc định. Tuyến đọc
 `/api/pbl4/files/<name>` hỗ trợ GET/HEAD, ETag/304 và single HTTP Range, buffer 32 KiB,
 file tối đa 1 GiB. Không upload hoặc replay giao dịch. Public files root cấu hình
 riêng và không chứa link/junction.
@@ -125,7 +127,7 @@ Giữ volume dữ liệu; không prune volume khi dọn cache.
 Backup đồng bộ DB/files dùng `scripts/ops/consistent_bundle.py` sau khi dừng mọi
 writer. Tool kiểm hash và chỉ restore sang database/files root **mới**.
 
-- [Kiến trúc, dependency, refactor và nghiệm thu](docs/maintenance/RESTRUCTURE_REPORT.md)
+- [Kiến trúc, dependency và nghiệm thu](docs/maintenance/RESTRUCTURE_REPORT.md)
 - [Bằng chứng đã chọn](docs/evidence/)
 - [Lịch sử nâng cấp](docs/history/README.md)
 - [Audit dung lượng trước đợt tái cấu trúc](docs/maintenance/STORAGE_AUDIT.md)

@@ -10,7 +10,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/** A bounded HTTP/1.1 exchange over an explicit TCP socket. One connection per request. */
+/** Bounded HTTP/1.1 transport with optional keep-alive reuse for read-only requests. */
 public final class UpstreamTransport implements AutoCloseable {
     private static final AppLogger log = AppLogger.of(UpstreamTransport.class);
     private static final Set<String> HOP_HEADERS = Set.of("connection", "keep-alive", "proxy-connection",

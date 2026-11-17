@@ -26,7 +26,7 @@
 - Dừng JVM trước build để tránh thay class đang chạy.
 - Trên Windows: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test.ps1`.
 - Maven: `mvn -B --no-transfer-progress -Pshop test`.
-- `TestSuite` tự phát hiện toàn bộ `*Test.java`; source nâng cấp ngày 15/11/2026 có 28 mains. Không dùng số suite lịch sử để bỏ qua test mới.
+- `TestSuite` tự phát hiện toàn bộ `*Test.java`; chạy mọi test main có trong checkout. Không dùng số suite lịch sử để bỏ qua test mới.
 - Nếu bất kỳ test nào FAIL, chưa bật pooling hoặc chưa nhập nhánh chính.
 
 ### Cổng C — Database và vận hành
@@ -39,7 +39,7 @@
 
 - So sánh cùng workload, cùng phiên bản code, cùng timeout/heap, ít nhất 3 repeat.
 - Ghi p50, p95, p99, throughput, HTTP 4xx/5xx, timeout, scheduling lag; phân biệt proxy rejection với backend rejection.
-- Chỉ gọi số liệu LAN khi client/backend thực sự nằm trên các host hoặc VM/network namespace khác nhau với cấu hình mạng đã ghi nhận.
+- Chỉ gọi số liệu LAN khi phép đo đi qua ít nhất hai máy thật. Loopback, Docker bridge hoặc network namespace trên cùng máy phải được báo riêng.
 
 ### Cổng E — Đóng băng
 

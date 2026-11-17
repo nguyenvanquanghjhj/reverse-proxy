@@ -33,7 +33,7 @@ export function go(path, replace = false) {
 }
 
 function adminShell() {
-  return `<header class="admin-top"><a class="wordmark" href="/admin">mộc<span aria-hidden="true">•</span></a><span class="admin-top-label">KHÔNG GIAN QUẢN TRỊ</span><nav aria-label="Tài khoản quản trị"><a href="/admin/shop">Xem cửa hàng ↗</a><span>${e(identity()?.user?.name || "Khách")}</span>${identity()?.user ? '<button id="logout" class="secondary">Đăng xuất</button>' : '<a href="/admin/shop/login?next=admin">Đăng nhập</a>'}</nav></header><main id="main" tabindex="-1"><div class="shop-loading" role="status">Đang tải dữ liệu quản trị…</div></main>`;
+  return `<header class="admin-top"><a class="wordmark" href="/admin">mộc<span aria-hidden="true">•</span></a><span class="admin-top-label">QUẢN TRỊ CỬA HÀNG</span><nav aria-label="Tài khoản quản trị"><a href="/admin/shop">Xem cửa hàng ↗</a><span>${e(identity()?.user?.name || "Khách")}</span>${identity()?.user ? '<button id="logout" class="secondary">Đăng xuất</button>' : '<a href="/admin/shop/login?next=admin">Đăng nhập</a>'}</nav></header><main id="main" tabindex="-1"><div class="shop-loading" role="status">Đang tải dữ liệu quản trị…</div></main>`;
 }
 
 async function render() {
@@ -136,7 +136,7 @@ document.addEventListener(
     img.hidden = true;
     const fallback = document.createElement("span");
     fallback.className = "image-fallback";
-    fallback.textContent = "Ảnh đang được cập nhật";
+    fallback.textContent = "Không tải được ảnh";
     img.after(fallback);
   },
   true,

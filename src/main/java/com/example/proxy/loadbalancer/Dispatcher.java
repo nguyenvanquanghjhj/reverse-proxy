@@ -165,7 +165,7 @@ public final class Dispatcher {
         // Conservatively treat the read deadline as a completion deadline for buffered responses.
         return Math.min(config.getReadTimeoutMs(), config.getRequestTimeoutMs());
     }
-    /** Runtime-only backend details used by the demo UI; kept separate from scheduler snapshots. */
+    /** Backend process details for monitoring, separate from scheduler snapshots. */
     public String backendRuntimeJson() {
         lock.lock();
         try {

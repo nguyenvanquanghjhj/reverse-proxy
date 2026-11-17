@@ -29,8 +29,8 @@ public final class OrderService {
             var selected=new ArrayList<Map<String,Object>>();
             for(var line:request.items()){
                 var v=byId.get(line.variantId());
-                if(v==null||!Boolean.TRUE.equals(v.get("active"))||!Boolean.TRUE.equals(v.get("product_active"))||!Boolean.TRUE.equals(v.get("category_active")))throw new ShopException(409,"UNAVAILABLE","Một sản phẩm đã ngừng bán. Vui lòng cập nhật giỏ hàng.");
-                if(((Number)v.get("stock")).intValue()<line.quantity())throw new ShopException(409,"OUT_OF_STOCK","Số lượng còn lại không đủ. Vui lòng cập nhật giỏ hàng.");
+                if(v==null||!Boolean.TRUE.equals(v.get("active"))||!Boolean.TRUE.equals(v.get("product_active"))||!Boolean.TRUE.equals(v.get("category_active")))throw new ShopException(409,"UNAVAILABLE","Một sản phẩm đã ngừng bán. Vui lòng chọn lại sản phẩm hoặc số lượng.");
+                if(((Number)v.get("stock")).intValue()<line.quantity())throw new ShopException(409,"OUT_OF_STOCK","Số lượng còn lại không đủ. Vui lòng chọn lại sản phẩm hoặc số lượng.");
                 selected.add(v);
             }
             for(int i=0;i<request.items().size();i++){var line=request.items().get(i);var v=selected.get(i);long price=((Number)v.get("price_vnd")).longValue(),total=Math.multiplyExact(price,line.quantity());subtotal=Math.addExact(subtotal,total);
@@ -68,7 +68,7 @@ public final class OrderService {
         return Sql.transaction(db,c->{var old=Sql.one(c,"SELECT status,payment_status FROM st_orders WHERE id=? FOR UPDATE",id);if(old==null)throw Input.missing();String previous=(String)old.get("status");
             if(!previous.equals(next)){
                 boolean valid=switch(previous){case "CREATED"->Set.of("CONFIRMED","CANCELLED").contains(next);case "CONFIRMED"->Set.of("PACKING","CANCELLED").contains(next);case "PACKING"->Set.of("SHIPPED","CANCELLED").contains(next);case "SHIPPED"->next.equals("DELIVERED");default->false;};
-                if(!valid)throw Input.conflict("Không thể chuyển trạng thái đơn theo thứ tự này.");
+                if(!valid)throw Input.conflict("Không thể chuyển sang trạng thái đã chọn.");
                 if(next.equals("CANCELLED")){
                     var items=Sql.rows(c,"SELECT i.variant_id,i.quantity,v.product_id FROM st_order_items i JOIN st_variants v ON v.id=i.variant_id JOIN st_products p ON p.id=v.product_id WHERE i.order_id=? ORDER BY p.id,v.id FOR UPDATE OF p,v",id);
                     var products=new TreeSet<Long>();for(var item:items){Sql.update(c,"UPDATE st_variants SET stock=stock+? WHERE id=?",item.get("quantity"),item.get("variant_id"));products.add(((Number)item.get("product_id")).longValue());}

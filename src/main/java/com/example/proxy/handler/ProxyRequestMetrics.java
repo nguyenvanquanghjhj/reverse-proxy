@@ -32,7 +32,7 @@ final class ProxyRequestMetrics {
         if (failure instanceof ProtocolException || failure instanceof EOFException) responseErrors.increment();
         else connectionErrors.increment();
     }
-    // Suppliers keep owner/quota sampling at the same position as the original exports.
+    // Sample resource ownership and quotas in export order.
     String countersJson(IntSupplier activeHandlers, Supplier<String> rateLimitJson) {
         return "\"requests_total\":" + requests.sum() + ",\"requests_failed\":" + failed.sum()
                 + ",\"requests_rejected\":" + rejected.sum() + ",\"upstream_timeouts\":" + timeouts.sum()

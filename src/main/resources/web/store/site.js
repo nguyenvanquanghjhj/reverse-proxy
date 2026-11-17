@@ -49,7 +49,7 @@ function setError(root, name, message) {
   }
 }
 
-// ---- Khung trang (cùng header và thanh bên với khu quản trị) ----
+// Khung trang cửa hàng.
 function topbar(user) {
   return `<header class="admin-top"><a class="wordmark" href="${BASE}">mộc<span aria-hidden="true">•</span></a><span class="admin-top-label">CỬA HÀNG</span><nav aria-label="Tài khoản">${user?.role === "ADMIN" ? '<a href="/admin">Quản trị ↗</a>' : ""}${user ? `<span>${e(user.name)}</span><button type="button" id="logout" class="secondary">Đăng xuất</button>` : ""}</nav></header>`;
 }
@@ -157,7 +157,7 @@ export async function render(app, ctx) {
     view.innerHTML =
       error.status === 404
         ? missingPage().html
-        : `<div class="empty"><h2>Chưa mở được trang này</h2><p>${e(error.message)}</p><div class="actions"><button type="button" id="retry-page">Thử lại</button><a class="button secondary" href="${BASE}">Về danh sách sản phẩm</a></div></div>`;
+        : `<div class="empty"><h2>Không tải được trang</h2><p>${e(error.message)}</p><div class="actions"><button type="button" id="retry-page">Thử lại</button><a class="button secondary" href="${BASE}">Về danh sách sản phẩm</a></div></div>`;
     const retry = $(view, "#retry-page");
     if (retry) retry.onclick = () => go(path + url.search, true);
     document.title = "Có lỗi — Mộc";
@@ -238,7 +238,7 @@ function listPage(ctx) {
   const initial = (ctx.url.searchParams.get("q") || "").slice(0, 100);
   return {
     title: "Sản phẩm",
-    html: `<div class="page-heading"><p class="eyebrow">CỬA HÀNG</p><h1>Sản phẩm</h1><p>Chọn một sản phẩm để xem thông số, tải tài liệu và đặt hàng.</p></div>
+    html: `<div class="page-heading"><p class="eyebrow">CỬA HÀNG</p><h1>Sản phẩm</h1></div>
     <form class="inline-form" id="search-form" role="search"><label>Tìm theo tên sản phẩm<input id="search" type="search" name="q" value="${e(initial)}" placeholder="Ví dụ: Pixel" maxlength="100" autocomplete="off"></label></form>
     <p class="shop-status" id="status" role="status" aria-live="polite"></p><div id="results"></div>`,
     bind(root) {
@@ -275,7 +275,7 @@ function listPage(ctx) {
           total = Number(data.total) || 0;
         statusLine.textContent = !items.length
           ? term
-            ? `Không có sản phẩm nào tên “${term}”. Thử từ khóa ngắn hơn.`
+            ? `Không tìm thấy sản phẩm khớp “${term}”. Thử từ khóa ngắn hơn.`
             : "Chưa có sản phẩm nào."
           : term
             ? `${total} sản phẩm khớp “${term}”`
@@ -372,7 +372,7 @@ async function productPage(ctx, id, user) {
   const banner = corrupt
     ? `<div class="notice warning"><strong>Không đọc được thông tin đơn trước đó.</strong> Hãy xem mục Đơn của tôi trước khi đặt đơn mới.<div class="shop-notice-row"><a class="text-link" href="${BASE}/orders">Xem đơn của tôi</a><button type="button" class="secondary" id="reset-order">Đặt đơn mới</button></div></div>`
     : unknown
-      ? `<div class="notice warning"><strong>Đơn trước chưa rõ kết quả.</strong> Kết nối bị gián đoạn khi đặt hàng. Bấm kiểm tra lại để xác nhận. Hệ thống không tạo đơn trùng.<div class="shop-notice-row"><button type="button" id="retry-order">Kiểm tra lại đơn</button><button type="button" class="text-button" id="drop-order">Bỏ qua và đặt đơn mới</button></div></div>`
+      ? `<div class="notice warning"><strong>Đơn trước chưa rõ kết quả.</strong> Kết nối bị gián đoạn khi đặt hàng. Dùng “Kiểm tra lại đơn” để kiểm tra yêu cầu đã gửi.<div class="shop-notice-row"><button type="button" id="retry-order">Kiểm tra lại đơn</button><button type="button" class="text-button" id="drop-order">Bỏ qua và đặt đơn mới</button></div></div>`
       : !salesOpen
         ? `<div class="notice warning"><strong>Cửa hàng đang tạm ngừng nhận đơn mới.</strong> Bạn vẫn có thể xem sản phẩm.</div>`
         : "";
@@ -386,7 +386,7 @@ async function productPage(ctx, id, user) {
     <div id="doc-error" role="alert"></div>
     ${images.length ? `<div class="shop-photo"><img id="photo" src="${e(images[0].url)}" alt="${e(p.name)}" width="640" height="480"></div>${images.length > 1 ? `<div class="shop-thumbs">${images.map((f, i) => `<button type="button" data-photo="${i}" aria-label="Xem ảnh ${i + 1}" aria-pressed="${i === 0}"><img src="${e(f.url)}" alt="" width="56" height="56"></button>`).join("")}</div>` : ""}<p class="shop-caption" id="caption">${caption(images[0])}</p>` : '<div class="shop-photo"><span class="image-fallback">Chưa có ảnh</span></div>'}
     <div class="shop-specs"><h2>Thông số</h2><dl>${specs.map(([k, v]) => `<div><dt>${e(k)}</dt><dd>${e(v)}</dd></div>`).join("")}</dl></div>
-    <p class="shop-fine">${meta?.region ? `Cấu hình tham chiếu: ${e(meta.region)}. ` : ""}Thông số theo nguồn của hãng. Giá và tồn kho là dữ liệu mẫu của đồ án, không phải báo giá bán lẻ.</p>
+    <p class="shop-fine">${meta?.region ? `Cấu hình tham chiếu: ${e(meta.region)}. ` : ""}Thông số theo nguồn của hãng. Giá và tồn kho là dữ liệu mẫu, không phải báo giá bán lẻ.</p>
     ${meta ? `<details><summary>Nguồn ảnh và thông số</summary><ul>${(meta.sources || []).map((s, i) => `<li>${link(s.url, "Thông số từ hãng, nguồn " + (i + 1))}</li>`).join("")}${(meta.images || []).map((i) => `<li>${e(i.caption)}. Ảnh của ${e(i.author)}, ${link(i.license_url, i.license)}, ${link(i.source_page, "Wikimedia Commons")}.</li>`).join("")}</ul></details>` : ""}
   </section>
   <form class="panel shop-panel" id="order-form" novalidate aria-labelledby="order-title">
@@ -551,7 +551,7 @@ async function productPage(ctx, id, user) {
           problems.phone = "Nhập số điện thoại từ 9 đến 14 chữ số.";
         if (length(address) < 10 || length(address) > 300)
           problems.address =
-            "Nhập địa chỉ đầy đủ (số nhà, đường, phường, tỉnh), từ 10 ký tự.";
+            "Nhập địa chỉ nhận hàng từ 10 đến 300 ký tự.";
         if (length(note) > 500) problems.note = "Ghi chú tối đa 500 ký tự.";
         for (const name of [
           "quantity",
@@ -620,7 +620,7 @@ async function ordersPage(ctx) {
       : "";
   return {
     title: "Đơn của tôi",
-    html: `<div class="page-heading"><p class="eyebrow">CỬA HÀNG</p><h1>Đơn của tôi</h1><p>Các đơn bạn đã đặt, mới nhất ở trên.</p></div>${items.length ? `<section class="panel"><div class="shop-scroll"><table><thead><tr><th>Ngày đặt</th><th>Mã đơn</th><th>Người nhận</th><th class="shop-right">Tổng tiền</th><th>Trạng thái</th></tr></thead><tbody>${items.map((o) => `<tr><td>${e(date(o.created_at))}</td><td><a class="text-link shop-num" href="${BASE}/orders/${e(o.id)}">${e(String(o.id).slice(0, 8))}</a></td><td>${e(o.recipient)}</td><td class="shop-right shop-num">${money(o.total_vnd)}</td><td><span class="badge">${e(status(o.status))}</span></td></tr>`).join("")}</tbody></table></div></section>${pager}` : `<div class="empty"><h2>Bạn chưa có đơn hàng nào</h2><p>Chọn một sản phẩm để đặt đơn đầu tiên.</p><a class="button" href="${BASE}">Xem sản phẩm</a></div>`}`,
+    html: `<div class="page-heading"><p class="eyebrow">CỬA HÀNG</p><h1>Đơn của tôi</h1></div>${items.length ? `<section class="panel"><div class="shop-scroll"><table><thead><tr><th>Ngày đặt</th><th>Mã đơn</th><th>Người nhận</th><th class="shop-right">Tổng tiền</th><th>Trạng thái</th></tr></thead><tbody>${items.map((o) => `<tr><td>${e(date(o.created_at))}</td><td><a class="text-link shop-num" href="${BASE}/orders/${e(o.id)}">${e(String(o.id).slice(0, 8))}</a></td><td>${e(o.recipient)}</td><td class="shop-right shop-num">${money(o.total_vnd)}</td><td><span class="badge">${e(status(o.status))}</span></td></tr>`).join("")}</tbody></table></div></section>${pager}` : `<div class="empty"><h2>Bạn chưa có đơn hàng nào</h2><a class="button" href="${BASE}">Xem sản phẩm</a></div>`}`,
   };
 }
 async function orderPage(ctx, id) {
@@ -631,7 +631,7 @@ async function orderPage(ctx, id) {
   return {
     title: "Đơn " + String(o.id).slice(0, 8),
     html: `<a class="text-link shop-back" href="${BASE}/orders">← Đơn của tôi</a>
-    ${placed ? notice("Cảm ơn bạn. Cửa hàng sẽ xác nhận đơn sớm. Bạn trả tiền khi nhận hàng.", "Đã đặt hàng.", "success") : ""}
+    ${placed ? notice("Bạn thanh toán khi nhận hàng. Theo dõi trạng thái tại trang này.", "Đã đặt hàng.", "success") : ""}
     <div class="page-heading"><p class="eyebrow">ĐƠN HÀNG</p><h1>Đơn ${e(String(o.id).slice(0, 8))}</h1><p>Đặt lúc ${e(date(o.created_at))}. <span class="badge">${e(status(o.status))}</span></p><p class="muted shop-num">Mã đơn đầy đủ: ${e(o.id)}</p></div>
     <section class="panel"><div class="shop-scroll"><table><thead><tr><th>Sản phẩm</th><th class="shop-right">Số lượng</th><th class="shop-right">Đơn giá</th><th class="shop-right">Thành tiền</th></tr></thead><tbody>${lines.map((i) => `<tr><td>${e(i.product_name)}<small>${e(i.color)}, ${storage(i.storage_gb)}</small></td><td class="shop-right shop-num">${i.quantity}</td><td class="shop-right shop-num">${money(i.unit_price_vnd)}</td><td class="shop-right shop-num">${money(i.line_total_vnd)}</td></tr>`).join("")}</tbody></table></div>
     <div class="shop-sum"><div><span>Tạm tính</span><span class="shop-num">${money(o.subtotal_vnd)}</span></div><div><span>Phí giao hàng</span><span class="shop-num">${money(o.shipping_vnd)}</span></div><div class="total"><span>Tổng cộng</span><span class="shop-num">${money(o.total_vnd)}</span></div></div></section>

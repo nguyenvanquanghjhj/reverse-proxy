@@ -15,7 +15,7 @@ public final class FileService {
     public Map<String,Object> upload(long product,String kind,String name,String mime,byte[] bytes)throws SQLException,IOException {
         if(!Set.of("PDF","IMAGE").contains(kind))throw Input.bad("Loại tệp không hợp lệ.");
         if(kind.equals("PDF"))db.with(c->{OperationsService.admitUpload(c);return null;});
-        if(name==null||!name.matches("[A-Za-z0-9][A-Za-z0-9 _.-]{0,95}")||name.contains(".."))throw Input.bad("Tên tệp chỉ gồm chữ không dấu, số, khoảng trắng và dấu gạch nối.");
+        if(name==null||!name.matches("[A-Za-z0-9][A-Za-z0-9 _.-]{0,95}")||name.contains(".."))throw Input.bad("Tên tệp dài 1–96 ký tự, bắt đầu bằng chữ không dấu hoặc số; cho phép khoảng trắng, dấu chấm, gạch nối và gạch dưới, không chứa hai dấu chấm liên tiếp.");
         var content=storage.validate(bytes,mime,kind);return add(product,kind,name,content.bytes(),content.mime());
     }
     /** Operator-only seed asset input; HTTP upload never accepts SVG. */

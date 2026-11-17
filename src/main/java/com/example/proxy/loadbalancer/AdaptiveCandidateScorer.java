@@ -10,7 +10,7 @@ final class AdaptiveCandidateScorer {
         return forecast.completionMs() * resourcePenalty(snapshot);
     }
     static double resourcePenalty(BackendMetrics.Snapshot s) {
-        // Preserve the original expression and floating-point order, including all existing weights.
+        // Floating-point evaluation order and weights are part of scheduler parity.
         return s.scoreMs() / (s.latencyEwmaMs() * (1 + (s.inFlight() + external(s) + 1.0) / s.effectiveCapacity()));
     }
     static int external(BackendMetrics.Snapshot s) {

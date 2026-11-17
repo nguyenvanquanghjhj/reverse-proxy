@@ -15,7 +15,7 @@ import java.nio.file.NoSuchFileException;
 import java.sql.*;
 import java.util.*;
 
-/** Full store module hosted by each existing backend listener. No second server, no synthetic work. */
+/** Store routes and assets hosted by each backend listener. */
 public final class StoreApplication {
     private record Asset(byte[] bytes,String mime) {}
     private final Map<String,Asset> assets=new HashMap<>();private final StoreController controller;private final OperationsService operations;

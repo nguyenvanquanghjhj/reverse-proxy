@@ -1,4 +1,4 @@
-"""Browser acceptance for the authenticated storefront pulled from upstream main.
+"""Browser acceptance for the authenticated storefront.
 
 Preserves purchase, lost-response replay, source attribution, gallery, pause,
 offline, loading, validation, responsive and print checks for its current routes.

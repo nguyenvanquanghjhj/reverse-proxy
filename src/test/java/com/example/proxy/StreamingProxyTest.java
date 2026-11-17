@@ -12,7 +12,7 @@ import java.security.*;
 import java.util.concurrent.TimeUnit;
 
 /** True HTTP/1.1 fixture; tests response bytes, partial content and downstream framing.
- * Large file backend filesystem tests run separately in tests/run_standalone.py.
+ * Large-file filesystem checks run in scripts/ops/acceptance_streaming.py.
  */
 public final class StreamingProxyTest {
     static void check(boolean ok,String msg){if(!ok)throw new AssertionError(msg);}

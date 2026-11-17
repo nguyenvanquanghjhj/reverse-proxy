@@ -5,11 +5,11 @@ function validate(value){if(!Array.isArray(value)||value.length>20)throw new Err
 try{items=validate(JSON.parse(localStorage.getItem(KEY)||'[]'));}catch{items=[];}
 export function cart(){return structuredClone(items);}
 function save(next){try{localStorage.setItem(KEY,JSON.stringify(next));}catch{throw new Error('Trình duyệt chưa lưu được giỏ hàng. Vui lòng cho phép lưu dữ liệu.');}items=next;window.dispatchEvent(new Event('cartchange'));}
-export function add(product,variant,quantity){if(!Number.isInteger(quantity)||quantity<1||quantity>20)throw new Error('Số lượng từ 1 đến 20.');const next=cart(),old=next.find(x=>x.variant_id===variant.id),total=(old?.quantity||0)+quantity;
+export function add(product,variant,quantity){if(!Number.isInteger(quantity)||quantity<1||quantity>20)throw new Error('Nhập số lượng từ 1 đến 20.');const next=cart(),old=next.find(x=>x.variant_id===variant.id),total=(old?.quantity||0)+quantity;
   if(!variant.active||total>variant.stock||total>20)throw new Error('Số lượng còn lại không đủ cho lựa chọn này.');
-  if(old)old.quantity=total;else{if(next.length>=20)throw new Error('Giỏ hàng tối đa 20 phiên bản.');next.push({variant_id:variant.id,product_id:product.id,name:product.name,sku:variant.sku,color:variant.color,storage_gb:variant.storage_gb,price_vnd:variant.price_vnd,quantity,image:product.files.find(f=>f.kind==='IMAGE')?.url||''});}save(next);
+  if(old)old.quantity=total;else{if(next.length>=20)throw new Error('Giỏ hàng chứa tối đa 20 phiên bản sản phẩm.');next.push({variant_id:variant.id,product_id:product.id,name:product.name,sku:variant.sku,color:variant.color,storage_gb:variant.storage_gb,price_vnd:variant.price_vnd,quantity,image:product.files.find(f=>f.kind==='IMAGE')?.url||''});}save(next);
 }
-export function quantity(id,n){if(!Number.isInteger(n)||n<1||n>20)throw new Error('Số lượng từ 1 đến 20.');save(items.map(x=>x.variant_id===id?{...x,quantity:n}:x));}
+export function quantity(id,n){if(!Number.isInteger(n)||n<1||n>20)throw new Error('Nhập số lượng từ 1 đến 20.');save(items.map(x=>x.variant_id===id?{...x,quantity:n}:x));}
 export function remove(id){save(items.filter(x=>x.variant_id!==id));}
 export function clear(){save([]);}
 export function consumed(lines){const next=cart();for(const line of lines){const old=next.find(x=>x.variant_id===line.variant_id);if(old)old.quantity-=line.quantity;}save(next.filter(x=>x.quantity>0));}

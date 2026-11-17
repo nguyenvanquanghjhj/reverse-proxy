@@ -22,16 +22,16 @@ public final class CatalogService {
         boolean active=Input.bool(b,"active"),featured=Input.bool(b,"featured");var variants=Input.list(b,"variants",1,8);
         var validated=new ArrayList<Map<String,Object>>();var seen=new HashSet<String>();var ids=new HashSet<Long>();
         for(Object raw:variants){var v=Input.object(raw);Input.fields(v,"id","sku","color","storage_gb","price_vnd","stock","active");
-            String sku=Input.text(v,"sku",1,64),color=Input.text(v,"color",1,40);if(!sku.matches("[A-Za-z0-9_-]+")||!seen.add(sku))throw Input.bad("SKU phải duy nhất và chỉ gồm chữ, số, gạch nối.");
-            Long variantId=v.get("id")==null?null:Input.number(v,"id",1,Long.MAX_VALUE);if(variantId!=null&&!ids.add(variantId))throw Input.bad("Biến thể bị trùng.");
+            String sku=Input.text(v,"sku",1,64),color=Input.text(v,"color",1,40);if(!sku.matches("[A-Za-z0-9_-]+")||!seen.add(sku))throw Input.bad("SKU phải duy nhất, chỉ gồm chữ không dấu, số, dấu gạch nối hoặc gạch dưới.");
+            Long variantId=v.get("id")==null?null:Input.number(v,"id",1,Long.MAX_VALUE);if(variantId!=null&&!ids.add(variantId))throw Input.bad("Phiên bản bị trùng.");
             var values=new LinkedHashMap<String,Object>();values.put("id",variantId);values.put("sku",sku);values.put("color",color);values.put("storage",Input.number(v,"storage_gb",16,4096));values.put("price",Input.number(v,"price_vnd",1000,1000000000));values.put("stock",Input.number(v,"stock",0,1000000));values.put("active",Input.bool(v,"active"));validated.add(values);
         }
         if(active&&validated.stream().noneMatch(v->Boolean.TRUE.equals(v.get("active"))))throw Input.bad("Cần ít nhất một phiên bản đang bán.");
         return Sql.transaction(db,c->{
-            var cat=Sql.one(c,"SELECT active FROM st_categories WHERE id=? FOR SHARE",category);if(cat==null||active&&!Boolean.TRUE.equals(cat.get("active")))throw Input.bad("Danh mục chưa được bật.");
+            var cat=Sql.one(c,"SELECT active FROM st_categories WHERE id=? FOR SHARE",category);if(cat==null||active&&!Boolean.TRUE.equals(cat.get("active")))throw Input.bad("Danh mục không tồn tại hoặc chưa hiển thị.");
             long product;
             if(id==null){if(active)throw Input.bad("Hãy lưu bản nháp và thêm ảnh trước khi đăng bán.");product=((Number)Sql.one(c,"INSERT INTO st_products(category_id,name,brand,description,screen,chipset,ram_gb,battery_mah,active,featured) VALUES(?,?,?,?,?,?,?,?,?,?) RETURNING id",category,name,brand,description,screen,chip,ram,battery,false,featured).get("id")).longValue();}
-            else{var old=Sql.one(c,"SELECT version FROM st_products WHERE id=? FOR UPDATE",id);if(old==null)throw Input.missing();if(((Number)old.get("version")).longValue()!=Input.number(b,"version",1,Integer.MAX_VALUE))throw Input.conflict("Sản phẩm đã được chỉnh sửa. Vui lòng tải lại.");
+            else{var old=Sql.one(c,"SELECT version FROM st_products WHERE id=? FOR UPDATE",id);if(old==null)throw Input.missing();if(((Number)old.get("version")).longValue()!=Input.number(b,"version",1,Integer.MAX_VALUE))throw Input.conflict("Sản phẩm đã thay đổi. Vui lòng tải lại trước khi lưu.");
                 if(active&&Sql.one(c,"SELECT id FROM st_files WHERE product_id=? AND kind='IMAGE' AND active LIMIT 1",id)==null)throw Input.bad("Cần thêm ít nhất một hình ảnh trước khi đăng bán.");
                 product=id;Sql.update(c,"UPDATE st_products SET category_id=?,name=?,brand=?,description=?,screen=?,chipset=?,ram_gb=?,battery_mah=?,active=?,featured=?,version=version+1,updated_at=now() WHERE id=?",category,name,brand,description,screen,chip,ram,battery,active,featured,id);
                 var existing=Sql.rows(c,"SELECT id FROM st_variants WHERE product_id=? ORDER BY id FOR UPDATE",id);

@@ -19,17 +19,12 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
     private static final AppLogger log = AppLogger.of(ProxyHandler.class);
     // Cờ đánh dấu handler đã đóng (shutdown). Dùng CAS để close() chỉ chạy đúng 1 lần.
     private final AtomicBoolean closed = new AtomicBoolean();
-    // Map: thread đang xử lý request -> request id. Dùng để đếm request đang chạy,
-    // để ngắt (interrupt) khi hết deadline hoặc khi shutdown.
     private final Map<Thread, String> owners = new ConcurrentHashMap<>();
     private final ProxyRequestMetrics metrics = new ProxyRequestMetrics();
     private final com.example.proxy.metrics.TrafficMetrics traffic = new com.example.proxy.metrics.TrafficMetrics();
     private final ProxyConfig config;
-    // Dispatcher = bộ cân bằng tải, chọn backend và cấp "lease" (quyền dùng 1 slot của backend).
     private final Dispatcher dispatcher;
-    // Gửi request thường (có buffer toàn bộ body) tới backend.
     private final UpstreamTransport transport;
-    // Gửi request dạng streaming (response lớn, không buffer hết vào RAM).
     private final StreamingProxy streaming;
     private final ClientRateLimiter rateLimiter;
     private final IncomingRequestValidator validator;
@@ -55,15 +50,12 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
         // Task deadline bị hủy sẽ được xóa khỏi hàng đợi ngay, tránh rò rỉ bộ nhớ.
         deadlines.setRemoveOnCancelPolicy(true);
     }
-    // Điểm vào cho request thường (cần forward sang backend).
     @Override public void handle(HttpExchange exchange) throws IOException {
         handleTracked(exchange, null, false);
     }
-    // Điểm vào cho request quản trị của chính proxy (metrics, health...), không forward.
     public void handleManagement(HttpExchange exchange, HttpHandler action) throws IOException {
         handleTracked(exchange, action, true);
     }
-    // Khung xử lý chung: đo metrics, gắn request id, đặt deadline, ghi log đầu/cuối.
     private void handleTracked(HttpExchange exchange, HttpHandler action, boolean management) throws IOException {
         var result=new RequestResult();
         long started = System.nanoTime();
@@ -88,7 +80,6 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
                     : RequestDeadline.currentOrNew(config.getRequestTimeoutMs());
             deadline = clientDeadline(expires);
             if (management) {
-                // Không lấy được permit (>8 request quản trị) thì trả 503 ngay.
                 boolean admitted = managementAdmission.tryAcquire();
                 try (exchange) {
                     if (!admitted) sendError(exchange, 503, "Proxy capacity exhausted");
@@ -101,7 +92,6 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
             error = failure.getClass().getSimpleName();
             throw failure;
         } finally {
-            // Dọn dẹp + ghi nhận kết quả cuối cùng, luôn chạy dù thành công hay lỗi.
             if (deadline != null) deadline.close();
             owners.remove(Thread.currentThread());
             int status = exchange.getResponseCode();
@@ -110,7 +100,6 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
             if (requestClass != null) traffic.completed(requestClass, status, !error.isEmpty(),
                     exchange.getResponseHeaders().getFirst("X-Proxy-Backend") != null, elapsedMs(started),result.outcome==null?
                     com.example.proxy.metrics.TrafficMetrics.classify(requestClass,status,!error.isEmpty(),exchange.getResponseHeaders().getFirst("X-Proxy-Backend")!=null,null):result.outcome);
-            // Quy đổi mã HTTP lỗi thành tên loại lỗi để đưa vào log.
             if (error.isEmpty() && status >= 400) error = switch (status) {
                 case 502 -> "UpstreamFailure";
                 case 504 -> "UpstreamTimeout";
@@ -133,13 +122,11 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
         return ids != null && ids.size() == 1 && ids.getFirst().matches("[A-Za-z0-9._-]{1,64}")
                 ? ids.getFirst() : UUID.randomUUID().toString();
     }
-    // Các header bảo mật gắn vào mọi response.
     public static void securityHeaders(HttpExchange exchange) {
         exchange.getResponseHeaders().set("Cache-Control", "no-store");
         exchange.getResponseHeaders().set("X-Content-Type-Options", "nosniff");
         exchange.getResponseHeaders().set("X-Frame-Options", "DENY");
     }
-    // Nhóm hàm xuất số liệu (JSON/Prometheus) cho các endpoint /__proxy/...
     public String countersJson() {
         return metrics.countersJson(owners::size, rateLimiter::json);
     }
@@ -159,12 +146,8 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
     public Diagnostics diagnostics() {
         return new Diagnostics(admission.availablePermits(), owners.size(), deadlines.getQueue().size(), transport.activeSocketCount(), transport.deadlineTaskCount());
     }
-    // Lưu kết quả phân loại của request (thành công, timeout, lỗi DB...) để ghi vào traffic metrics.
     private static final class RequestResult { com.example.proxy.metrics.TrafficMetrics.Outcome outcome; }
-    // Luồng chính: admission -> kiểm tra hợp lệ -> rate limit -> bulkhead download -> đọc body
-    // -> chuẩn hóa header -> chọn backend -> forward -> trả response về client.
     private void forward(HttpExchange exchange, long expires,RequestResult result) throws IOException {
-        // Bước 1: xin slot xử lý. Hết slot thì từ chối 503 (có ưu tiên cho request critical).
         PriorityAdmission.Ticket admissionTicket = admission.tryAcquire(
                 exchange.getRequestMethod(), exchange.getRequestURI().getPath(),
                 exchange.getRemoteAddress().getAddress().getHostAddress());
@@ -175,7 +158,6 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
                 sendError(exchange, 503, "Proxy capacity exhausted");
                 return;
             }
-            // Bước 2: kiểm tra Host, method, header... của request đến.
             if (!validRequest(exchange, false)) return;
             // TRACE bị chặn vì có thể bị lợi dụng để lộ header nhạy cảm.
             if (exchange.getRequestMethod().equals("TRACE")) {
@@ -195,14 +177,12 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
                     }
                 }
             }
-            // Bước 3: giới hạn tốc độ theo IP client. Vượt mức -> 429 kèm Retry-After.
             var rate = rateLimiter.acquire(exchange.getRemoteAddress().getAddress().getHostAddress());
             if (!rate.allowed()) {
                 exchange.getResponseHeaders().set("Retry-After", Long.toString(rate.retryAfterSeconds()));
                 sendFailure(exchange, 429, "Client request rate exceeded");
                 return;
             }
-            // Bước 4: request tải file/PDF/streaming phải qua bulkhead riêng. Chờ quá hạn -> 503.
             if(downloads.enabled() && ("DOCUMENT_DOWNLOAD".equals(Dispatcher.requestClass(exchange.getRequestMethod(),exchange.getRequestURI())) || StreamingProxy.eligible(exchange.getRequestMethod(),exchange.getRequestURI().getPath()))){
                 downloadTicket=downloads.acquire(expires);
                 if(downloadTicket==null){
@@ -211,12 +191,10 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
                     sendFailure(exchange,503,"Download capacity exhausted");return;
                 }
             }
-            // Bước 5: đọc body request vào RAM, có giới hạn kích thước (413 nếu quá lớn).
             byte[] body;
             try { body = readBody(exchange.getRequestBody(), config.getMaxBodyBytes()); }
             catch (UpstreamTransport.BodyLimitException e) { sendFailure(exchange, 413, e.getMessage()); return; }
             catch (IOException e) { sendFailure(exchange, 400, "Incomplete request body"); return; }
-            // Bước 6: chuẩn hóa header gửi lên backend (bỏ hop-by-hop, chống giả mạo X-Forwarded-*).
             Map<String, List<String>> headers = new LinkedHashMap<>(UpstreamTransport.endToEndHeaders(exchange.getRequestHeaders()));
             if (exchange.getRequestMethod().equals("OPTIONS")) headers.replaceAll((name, values) ->
                     name.equalsIgnoreCase("Max-Forwards") ? List.of(Integer.toString(Integer.parseInt(values.getFirst()) - 1)) : values);
@@ -226,27 +204,22 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
             headers.keySet().removeIf(name -> name.equalsIgnoreCase("X-Request-Id")||name.equalsIgnoreCase("X-Service-Outcome"));
             // HttpServer already accepted/read the entire request body. Do not ask upstream to continue it.
             headers.keySet().removeIf(name -> name.equalsIgnoreCase("Expect"));
-            // Gộp các Via có sẵn rồi thêm Via của proxy này vào cuối.
             var via = new ArrayList<String>();
             headers.entrySet().removeIf(entry -> { if (!entry.getKey().equalsIgnoreCase("Via")) return false; via.addAll(entry.getValue()); return true; });
             via.add("1.1 pbl4"); headers.put("Via", via);
             headers.put("X-Request-Id", List.of(exchange.getResponseHeaders().getFirst("X-Request-Id")));
             headers.put("X-Forwarded-For", List.of(exchange.getRemoteAddress().getAddress().getHostAddress()));
             headers.put("X-Forwarded-Proto", List.of("http"));
-            // Hết hạn hoặc bị ngắt trước khi gọi backend thì dừng luôn (ném timeout).
             if (Thread.currentThread().isInterrupted() || System.nanoTime() >= expires) throw new SocketTimeoutException("Request deadline exceeded");
-            // Bước 7: nhờ Dispatcher chọn backend khỏe còn slot trống. Không có -> 503.
             Dispatcher.Lease lease = dispatcher.acquire(exchange.getRequestMethod(), exchange.getRequestURI());
             if (lease == null) { sendFailure(exchange, 503, "No healthy backend has free capacity"); return; }
             exchange.getResponseHeaders().set("X-Proxy-Backend", lease.backend().getId());
             log.info("event=backend_selected request_id=" + exchange.getResponseHeaders().getFirst("X-Request-Id") + " backend=" + Json.quote(lease.backend().getId()));
             UpstreamTransport.Response response;
             long start = System.nanoTime();
-            // try-with-resources trên lease: đảm bảo slot backend luôn được trả lại.
             // Mỗi nhánh bên dưới phải báo kết quả cho lease ĐÚNG MỘT LẦN (exactly-once completion).
             try (lease) {
                 try {
-                    // Nhánh streaming: truyền thẳng backend -> client, xong thì return luôn.
                     if (config.isStreamingEnabled() && StreamingProxy.eligible(exchange.getRequestMethod(),exchange.getRequestURI().getPath())) {
                         exchange.getResponseHeaders().set("X-Proxy-Strategy",lease.strategy());
                         int status=streaming.transfer(exchange,lease.backend(),headers,expires);
@@ -257,7 +230,6 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
                         else lease.completeHttp(elapsedMs(start),status);
                         return;
                     }
-                    // Nhánh thường: gửi request, nhận trọn response vào RAM.
                     response = transport.exchange(lease.backend(), exchange.getRequestMethod(), exchange.getRequestURI(), headers, body, expires);
                     String service=response.headers().entrySet().stream().filter(entry->entry.getKey().equalsIgnoreCase("X-Service-Outcome"))
                             .filter(entry->entry.getValue().size()==1).map(entry->entry.getValue().getFirst()).findFirst().orElse(null);
@@ -285,7 +257,6 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
                     lease.completePolicyRejection(elapsedMs(start));
                     if(exchange.getResponseCode()!=-1)throw e;
                     sendFailure(exchange,504,"Streaming route timed out");return;
-                // Client ngắt kết nối giữa chừng khi streaming.
                 } catch (StreamingProxy.DownstreamIOException e) {
                     result.outcome=com.example.proxy.metrics.TrafficMetrics.Outcome.CLIENT_FAILURE;
                     lease.completeServiceFailure(elapsedMs(start));
@@ -298,7 +269,6 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
                     lease.complete(elapsedMs(start), true, true);
                     sendFailure(exchange, 504, "Backend timed out");
                     return;
-                // Các lỗi I/O còn lại (mất kết nối, response HTTP sai...).
                 } catch (IOException e) {
                     // Đã gửi header cho client rồi thì không thể gửi thêm response lỗi nữa.
                     if(exchange.getResponseCode()!=-1) {
@@ -315,7 +285,6 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
                         }
                         throw e; // Cannot send a second HTTP response after committing headers.
                     }
-                    // Chưa gửi gì cho client: trả 502 Bad Gateway.
                     result.outcome=com.example.proxy.metrics.TrafficMetrics.Outcome.TRANSPORT_FAILURE;
                     log.warn("event=upstream_error request_id=" + exchange.getResponseHeaders().getFirst("X-Request-Id") + " error_type=" + e.getClass().getSimpleName());
                     metrics.upstreamFailure(e);
@@ -324,7 +293,6 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
                     return;
                 }
             }
-            // Bước 8: gửi response của backend về client (chỉ tới đây với luồng không streaming).
             // The backend has finished. Downstream failures cannot change its health or count twice.
             // Sao chép header backend sang client, trừ Content-Length (sẽ tự đặt) và X-Request-Id (của proxy).
             response.headers().forEach((name, values) -> {
@@ -360,7 +328,6 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
             if (admissionTicket != null) admissionTicket.close();
         }
     }
-    // Kiểm tra request đến; nếu bị từ chối thì gửi lỗi cho client và trả false.
     private boolean validRequest(HttpExchange exchange, boolean management) throws IOException {
         var rejection = validator.host(exchange.getProtocol(), exchange.getRequestHeaders());
         if (rejection == null) rejection = management
@@ -386,7 +353,6 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
         securityHeaders(exchange);
         String id = exchange.getResponseHeaders().getFirst("X-Request-Id");
         if (id == null) { id = requestId(exchange); exchange.getResponseHeaders().set("X-Request-Id", id); }
-        // Đổi mã HTTP thành mã lỗi dạng chữ cho client dễ xử lý.
         String code = switch (status) {
             case 400 -> "BAD_REQUEST"; case 403 -> "FORBIDDEN"; case 404 -> "NOT_FOUND";
             case 405 -> "METHOD_NOT_ALLOWED"; case 429 -> "RATE_LIMITED"; case 413 -> "BODY_TOO_LARGE"; case 431 -> "HEADERS_TOO_LARGE";
@@ -411,7 +377,6 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
     private void sendFailure(HttpExchange exchange, int status, String message) throws IOException {
         sendError(exchange, status, message);
     }
-    // Tạo bộ hẹn giờ cho request; nếu handler đã đóng thì báo lỗi I/O.
     private ClientDeadline clientDeadline(long expires) throws IOException {
         try { return new ClientDeadline(Thread.currentThread(), expires); }
         catch (RejectedExecutionException closed) { throw new IOException("Proxy handler is closed", closed); }
@@ -442,7 +407,6 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
             // Each handler owns a fresh virtual thread; preserve interrupts, including external cancellation.
         }
     }
-    // Tắt proxy: ngắt mọi request đang chạy rồi đóng transport, streaming và bộ hẹn giờ.
     @Override public void close() {
         if (!closed.compareAndSet(false, true)) return;
         owners.forEach((thread, id) -> { log.warn("event=shutdown_cancel request_id=" + id); thread.interrupt(); });

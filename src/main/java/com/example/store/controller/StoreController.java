@@ -20,8 +20,7 @@ public final class StoreController {
     public void handle(HttpExchange e)throws IOException,SQLException {
         String path=e.getRequestURI().getPath().substring("/api/store".length());String verb=e.getRequestMethod();boolean read=verb.equals("GET")||verb.equals("HEAD");
         if(path.equals("/session")){method(e,"GET");json(e,200,sessions.resolve(e,true).view());return;}
-        // Public catalog projections contain no identity-dependent fields. Avoid a needless JDBC session
-        // lookup here (measured fresh-connection setup dominates these small catalog reads).
+        // Public catalog projections contain no identity-dependent fields and need no session lookup.
         if(path.equals("/categories")){method(e,"GET","HEAD");json(e,200,Map.of("items",catalog.categories(false)));return;}
         if(path.equals("/products")){method(e,"GET","HEAD");json(e,200,catalog.catalog(query(e),false));return;}
         if(path.matches("/products/[1-9][0-9]*")){method(e,"GET","HEAD");json(e,200,catalog.detail(id(path.substring(10)),false));return;}
