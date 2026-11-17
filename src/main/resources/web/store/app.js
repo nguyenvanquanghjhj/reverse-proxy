@@ -3,10 +3,7 @@ import { errorBox } from "./views.js";
 import { adminView } from "./admin.js";
 import { render as renderShop } from "./site.js";
 
-const app = document.querySelector("#app"),
-  theme = document.querySelector("#theme");
-const SHOP_CSS = "/store/assets/shop.css",
-  ADMIN_CSS = "/store/assets/store.css";
+const app = document.querySelector("#app");
 let revision = 0,
   toastTimer;
 
@@ -35,19 +32,20 @@ export function go(path, replace = false) {
   queueMicrotask(render);
 }
 
-// Khu quản trị giữ nguyên giao diện cũ (store.css); khách hàng dùng shop.css.
 function adminShell() {
-  return `<header class="admin-top"><a class="wordmark" href="/admin">mộc<span aria-hidden="true">•</span></a><span class="admin-top-label">KHÔNG GIAN QUẢN TRỊ</span><nav aria-label="Tài khoản quản trị"><a href="/shop">Xem cửa hàng ↗</a><span>${e(identity()?.user?.name || "Khách")}</span>${identity()?.user ? '<button id="logout" class="secondary">Đăng xuất</button>' : '<a href="/shop/login?next=admin">Đăng nhập</a>'}</nav></header><main id="main" tabindex="-1"><div class="loading" role="status">Đang tải dữ liệu quản trị…</div></main>`;
+  return `<header class="admin-top"><a class="wordmark" href="/admin">mộc<span aria-hidden="true">•</span></a><span class="admin-top-label">KHÔNG GIAN QUẢN TRỊ</span><nav aria-label="Tài khoản quản trị"><a href="/admin/shop">Xem cửa hàng ↗</a><span>${e(identity()?.user?.name || "Khách")}</span>${identity()?.user ? '<button id="logout" class="secondary">Đăng xuất</button>' : '<a href="/admin/shop/login?next=admin">Đăng nhập</a>'}</nav></header><main id="main" tabindex="-1"><div class="shop-loading" role="status">Đang tải dữ liệu quản trị…</div></main>`;
 }
 
 async function render() {
   const version = ++revision,
     url = new URL(location.href),
-    path = url.pathname,
-    admin = path.startsWith("/admin");
-  const css = admin ? ADMIN_CSS : SHOP_CSS;
-  if (theme.getAttribute("href") !== css) theme.setAttribute("href", css);
-  document.body.classList.toggle("admin-mode", admin);
+    path = url.pathname;
+  // Địa chỉ cũ (/ và /shop...) chuyển vào /admin/shop...
+  if (path === "/" || path === "/shop" || path.startsWith("/shop/")) {
+    const rest = path.replace(/^\/shop/, "").replace(/^\/$/, "");
+    go("/admin/shop" + rest + url.search, true);
+    return;
+  }
   const ctx = {
     path,
     url,
@@ -56,13 +54,13 @@ async function render() {
     confirm,
     current: () => version === revision,
   };
-  if (!admin) {
+  if (path === "/admin/shop" || path.startsWith("/admin/shop/")) {
     try {
       await renderShop(app, ctx);
     } catch (error) {
-      if (ctx.current())
-        ((app.innerHTML = `<div class="wrap"><div class="empty"><h1>Chưa mở được cửa hàng</h1><p>${e(error.message)}</p><button type="button" id="retry-page">Thử lại</button></div></div>`),
-          (document.querySelector("#retry-page").onclick = render));
+      if (!ctx.current()) return;
+      app.innerHTML = `<main id="main"><div class="empty"><h2>Chưa mở được cửa hàng</h2><p>${e(error.message)}</p><button type="button" id="retry-page">Thử lại</button></div></main>`;
+      document.querySelector("#retry-page").onclick = render;
     }
     return;
   }
@@ -75,7 +73,7 @@ async function render() {
         await api("/auth/logout", { method: "POST" });
         setIdentity(null);
         await session(true);
-        go("/shop/login");
+        go("/admin/shop/login");
       } catch (err) {
         toast(err.message, true);
         logout.disabled = false;
@@ -94,7 +92,7 @@ async function render() {
       (root.querySelector("h1")?.textContent || "Quản trị") + " — Mộc";
   } catch (error) {
     if (!ctx.current()) return;
-    root.innerHTML = `<div class="page-heading"><p class="eyebrow">MỘC / THÔNG BÁO</p><h1>${error.status === 404 ? "Không tìm thấy nội dung" : "Chưa thể mở trang này"}</h1></div>${errorBox(error.message)}<div class="actions"><button id="retry-page">Thử lại</button><a class="button secondary" href="/shop">Về trang chủ</a></div>`;
+    root.innerHTML = `<div class="page-heading"><p class="eyebrow">MỘC / THÔNG BÁO</p><h1>${error.status === 404 ? "Không tìm thấy nội dung" : "Chưa thể mở trang này"}</h1></div>${errorBox(error.message)}<div class="actions"><button id="retry-page">Thử lại</button><a class="button secondary" href="/admin/shop">Về cửa hàng</a></div>`;
     root.querySelector("#retry-page").onclick = render;
   }
 }
