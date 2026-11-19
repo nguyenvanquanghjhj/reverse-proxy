@@ -268,8 +268,14 @@ public final class Dispatcher {
             json.append("{\"id\":").append(Json.quote(s.backend().getId())).append(",\"host\":").append(Json.quote(s.backend().host()))
                 .append(",\"port\":").append(s.backend().port()).append(",\"state\":").append(Json.quote(s.state()))
                 .append(",\"alive\":").append(s.alive()).append(",\"inFlight\":").append(s.inFlight())
-                .append(",\"capabilities\":").append(capabilities.get(s.backend()).json())
-                .append(",\"draining\":").append(s.draining())
+                .append(",\"capabilities\":").append(capabilities.get(s.backend()).json());
+            if(config.isCapabilityRoutingEnabled()) {
+                var status=capabilities.get(s.backend());long now=clock.getAsLong(),observed=status.observedNanos();
+                long age=observed==Long.MIN_VALUE||now<observed?-1:(now-observed)/1_000_000L;
+                json.append(",\"capabilitiesAgeMs\":").append(age<0?"null":Long.toString(age))
+                    .append(",\"capabilitiesFresh\":").append(!status.values().isEmpty()&&age>=0&&age<=config.getMetricsStaleMs());
+            }
+            json.append(",\"draining\":").append(s.draining())
                 .append(",\"dispatched\":").append(s.dispatched()).append(",\"completed\":").append(s.completed())
                 .append(",\"errors\":").append(s.errors()).append(",\"latencyEwmaMs\":").append(number(s.latencyEwmaMs()))
                 .append(",\"recoveries\":").append(require(s.backend()).recoveries())

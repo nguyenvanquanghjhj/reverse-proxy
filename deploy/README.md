@@ -2,7 +2,7 @@
 
 `compose/` contains the maintained Dockerfile and Compose topology: PostgreSQL,
 three backends, shared storage and the proxy. See
-[the operations guide](../docs/OPERATIONS_UPGRADE.md) for secrets and control-plane
+[the operations guide](../docs/deployment/OPERATIONS_UPGRADE.md) for secrets and control-plane
 commands. Keep the private Compose environment outside Git. Validate syntax with
 `docker compose -f deploy/compose/compose.yaml config --quiet` after providing the
 required variables.

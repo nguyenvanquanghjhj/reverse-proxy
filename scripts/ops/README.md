@@ -4,7 +4,7 @@ Run these commands from the checkout root. Private environment files, database
 clusters, backup archives and acceptance output belong outside the checkout.
 Pass private env paths explicitly; scripts resolve application resources from
 their own location. Live acceptance defaults to sibling `evidence/` with unique
-run directories (`PBL4_EVIDENCE_ROOT` can select another absolute root). An
+run directories named `<label>-run-<random-id>` without dates (`PBL4_EVIDENCE_ROOT` can select another absolute root). An
 explicit `--out` inside the checkout is rejected before payload/database work.
 No tool requires a particular Windows account or drive letter.
 
@@ -19,6 +19,7 @@ No tool requires a particular Windows account or drive letter.
 | Docker persistence | `acceptance_docker_ci.py --out <new-directory>` | New project/volumes; retains volumes after tests. |
 | LAN measurements | `lan_benchmark.py --help` | Requires real distinct hosts; local traffic is not LAN evidence. |
 | Release checks | `release_gate.py --help` | Preflight/release checks do not replace live acceptance. |
+| Preserved stopped QA datasets | `python scripts/ops/qa_snapshot.py --help` | List/verify/restore the workspace recovery package; restore requires a new destination and verifies every selected SHA before writing. |
 
 Java source and launcher tests remain in `src/main` and `src/test`. Native and
 Maven builds write regenerable output to `target`; do not clean classes while an
@@ -44,5 +45,5 @@ store images/PDFs, backup and raw measurements remain. Other tools retain output
 until an explicit reviewed cleanup; no recursive cleanup runs automatically.
 
 See [deployment](../../deploy/README.md), [maintenance audit](../../docs/maintenance/STORAGE_AUDIT.md),
-[operations contract](../../docs/OPERATIONS_UPGRADE.md) and
-[streaming contract](../../docs/HTTP_STREAMING.md).
+[operations contract](../../docs/deployment/OPERATIONS_UPGRADE.md) and
+[streaming contract](../../docs/architecture/HTTP_STREAMING.md).

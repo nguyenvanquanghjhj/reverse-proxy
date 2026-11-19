@@ -25,6 +25,7 @@ class QaPathsTest(unittest.TestCase):
             first = new_evidence_path('store'); second = new_evidence_path('store')
             self.assertNotEqual(first, second)
             self.assertEqual(first.parent, Path(temporary).resolve())
+            self.assertRegex(first.name, r'^store-run-[0-9a-f]{12}$')
             self.assertFalse(first.exists())
 
     def test_bad_evidence_roots_and_labels_fail_closed(self):

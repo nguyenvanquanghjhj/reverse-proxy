@@ -1,3 +1,5 @@
+> Historical record. Current layout and cleanup results: [WORKSPACE_CLEANUP.md](WORKSPACE_CLEANUP.md). Old paths are resolved by [WORKSPACE_PATHS.csv](WORKSPACE_PATHS.csv).
+
 # Tái cấu trúc và dọn workspace PBL4 — 15/11/2026
 
 Repository vật lý duy nhất: `D:\PBL4\reverse-proxy-demo`; remote
@@ -9,7 +11,7 @@ Mốc main `8a2cc59c514cfde633637f1755c9c299161b2e31`; branch làm việc
 Các commit nhỏ: `00a531f` tách backend/workload; `c67efbb` hợp nhất storefront và
 runtime. Không thay công thức RR/LC/Adaptive, giao dịch, schema/migration hoặc dữ
 liệu người dùng. SHA cuối, CI và Git status được chốt trong
-[FINAL.md](D:/PBL4/evidence/restructure-20261115/FINAL.md), sau khi push/merge và CI
+[FINAL.md](../../../evidence/integration/FINAL-5623142d513b.md), sau khi push/merge và CI
 thực sự hoàn thành. Không coi CI đang chạy là PASS.
 
 ## Kiến trúc trước và sau
@@ -59,7 +61,7 @@ flowchart LR
 
 Full dependency map (Java imports/main, Python AST imports, web references, route
 literals, launchers) và classification từng source file:
-[dependency-inventory.json](D:/PBL4/evidence/restructure-20261115/dependency-inventory.json).
+[dependency-inventory.json](../../../evidence/integration/dependency-inventory-dbfd57c273a3.json).
 Không còn local Java import hoặc static web asset không resolve. Dynamic browser
 URLs được kiểm bằng browser/SQL acceptance, không coi là file path.
 
@@ -97,7 +99,7 @@ merge/cleanup một lần trong lịch sử được lưu làm bằng chứng, k
 hiện tại. Không di chuyển runtime/DB đang chạy. PostgreSQL trong các parent đã
 chuyển đều đã dừng; hash toàn bộ tệp đọc được được đối chiếu sau di chuyển.
 Unified parent giữ nguyên do một subtree không đọc được. Mỗi move cùng ổ có
-`claimed_bytes_freed=0` trong [moves.json](D:/PBL4/evidence/restructure-20261115/moves.json).
+`claimed_bytes_freed=0` trong [moves.json](../../../evidence/integration/moves-34971935ce51.json).
 
 ```text
 Repository trước                  Repository sau
@@ -166,7 +168,7 @@ Cache tải: 537,292,154 logical / **537,300,992 allocated bytes** thu hồi th�
 Trước xóa đã kiểm hash bản tải pin, toàn ZIP CRC, đối chiếu 2.234 file JDK/Maven/PG
 được cài với nội dung ZIP; executable/toolchain vẫn dùng được sau chuyển. Recipe,
 URL/hash và toàn danh sách đối chiếu giữ trong
-[tool-cache-deletion-plan.json](D:/PBL4/evidence/restructure-20261115/tool-cache-deletion-plan.json).
+[tool-cache-deletion-plan.json](../../../evidence/integration/tool-cache-deletion-plan-4075396f8f57.json).
 JDK lib/src.zip là thành phần đã cài, không nhầm là cache tải. Không xóa Downloads
 PBL4 bundles; tổng chỉ vài trăm KB, còn provenance/reference. Không giải nén ba ZIP
 provenance. Các fixture lịch sử lớn giữ nguyên để tái kiểm nghiệm; chỉ input vừa
@@ -175,8 +177,8 @@ tạo trong QA của đợt này được giải phóng theo receipt sau PASS.
 5323 tệp `.shop`, `.runtime`, `shared-files`, `.env.store`, `db` giữ SHA; assembler
 user sửa giữ byte; 23.233 tệp ngoài checkout ban đầu giữ SHA qua di chuyển (ngoại
 trừ 3 cache tải đã nêu). Bằng chứng:
-[preservation-result.json](D:/PBL4/evidence/restructure-20261115/preservation-result.json),
-[moves-sha-verification.json](D:/PBL4/evidence/restructure-20261115/moves-sha-verification.json).
+[preservation-result.json](../../../evidence/integration/preservation-result-e55ab54580e4.json),
+[moves-sha-verification.json](../../../evidence/integration/moves-sha-verification-b4cbe12bb626.json).
 Raw PASS/FAIL/CSV/JSON, databases cũ/mới, backup archive, ảnh/PDF được giữ. Không
 đưa private env/database/archive/log lớn vào Git. PostgreSQL QA đợt này là cluster
 mới 127.0.0.1:55458; source real DB và các cluster cũ không được khởi chạy/thay đổi.
@@ -286,19 +288,19 @@ Thư mục cha/con lồng nhau; không cộng tổng các dòng. Đây là nguy�
 
 | Hạng mục | Trạng thái | Phạm vi | Log/bằng chứng |
 |---|---|---|---|
-| Java 21 native / Maven -Pshop | PASS | 30 / 30 mains | [16-native-final.log](D:/PBL4/evidence/restructure-20261115/16-native-final.log), [06-maven.log](D:/PBL4/evidence/restructure-20261115/06-maven.log) |
-| Python / preserved HTTP tooling | PASS | 29 tests / HTTP harness | [15-python-retention.log](D:/PBL4/evidence/restructure-20261115/15-python-retention.log), [22-http-tooling.log](D:/PBL4/evidence/restructure-20261115/22-http-tooling.log) |
-| JDBC / transaction / capability / QoS / auth | PASS | 30 checks | [07-operational.log](D:/PBL4/evidence/restructure-20261115/07-operational.log) / [operational/result.json](D:/PBL4/evidence/restructure-20261115/operational/result.json) |
-| Mộc Store browser / SQL / response loss | PASS | 316 checks | [08-browser.log](D:/PBL4/evidence/restructure-20261115/08-browser.log) / [browser-01/acceptance.json](D:/PBL4/evidence/restructure-20261115/browser-01/acceptance.json) |
-| Streaming 32/100/256 MiB / SHA / Range / faults / memory | PASS | 70 checks | [21-streaming-retention.log](D:/PBL4/evidence/restructure-20261115/21-streaming-retention.log) / [streaming-retention/result.json](D:/PBL4/evidence/restructure-20261115/streaming-retention/result.json) |
-| Health / circuit / drain / watchdog | PASS | 20 checks | [10-operations.log](D:/PBL4/evidence/restructure-20261115/10-operations.log) / [operations-live/result.json](D:/PBL4/evidence/restructure-20261115/operations-live/result.json) |
-| Backup/restore mới / DB & files hashes | PASS | 15 checks | [12-backup-restore.log](D:/PBL4/evidence/restructure-20261115/12-backup-restore.log) / [backup-restore/result.json](D:/PBL4/evidence/restructure-20261115/backup-restore/result.json) |
-| PowerShell/Python start/stop/restart / legacy API | PASS | 27 checks | [20-entrypoints-new-db.log](D:/PBL4/evidence/restructure-20261115/20-entrypoints-new-db.log) / [entrypoints-03/result.json](D:/PBL4/evidence/restructure-20261115/entrypoints-03/result.json) |
-| Compose config | PASS | CLI thực, không deploy | [13-compose.log](D:/PBL4/evidence/restructure-20261115/13-compose.log) |
+| Java 21 native / Maven -Pshop | PASS | 30 / 30 mains | [16-native-final.log](../../../evidence/integration/16-native-final-fd9a39f82f4d.log), [06-maven.log](../../../evidence/integration/06-maven-a61c7cc40e98.log) |
+| Python / preserved HTTP tooling | PASS | 29 tests / HTTP harness | [15-python-retention.log](../../../evidence/integration/15-python-retention-c0a882804ad8.log), [22-http-tooling.log](../../../evidence/integration/22-http-tooling-8b950dedebf9.log) |
+| JDBC / transaction / capability / QoS / auth | PASS | 30 checks | [07-operational.log](../../../evidence/integration/07-operational-e0ff93bea8d6.log) / [operational/result.json](../../../evidence/integration/result-0d7a87d96435.json) |
+| Mộc Store browser / SQL / response loss | PASS | 316 checks | [08-browser.log](../../../evidence/integration/08-browser-11a4786b2eb3.log) / [browser-01/acceptance.json](../../../evidence/integration/acceptance-ecf1251bf58b.json) |
+| Streaming 32/100/256 MiB / SHA / Range / faults / memory | PASS | 70 checks | [21-streaming-retention.log](../../../evidence/streaming/21-streaming-retention-4e9d9dc0db85.log) / [streaming-retention/result.json](../../../evidence/streaming/result.json) |
+| Health / circuit / drain / watchdog | PASS | 20 checks | [10-operations.log](../../../evidence/integration/10-operations-668237300b6d.log) / [operations-live/result.json](../evidence/unified/operations-result.json) |
+| Backup/restore mới / DB & files hashes | PASS | 15 checks | [12-backup-restore.log](../../../evidence/recovery/12-backup-restore-f1f68eedc6fa.log) / [backup-restore/result.json](../../../evidence/recovery/result-2d74b38988a4.json) |
+| PowerShell/Python start/stop/restart / legacy API | PASS | 27 checks | [20-entrypoints-new-db.log](../../../evidence/integration/20-entrypoints-new-db-4e3588cdc183.log) / [entrypoints-03/result.json](../../../evidence/integration/result-cbb34f706bed.json) |
+| Compose config | PASS | CLI thực, không deploy | [13-compose.log](../../../evidence/integration/13-compose-3c7426fa9abf.log) |
 | Bảo toàn dữ liệu / historical moves | PASS | 5323 + 23233 files SHA | preservation-result.json / moves-sha-verification.json trong evidence root |
-| RR/LC/Adaptive thực nghiệm | PASS | 18 runs, giữ cả HTTP errors | [11-algorithms.log](D:/PBL4/evidence/restructure-20261115/11-algorithms.log); bảng dưới |
+| RR/LC/Adaptive thực nghiệm | PASS | 18 runs, giữ cả HTTP errors | [11-algorithms.log](../../../evidence/integration/11-algorithms-69c34d2f98db.log); bảng dưới |
 | Linux/Windows CI + Docker restart (source branch) | PASS | 4/4 jobs; 68 Docker checks; main cuối xem FINAL.md | https://github.com/nguyenvanquanghjhj/reverse-proxy/actions/runs/43693122171 |
-| Docker Engine/disk/cache local | NOT RUN | Không có Engine; không prune volumes | [environment-limits-final.log](D:/PBL4/evidence/restructure-20261115/environment-limits-final.log) |
+| Docker Engine/disk/cache local | NOT RUN | Không có Engine; không prune volumes | [environment-limits-final.log](../../../evidence/integration/environment-limits-final-0cff2cf948b2.log) |
 | LAN nhiều máy | NOT RUN | Không có host thứ hai | Loopback và Docker bridge không được gọi là LAN |
 | SHA/allocation subtree restore cũ bị ACL | NOT RUN | Giữ nguyên; không có quyền enumerate | before.json / after.json errors |
 
@@ -325,7 +327,7 @@ Mỗi profile/strategy: 3 repeat × 180 request, concurrency 12, cùng seed và 
 | heterogeneous | LEAST_CONNECTIONS | 538 | 540 | 2 | 0 | 2007.714, 2014.1486, 2021.9143 |
 | heterogeneous | ADAPTIVE | 530 | 540 | 10 | 0 | 2008.5129, 2020.3425, 2028.7144 |
 
-Raw status counts: `{'200': 3220, '504': 20}`. Không có tiêu chí mọi request phải 200 ở workload áp lực này: deadline/admission là behavior được đo. **Không gọi các HTTP 504 là thành công.** Đợt baseline trước có 12 HTTP failures; đợt này 20; background Windows/IDE không được kiểm soát, đây không phải phép chứng minh cải thiện hay tương đương hiệu năng. Không thay scheduler/timeout để giảm error. Bảng p95 gồm mọi outcome; raw CSV và samples giữ tại [benchmark-01](D:/PBL4/evidence/restructure-20261115/benchmark-01/result.json). LAN chưa đo.
+Raw status counts: `{'200': 3220, '504': 20}`. Không có tiêu chí mọi request phải 200 ở workload áp lực này: deadline/admission là behavior được đo. **Không gọi các HTTP 504 là thành công.** Đợt baseline trước có 12 HTTP failures; đợt này 20; background Windows/IDE không được kiểm soát, đây không phải phép chứng minh cải thiện hay tương đương hiệu năng. Không thay scheduler/timeout để giảm error. Bảng p95 gồm mọi outcome; raw CSV và samples giữ tại [benchmark-01](../../../evidence/benchmarks/result.json). LAN chưa đo.
 
 
 Upstream pool mặc định false; QoS reservation 0; streaming mặc định false.
@@ -361,9 +363,9 @@ không chạy setup/seed trên dữ liệu thật khi chỉ cần restart.
 Regression: scripts/test.ps1; Maven -Pshop test; unittest discover scripts/ops;
 test_defense_live.py. Live QA dùng private env của DB riêng, output evidence ngoài
 checkout. Full command/cwd/UTC/exit/duration và mọi log:
-[runs.jsonl](D:/PBL4/evidence/restructure-20261115/runs.jsonl).
+[runs.jsonl](../../../evidence/integration/runs-5c57961779b1.jsonl).
 Full per-file absolute path/mtime/Git/classification/SHA, related Downloads và
-duplicates: [inventory index](D:/PBL4/evidence/restructure-20261115/inventory-index.json).
+duplicates: [inventory index](../../../evidence/integration/inventory-index-8ec911d4a06e.json).
 Không quét tài liệu khác ngoài vùng PBL4 được xác định.
 
 ## Git và release

@@ -8,9 +8,9 @@ Java 21 reverse proxy, ba backend Java, PostgreSQL và shared storage. Mộc Sto
 
 ## Nâng cấp hợp nhất — 15/11/2026
 
-Đã tích hợp từ một `PBL4_UNIFIED_RELEASE`, sau khi pull `origin/main`, trên branch riêng. [Biên bản nghiệm thu nâng cấp](../UNIFIED_ACCEPTANCE_20261115.md) ghi trạng thái và log thực của từng hạng mục; các kết quả 07/11 và V7 bên dưới là lịch sử. Capability routing phân biệt lỗi DB, static và business pause. Upstream connection pool mặc định `false`, QoS reservation mặc định `0`, JDBC pool local mặc định OFF; các chế độ bật chỉ được chạy trong môi trường kiểm thử riêng.
+Đã tích hợp từ một `PBL4_UNIFIED_RELEASE`, sau khi pull `origin/main`, trên branch riêng. [Biên bản nghiệm thu nâng cấp](../reports/UNIFIED_ACCEPTANCE_20261115.md) ghi trạng thái và log thực của từng hạng mục; các kết quả 07/11 và V7 bên dưới là lịch sử. Capability routing phân biệt lỗi DB, static và business pause. Upstream connection pool mặc định `false`, QoS reservation mặc định `0`, JDBC pool local mặc định OFF; các chế độ bật chỉ được chạy trong môi trường kiểm thử riêng.
 
-Sao lưu đồng bộ DB và tệp dùng `scripts/ops/consistent_bundle.py`, với toàn bộ writer đã dừng, và chỉ restore vào database cùng thư mục **mới**. Hướng dẫn vận hành tại [OPERATIONS_UPGRADE.md](../OPERATIONS_UPGRADE.md). Giao diện hiện tại từ upstream yêu cầu đăng nhập và đặt hàng tại trang sản phẩm; QA trình duyệt kiểm đúng luồng này.
+Sao lưu đồng bộ DB và tệp dùng `scripts/ops/consistent_bundle.py`, với toàn bộ writer đã dừng, và chỉ restore vào database cùng thư mục **mới**. Hướng dẫn vận hành tại [OPERATIONS_UPGRADE.md](../deployment/OPERATIONS_UPGRADE.md). Giao diện hiện tại từ upstream yêu cầu đăng nhập và đặt hàng tại trang sản phẩm; QA trình duyệt kiểm đúng luồng này.
 
 ## Bảo trì dung lượng
 
@@ -18,7 +18,7 @@ Sao lưu đồng bộ DB và tệp dùng `scripts/ops/consistent_bundle.py`, v�
 
 ## Final Acceptance — 07/11/2026
 
-[Báo cáo nghiệm thu tổng hợp duy nhất](../../../final-acceptance-20261107/report.html) ghi PASS / FAIL / NOT RUN, lệnh tái hiện và đường dẫn raw CSV/JSON/screenshot. Đây là lần chạy mới từ source hiện tại; các số liệu V7 phía dưới là lịch sử.
+[Báo cáo nghiệm thu tổng hợp duy nhất](../../../evidence/integration/report-132976b3b921.html) ghi PASS / FAIL / NOT RUN, lệnh tái hiện và đường dẫn raw CSV/JSON/screenshot. Đây là lần chạy mới từ source hiện tại; các số liệu V7 phía dưới là lịch sử.
 
 Clean build và 19 test mains PASS; 262 kiểm tra chức năng, 31 kiểm tra PDF/dependency/metrics, 12 ca HTTP raw trên `:8080`; 108 lượt so sánh ba thuật toán và 9 lần failure/recovery, mỗi điều kiện ba repeat. Không đổi Java ứng dụng hoặc hệ số thuật toán trong nghiệm thu. Đã sửa race trong fixture kiểm thử header và chạy lại suite cùng ba lượt riêng.
 
@@ -188,7 +188,7 @@ Mỗi `--out` phải là thư mục mới. Lab dùng proxy `18080`, backend `190
 
 ## Kết quả V7 đã đo (lịch sử)
 
-[Báo cáo và biểu đồ](../../../v6-evidence/v7-final-research/report.html) · [A/B bulkhead](../../../v6-evidence/bulkhead-ab/report.html) · [Raw và nguồn từng artifact](../../../v6-evidence/v7-final-research/origin-manifest.json).
+[Báo cáo và biểu đồ](../../../evidence/benchmarks/report-4dcc2204a63f.html) · [A/B bulkhead](../../../evidence/benchmarks/report-205a443f5e2b.html) · [Raw và nguồn từng artifact](../../../evidence/benchmarks/origin-manifest-55873cf7e0a8.json).
 
 Baseline gồm 108 lượt × 240 request, 3 repeat mỗi điều kiện/thuật toán. Các ca PDF/mixed được chạy lại sau khi sửa fixture; 63 ca không đọc PDF được giữ. Assembler kiểm tra Java/source/resource SHA giống hệt nhau trước khi ghép. Dữ liệu cũ và lỗi harness vẫn được giữ, đánh dấu calibration. A/B dùng một build mới, cùng build cho OFF và ON; không trộn hai build trong một phép A/B.
 
@@ -268,4 +268,4 @@ Bật thử bằng `proxy.pdf.bulkhead.max.inflight=8`; queue/wait cấu hình t
 
 Giới hạn còn lại: chỉ đo một máy Windows/loopback, chưa LAN/VM/loss/jitter/packet capture; upstream pooling vẫn OFF và không retry tự động; streaming file lớn là tuyến đọc riêng, tắt mặc định; HttpServer có giới hạn parser riêng và không phải một proxy HTTP tổng quát. Demo bind loopback; quản trị local không thay thế thiết kế authentication/TLS cho Internet. Không tuyên bố production-ready hay đã tối ưu toàn diện.
 
-HTTP Streaming/Range, deadline riêng và hướng dẫn nghiệm thu: [docs/HTTP_STREAMING.md](../HTTP_STREAMING.md). Cấu hình hiện tại vẫn giữ streaming, upstream connection pool và QoS reservation OFF; không thay giới hạn file hay giao dịch của Mộc Store.
+HTTP Streaming/Range, deadline riêng và hướng dẫn nghiệm thu: [docs/HTTP_STREAMING.md](../architecture/HTTP_STREAMING.md). Cấu hình hiện tại vẫn giữ streaming, upstream connection pool và QoS reservation OFF; không thay giới hạn file hay giao dịch của Mộc Store.

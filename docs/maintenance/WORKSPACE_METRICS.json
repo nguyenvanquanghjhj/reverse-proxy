@@ -1,0 +1,45 @@
+{
+  "scope": "Physical files without traversing links; baseline completed with 34 SHA-verified files previously unreadable",
+  "before": {
+    "top_directories_including_links": 13,
+    "directories": 2396,
+    "links": 19,
+    "files": 54869,
+    "logical_bytes": 6957409609,
+    "allocated_bytes": null,
+    "project_date_directories": 25,
+    "git_checkouts": 2,
+    "duplicates_excluding_live_database": {
+      "groups": 5468,
+      "redundant_files": 30941,
+      "redundant_bytes": 4012344670
+    },
+    "errors": []
+  },
+  "after": {
+    "top_directories_including_links": 4,
+    "directories": 570,
+    "links": 0,
+    "files": 11261,
+    "logical_bytes": 1730977541,
+    "allocated_bytes": 1657015310,
+    "project_date_directories": 0,
+    "git_checkouts": 1,
+    "duplicates_excluding_live_database": {
+      "groups": 213,
+      "redundant_files": 645,
+      "redundant_bytes": 24179573
+    },
+    "errors": []
+  },
+  "reduction": {
+    "files": 43608,
+    "directories": 1826,
+    "logical_bytes": 5226432068,
+    "allocated_bytes": null
+  },
+  "removed_original_paths": 48004,
+  "removed_original_logical_bytes": 6165442365,
+  "evidence_duplicate_groups": [],
+  "checkpoint": "D:\\PBL4_BACKUP\\workspace-cleanup\\run-bc9d032e66d5"
+}

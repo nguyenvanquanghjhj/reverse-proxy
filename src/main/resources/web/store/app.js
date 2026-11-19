@@ -4,6 +4,7 @@ import { adminView } from "./admin.js";
 import { render as renderShop } from "./site.js";
 
 const app = document.querySelector("#app");
+let disposePage;
 let revision = 0,
   toastTimer;
 
@@ -33,10 +34,11 @@ export function go(path, replace = false) {
 }
 
 function adminShell() {
-  return `<header class="admin-top"><a class="wordmark" href="/admin">mộc<span aria-hidden="true">•</span></a><span class="admin-top-label">QUẢN TRỊ CỬA HÀNG</span><nav aria-label="Tài khoản quản trị"><a href="/admin/shop">Xem cửa hàng ↗</a><span>${e(identity()?.user?.name || "Khách")}</span>${identity()?.user ? '<button id="logout" class="secondary">Đăng xuất</button>' : '<a href="/admin/shop/login?next=admin">Đăng nhập</a>'}</nav></header><main id="main" tabindex="-1"><div class="shop-loading" role="status">Đang tải dữ liệu quản trị…</div></main>`;
+  return `<header class="admin-top"><a class="wordmark" href="/admin">mộc<span aria-hidden="true">•</span></a><span class="admin-top-label">QUẢN TRỊ CỬA HÀNG</span><nav aria-label="Tài khoản quản trị"><a href="/admin/shop">Xem cửa hàng</a><span>${e(identity()?.user?.name || "Khách")}</span>${identity()?.user ? '<button id="logout" class="secondary">Đăng xuất</button>' : '<a href="/admin/shop/login?next=admin">Đăng nhập</a>'}</nav></header><main id="main" tabindex="-1"><div class="shop-loading" role="status">Đang tải dữ liệu quản trị…</div></main>`;
 }
 
 async function render() {
+  disposePage?.(); disposePage = null;
   const version = ++revision,
     url = new URL(location.href),
     path = url.pathname;
@@ -84,7 +86,7 @@ async function render() {
     const page = await adminView(ctx);
     if (!ctx.current()) return;
     root.innerHTML = page.html;
-    page.bind?.(root);
+    disposePage = page.bind?.(root);
     root.dataset.route = url.pathname + url.search;
     root.focus({ preventScroll: true });
     window.scrollTo({ top: 0, behavior: "instant" });
@@ -136,8 +138,11 @@ document.addEventListener(
     img.hidden = true;
     const fallback = document.createElement("span");
     fallback.className = "image-fallback";
-    fallback.textContent = "Không tải được ảnh";
-    img.after(fallback);
+    fallback.append(document.createTextNode("Không tải được ảnh. "));
+    const retry=document.createElement("button");retry.type="button";retry.className="secondary";retry.textContent="Thử tải lại ảnh";
+    retry.onclick=(event)=>{event.preventDefault();event.stopPropagation();const source=img.src;delete img.dataset.failed;img.hidden=false;fallback.remove();img.src=source;};
+    fallback.append(retry);
+    (img.closest("a")||img).after(fallback);
   },
   true,
 );

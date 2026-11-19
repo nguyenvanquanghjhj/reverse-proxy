@@ -53,7 +53,7 @@ public final class OperationsService {
         var state = Sql.one(c, "SELECT sales_enabled FROM st_operations WHERE id=1 FOR SHARE");
         if (state == null) throw new SQLException("Missing operations migration", "55000");
         if (!Boolean.TRUE.equals(state.get("sales_enabled")))
-            throw new ShopException(423, "SALES_PAUSED", "Cửa hàng đang tạm ngừng nhận đơn mới. Giỏ hàng của bạn được giữ lại.");
+            throw new ShopException(423, "SALES_PAUSED", "Cửa hàng đang tạm ngừng nhận đơn mới. Bạn vẫn có thể xem sản phẩm và đơn đã đặt.");
     }
 
     /** File kind is determined from metadata, so the generic /files alias cannot bypass the pause. */

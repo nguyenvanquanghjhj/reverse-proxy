@@ -1,3 +1,5 @@
+> Historical record. Current layout and cleanup results: [WORKSPACE_CLEANUP.md](WORKSPACE_CLEANUP.md). Old paths are resolved by [WORKSPACE_PATHS.csv](WORKSPACE_PATHS.csv).
+
 # Kiểm kê và dọn dung lượng PBL4 — 15/11/2026
 
 Git root: `D:/PBL4/reverse-proxy-demo`. Baseline đã kiểm chứng: `8a2cc59c514cfde633637f1755c9c299161b2e31`. Branch: `maintenance/storage-audit-20261115`; working tree ban đầu sạch. Không merge main.
@@ -201,4 +203,4 @@ Các hàng lồng nhau không cộng lại với nhau. Đã gồm hidden directo
 
 Thư mục `storage-maintenance-20261115` được đo riêng: **744,658,665 logical bytes**, **306,401,456 allocated bytes** tại `2026-11-15T07:00:51.845574+00:00`. Bao gồm cluster QA mới, payload mới, screenshots, raw CSV/log, inventories và archive. Dữ liệu này được giữ. Khi trừ phần phát sinh này, giảm ròng trên phần workspace đo được là **2,152,174,512 allocated bytes** tại các snapshot đã nêu. Không dùng thay đổi free space toàn volume để quy hết cho dự án.
 
-Kết quả sau commit/push và CI, có tính thêm Git objects/doc receipts phát sinh: [FINAL.md](D:/PBL4/storage-maintenance-20261115/FINAL.md).
+Kết quả sau commit/push và CI, có tính thêm Git objects/doc receipts phát sinh: [FINAL.md](../../../evidence/integration/FINAL-db906cf0c392.md).

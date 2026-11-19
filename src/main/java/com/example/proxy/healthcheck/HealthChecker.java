@@ -33,9 +33,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public final class HealthChecker implements AutoCloseable {
     private static final AppLogger log = AppLogger.of(HealthChecker.class);
     private boolean stopped;
-    private final LongAdder healthFailures = new LongAdder(), telemetryFailures = new LongAdder();
+    private final LongAdder healthFailures = new LongAdder(), telemetryFailures = new LongAdder(), capabilityFailures = new LongAdder();
     public long healthFailures() { return healthFailures.sum(); }
     public long telemetryFailures() { return telemetryFailures.sum(); }
+    public long capabilityFailures() { return capabilityFailures.sum(); }
     private final ProxyConfig config;
     private final Dispatcher dispatcher;
     private final ExecutorService workers = Executors.newVirtualThreadPerTaskExecutor();
@@ -85,13 +86,15 @@ public final class HealthChecker implements AutoCloseable {
                 var capabilityProbe = dispatcher.beginProbe(backend);
                 try {
                     var readiness = fetch(backend.getBaseUrl() + "/ready");
-                    if (running.get()) dispatcher.recordCapabilities(backend, capabilityProbe,
-                            (readiness.statusCode() == 200 || readiness.statusCode() == 503)
+                    var status=(readiness.statusCode() == 200 || readiness.statusCode() == 503)
                                 ? CapabilityRouting.parse(readiness.body())
-                                : CapabilityRouting.Status.unknown());
+                                : CapabilityRouting.Status.unknown();
+                    if(status.values().isEmpty())capabilityFailures.increment();
+                    if (running.get()) dispatcher.recordCapabilities(backend, capabilityProbe,status);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt(); break;
                 } catch (ExecutionException | TimeoutException | IllegalArgumentException failure) {
+                    capabilityFailures.increment();
                     dispatcher.recordCapabilities(backend, capabilityProbe, CapabilityRouting.Status.unknown());
                 }
             }

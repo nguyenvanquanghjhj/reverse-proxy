@@ -384,6 +384,10 @@ textarea[aria-invalid="true"] {
   padding: 8px;
 }
 
+@media (max-width: 800px) {
+  .shop-nav {position:static;border-right:0;border-bottom:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap;padding:14px 0;}
+  .shop-nav .eyebrow {display:none;}
+}
 @media (max-width: 980px) {
   .shop-order {
     grid-template-columns: 1fr;

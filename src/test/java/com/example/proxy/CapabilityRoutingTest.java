@@ -37,6 +37,7 @@ public final class CapabilityRoutingTest {
         scheduler.recordHealth(b2,scheduler.beginProbe(b2),true);
         scheduler.recordCapabilities(b1,scheduler.beginProbe(b1),state("AVAILABLE","UNAVAILABLE"));
         scheduler.recordCapabilities(b2,scheduler.beginProbe(b2),state("AVAILABLE","AVAILABLE"));
+        assertTrue(scheduler.snapshotJson().contains("\"capabilitiesFresh\":true"),"fresh readiness exported");
         var order=scheduler.acquire("POST",URI.create("/api/store/orders"));
         assertTrue(order != null && order.backend().equals(b2),"DB-loss replica must not receive order");
         order.completeHttp(2,201);
@@ -47,6 +48,7 @@ public final class CapabilityRoutingTest {
         try(staticRequest) { }
         // All available backends become ineligible for database routes when their probe expires.
         fakeClock.addAndGet(5_000_000_000L);
+        assertTrue(scheduler.snapshotJson().contains("\"capabilitiesFresh\":false"),"expired readiness visible even while backend is UP");
         assertTrue(scheduler.acquire("POST",URI.create("/api/store/orders"))==null,"stale must fail closed");
         assertTrue(state("AVAILABLE","PAUSED").withObservedAt(fakeClock.get())
                 .supports("order_create",fakeClock.get(),1000),"business pause must reach HTTP 423");

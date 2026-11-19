@@ -9,7 +9,7 @@ __pycache__/
 *.iml
 *.log
 # Explicitly reviewed acceptance receipts, separate from all private runtime logs.
-!/docs/evidence/unified-20261115/*.log
+!/docs/evidence/unified/*.log
 /lib/
 /.runtime/
 /.shop/

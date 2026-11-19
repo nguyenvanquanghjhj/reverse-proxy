@@ -12,11 +12,18 @@ export async function api(path,{method='GET',body,headers={}}={}){
   let data;try{if(!response.headers.get('content-type')?.startsWith('application/json'))throw new Error();data=await response.json();if(!data||typeof data!=='object')throw new Error();}catch{throw new ApiError(response.ok?0:response.status,'INVALID_RESPONSE','Không đọc được kết quả. Vui lòng kiểm tra lại thao tác vừa thực hiện.');}
   if(!response.ok)throw new ApiError(response.status,data.code||'REQUEST_FAILED',data.message||'Chưa thể xử lý yêu cầu.');return data;
 }
-export async function download(file){
+export async function download(file,{preview=false}={}){
+  const tab=preview?window.open('','_blank'):null;
+  if(preview&&!tab)throw new Error('Trình duyệt chặn tab mới. Hãy cho phép mở PDF hoặc chọn Tải xuống.');
+  if(tab){tab.opener=null;tab.document.title='Đang tải tài liệu';tab.document.body.textContent='Đang kiểm tra tài liệu…';}
+  try {
   const r=await fetch(file.url,{credentials:'same-origin',signal:AbortSignal.timeout(8000)});if(!r.ok){let message='Không tải được tài liệu. Vui lòng thử lại sau.';try{const error=await r.json();if(typeof error.message==='string')message=error.message;}catch{}throw new Error(message);}const b=await r.arrayBuffer();
   const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',b)),x=>x.toString(16).padStart(2,'0')).join('');
   if(b.byteLength!==file.size_bytes||hash!==file.sha256||!r.headers.get('content-type')?.startsWith(file.mime))throw new Error('Tệp chưa tải đầy đủ. Vui lòng thử lại.');
-  const a=document.createElement('a'),url=URL.createObjectURL(new Blob([b],{type:file.mime}));a.href=url;a.download=file.display_name.endsWith('.pdf')?file.display_name:file.display_name+'.pdf';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  const a=document.createElement('a'),url=URL.createObjectURL(new Blob([b],{type:file.mime}));
+  if(tab)tab.location.replace(url);else{a.href=url;a.download=file.display_name.endsWith('.pdf')?file.display_name:file.display_name+'.pdf';a.click();}
+  setTimeout(()=>URL.revokeObjectURL(url),60000);
+  }catch(error){tab?.close();throw error;}
 }
 export const e=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const money=n=>new Intl.NumberFormat('vi-VN',{style:'currency',currency:'VND',maximumFractionDigits:0}).format(n);

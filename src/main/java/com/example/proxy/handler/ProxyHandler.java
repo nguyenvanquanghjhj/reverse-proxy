@@ -95,7 +95,10 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
             if (deadline != null) deadline.close();
             owners.remove(Thread.currentThread());
             int status = exchange.getResponseCode();
-            if(!error.isEmpty() && result.outcome==null)result.outcome=com.example.proxy.metrics.TrafficMetrics.Outcome.CLIENT_FAILURE;
+            // Buffered upstream completion precedes downstream writing. A failed write
+            // must replace its provisional SUCCESS without penalizing the backend.
+            if(!error.isEmpty() && (result.outcome==null || result.outcome==com.example.proxy.metrics.TrafficMetrics.Outcome.SUCCESS))
+                result.outcome=com.example.proxy.metrics.TrafficMetrics.Outcome.CLIENT_FAILURE;
             metrics.requestCompleted(status, !error.isEmpty(), exchange.getResponseHeaders().getFirst("X-Proxy-Backend") != null);
             if (requestClass != null) traffic.completed(requestClass, status, !error.isEmpty(),
                     exchange.getResponseHeaders().getFirst("X-Proxy-Backend") != null, elapsedMs(started),result.outcome==null?
@@ -259,7 +262,7 @@ public final class ProxyHandler implements HttpHandler, AutoCloseable {
                     sendFailure(exchange,504,"Streaming route timed out");return;
                 } catch (StreamingProxy.DownstreamIOException e) {
                     result.outcome=com.example.proxy.metrics.TrafficMetrics.Outcome.CLIENT_FAILURE;
-                    lease.completeServiceFailure(elapsedMs(start));
+                    lease.completePolicyRejection(elapsedMs(start));
                     throw e;
                 // Backend quá chậm: trả 504 và ghi nhận backend lỗi.
                 } catch (SocketTimeoutException e) {

@@ -37,6 +37,8 @@ public final class TrafficMetrics {
     }
     public synchronized void completed(String route,int status,boolean exception,boolean dispatched,double elapsedMs,Outcome outcome) {
         Stats stats = require(route);
+        if (outcome == Outcome.SUCCESS && (exception || status < 200 || status >= 400))
+            outcome = classify(route,status,exception,dispatched,null);
         total.complete(status, exception, dispatched, elapsedMs,outcome);
         stats.complete(status, exception, dispatched, elapsedMs,outcome);
     }
@@ -47,7 +49,7 @@ public final class TrafficMetrics {
     }
     private static final class Stats {
         long started, completed, successful, failed, noResponse, dispatched, rejected;
-        long http4xx, http5xx, badRequest, conflict, invalidInput, rateLimited;
+        long http4xx, http5xx, badRequest, conflict, invalidInput, rateLimited, ioFailures, responseInterrupted;
         int active;
         final Ring all = new Ring(), success = new Ring();
         final long[] outcomes=new long[Outcome.values().length];
@@ -58,6 +60,8 @@ public final class TrafficMetrics {
             boolean ok = !exception && status >= 200 && status < 400;
             if (ok) successful++; else failed++;
             if (status < 0) noResponse++;
+            if (exception) ioFailures++;
+            if (exception && status >= 200) responseInterrupted++;
             if (status >= 400 && status < 500) http4xx++;
             if (status >= 500 && status < 600) http5xx++;
             if (status == 400) badRequest++;
@@ -68,7 +72,7 @@ public final class TrafficMetrics {
             if (Double.isFinite(elapsed) && elapsed >= 0) { all.add(elapsed); if (ok) success.add(elapsed); }
         }
         Snapshot snapshot() { return new Snapshot(started, completed, successful, failed, noResponse, dispatched, rejected, active,
-                http4xx, http5xx, badRequest, conflict, invalidInput, rateLimited, all.copy(), success.copy(),outcomes.clone()); }
+                http4xx, http5xx, badRequest, conflict, invalidInput, rateLimited, ioFailures, responseInterrupted, all.copy(), success.copy(),outcomes.clone()); }
     }
     private static final class Ring {
         final double[] samples = new double[WINDOW];
@@ -78,10 +82,11 @@ public final class TrafficMetrics {
     }
     private record Snapshot(long started, long completed, long successful, long failed, long noResponse,
             long dispatched, long rejected, int active, long http4xx, long http5xx, long badRequest,
-            long conflict, long invalidInput, long rateLimited, double[] all, double[] success,long[] outcomes) {
+            long conflict, long invalidInput, long rateLimited, long ioFailures, long responseInterrupted, double[] all, double[] success,long[] outcomes) {
         String json() {
             return "{\"started\":" + started + ",\"completed\":" + completed + ",\"successful\":" + successful
                     + ",\"failed\":" + failed + ",\"noResponse\":" + noResponse + ",\"dispatched\":" + dispatched
+                    + ",\"ioFailures\":" + ioFailures + ",\"responseInterrupted\":" + responseInterrupted
                     + ",\"rejectedBeforeDispatch\":" + rejected + ",\"active\":" + active
                     + ",\"http4xx\":" + http4xx + ",\"http5xx\":" + http5xx
                     + ",\"badRequest400\":" + badRequest + ",\"conflict409\":" + conflict

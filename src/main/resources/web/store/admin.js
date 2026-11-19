@@ -1,6 +1,7 @@
 import { api, session, e, money, status } from "./api.js";
 import { empty, errorBox, orderTable, orderMarkup } from "./views.js";
 import { operationsView } from "./operations.js";
+import { fileManager, bindFiles } from "./files.js";
 
 const text = (name, label, value = "", attrs = "") =>
   `<label>${label}<input name="${name}" value="${e(value)}" ${attrs}></label>`;
@@ -46,7 +47,7 @@ export async function adminView(ctx) {
         )
         .join(
           "",
-        )}</div><section class="panel"><div class="section-heading"><h2>Đơn cần xử lý</h2><a class="text-link" href="/admin/orders">Xem tất cả ↗</a></div>${o.items.length ? orderTable(o.items, true) : '<p class="muted">Không có đơn đang chờ xác nhận.</p>'}</section>`,
+        )}</div><section class="panel"><div class="section-heading"><h2>Đơn cần xử lý</h2><a class="text-link" href="/admin/orders">Xem tất cả</a></div>${o.items.length ? orderTable(o.items, true) : '<p class="muted">Không có đơn đang chờ xác nhận.</p>'}</section>`,
     };
   } else if (path === "/admin/operations") {
     content = await operationsView(ctx);
@@ -54,7 +55,7 @@ export async function adminView(ctx) {
     const q = new URLSearchParams(url.search),
       data = await api("/admin/products?" + q);
     content = {
-      html: `<div class="page-heading split"><div><p class="eyebrow">DANH MỤC HÀNG HÓA</p><h1>Sản phẩm</h1><p>${data.total} sản phẩm trong cửa hàng.</p></div><a class="button" href="/admin/products/new">+ Thêm sản phẩm</a></div><form id="admin-search" class="inline-form"><label>Tìm sản phẩm<input name="q" value="${e(q.get("q"))}" maxlength="100" placeholder="Tên hoặc thương hiệu"></label><button>Tìm kiếm</button></form><section class="panel"><div class="table-wrap"><table><thead><tr><th>Sản phẩm</th><th>Giá từ</th><th>Tồn kho</th><th>Trạng thái</th><th></th></tr></thead><tbody>${data.items.map((p) => `<tr><td><div class="admin-product-cell">${p.image_url ? `<img src="${e(p.image_url)}" alt="" width="52" height="64">` : ""}<div><strong>${e(p.name)}</strong><small>${e(p.brand)} · ${e(p.category)}</small><small>${p.variant_count} phiên bản · ${e(p.skus)}</small></div></div></td><td>${money(p.price_vnd)}</td><td>${p.stock}</td><td><span class="badge">${p.active ? "Đang bán" : "Chưa bán / Ngừng bán"}</span></td><td><a class="text-link" href="/admin/products/${p.id}">Chỉnh sửa ↗</a></td></tr>`).join("")}</tbody></table></div>${!data.items.length ? "<p>Chưa có sản phẩm phù hợp.</p>" : ""}<nav class="pagination">${data.page > 1 ? `<a href="?${e(new URLSearchParams({ ...Object.fromEntries(q), page: data.page - 1 }))}">← Trước</a>` : ""}<span>Trang ${data.page}</span>${data.page * data.limit < data.total ? `<a href="?${e(new URLSearchParams({ ...Object.fromEntries(q), page: data.page + 1 }))}">Tiếp →</a>` : ""}</nav></section>`,
+      html: `<div class="page-heading split"><div><p class="eyebrow">DANH MỤC HÀNG HÓA</p><h1>Sản phẩm</h1><p>${data.total} sản phẩm trong cửa hàng.</p></div><a class="button" href="/admin/products/new">+ Thêm sản phẩm</a></div><form id="admin-search" class="inline-form"><label>Tìm sản phẩm<input name="q" value="${e(q.get("q"))}" maxlength="100" placeholder="Tên hoặc thương hiệu"></label><button>Tìm kiếm</button></form><section class="panel"><div class="table-wrap"><table><thead><tr><th>Sản phẩm</th><th>Giá từ</th><th>Tồn kho</th><th>Trạng thái</th><th></th></tr></thead><tbody>${data.items.map((p) => `<tr><td><div class="admin-product-cell">${p.image_url ? `<img loading="lazy" decoding="async" src="${e(p.image_url)}" alt="" width="52" height="64">` : ""}<div><strong>${e(p.name)}</strong><small>${e(p.brand)} · ${e(p.category)}</small><small>${p.variant_count} phiên bản · ${e(p.skus)}</small></div></div></td><td>${money(p.price_vnd)}</td><td>${p.stock}</td><td><span class="badge">${p.active ? "Đang bán" : "Chưa bán / Ngừng bán"}</span></td><td><a class="text-link" href="/admin/products/${p.id}">Chỉnh sửa</a></td></tr>`).join("")}</tbody></table></div>${!data.items.length ? "<p>Chưa có sản phẩm phù hợp.</p>" : ""}<nav class="pagination">${data.page > 1 ? `<a href="?${e(new URLSearchParams({ ...Object.fromEntries(q), page: data.page - 1 }))}">← Trước</a>` : ""}<span>Trang ${data.page}</span>${data.page * data.limit < data.total ? `<a href="?${e(new URLSearchParams({ ...Object.fromEntries(q), page: data.page + 1 }))}">Tiếp →</a>` : ""}</nav></section>`,
       bind(root) {
         root.querySelector("#admin-search").onsubmit = (event) => {
           event.preventDefault();
@@ -73,7 +74,7 @@ export async function adminView(ctx) {
         : await api("/admin/products/" + id),
       cats = await api("/admin/categories");
     content = {
-      html: `<div class="page-heading"><p class="eyebrow">SẢN PHẨM</p><h1>${fresh ? "Thêm điện thoại" : e(p.name)}</h1><p>Lưu bản nháp, thêm hình ảnh rồi bật trạng thái đang bán.</p></div><form id="product-editor" class="panel"><div class="form-grid">${text("name", "Tên sản phẩm", p.name, 'required minlength="2" maxlength="160"')}${text("brand", "Thương hiệu", p.brand, 'required maxlength="64"')}<label>Danh mục<select name="category_id" required>${cats.items.map((c) => `<option value="${c.id}" ${c.id === p.category_id ? "selected" : ""}>${e(c.name)}${c.active ? "" : " (Đã tắt)"}</option>`).join("")}</select></label>${text("screen", "Màn hình", p.screen, 'required maxlength="120"')}${text("chipset", "Bộ xử lý", p.chipset, 'required maxlength="120"')}${text("ram_gb", "RAM (GB)", p.ram_gb || 8, 'required type="number" min="1" max="64"')}${text("battery_mah", "Pin (mAh)", p.battery_mah || 5000, 'required type="number" min="500" max="30000"')}</div><label>Mô tả<textarea name="description" rows="4" required minlength="30" maxlength="4000">${e(p.description)}</textarea></label><div class="actions"><label class="check"><input type="checkbox" name="active" ${p.active ? "checked" : ""} ${fresh ? "disabled" : ""}> Đang bán</label><label class="check"><input type="checkbox" name="featured" ${p.featured ? "checked" : ""}> Sản phẩm nổi bật</label></div><h2>Phiên bản, giá và tồn kho</h2><p class="muted">Bỏ chọn “Đang bán” để ngừng bán phiên bản; lịch sử đơn hàng vẫn được giữ.</p><div id="variants">${p.variants.map(variant).join("")}</div><button type="button" class="secondary" id="add-variant">+ Thêm phiên bản</button><div class="form-feedback" aria-live="polite"></div><div class="editor-actions"><button type="submit" data-label="Lưu sản phẩm">Lưu sản phẩm</button><a class="text-link" href="/admin/products">Về danh sách</a>${!fresh && p.active ? `<a class="text-link" href="/admin/shop/products/${p.id}">Xem trên cửa hàng ↗</a>` : ""}</div></form>${!fresh ? fileManager(p) : '<p class="notice">Sau khi lưu, bạn có thể thêm hình ảnh và tài liệu.</p>'}`,
+      html: `<div class="page-heading"><p class="eyebrow">SẢN PHẨM</p><h1>${fresh ? "Thêm điện thoại" : e(p.name)}</h1><p>Lưu bản nháp, thêm hình ảnh rồi bật trạng thái đang bán.</p></div><form id="product-editor" class="panel"><div class="form-grid">${text("name", "Tên sản phẩm", p.name, 'required minlength="2" maxlength="160"')}${text("brand", "Thương hiệu", p.brand, 'required maxlength="64"')}<label>Danh mục<select name="category_id" required>${cats.items.map((c) => `<option value="${c.id}" ${c.id === p.category_id ? "selected" : ""}>${e(c.name)}${c.active ? "" : " (Đã tắt)"}</option>`).join("")}</select></label>${text("screen", "Màn hình", p.screen, 'required maxlength="120"')}${text("chipset", "Bộ xử lý", p.chipset, 'required maxlength="120"')}${text("ram_gb", "RAM (GB)", p.ram_gb || 8, 'required type="number" min="1" max="64"')}${text("battery_mah", "Pin (mAh)", p.battery_mah || 5000, 'required type="number" min="500" max="30000"')}</div><label>Mô tả<textarea name="description" rows="4" required minlength="30" maxlength="4000">${e(p.description)}</textarea></label><div class="actions"><label class="check"><input type="checkbox" name="active" ${p.active ? "checked" : ""} ${fresh ? "disabled" : ""}> Đang bán</label><label class="check"><input type="checkbox" name="featured" ${p.featured ? "checked" : ""}> Sản phẩm nổi bật</label></div><h2>Phiên bản, giá và tồn kho</h2><p class="muted">Bỏ chọn “Đang bán” để ngừng bán phiên bản; lịch sử đơn hàng vẫn được giữ.</p><div id="variants">${p.variants.map(variant).join("")}</div><button type="button" class="secondary" id="add-variant">+ Thêm phiên bản</button><div class="form-feedback" aria-live="polite"></div><div class="editor-actions"><button type="submit" data-label="Lưu sản phẩm">Lưu sản phẩm</button><a class="text-link" href="/admin/products">Về danh sách</a>${!fresh && p.active ? `<a class="text-link" href="/admin/shop/products/${p.id}">Xem trên cửa hàng</a>` : ""}</div></form>${!fresh ? fileManager(p) : '<p class="notice">Sau khi lưu, bạn có thể thêm hình ảnh và tài liệu.</p>'}`,
       bind(root) {
         const form = root.querySelector("#product-editor");
         root.querySelector("#add-variant").onclick = () => {
@@ -128,7 +129,7 @@ export async function adminView(ctx) {
             submit.disabled = false;
           }
         };
-        if (!fresh) bindFiles(root, p, ctx);
+        if (!fresh) return bindFiles(root, p, ctx);
       },
     };
   } else if (path === "/admin/categories") {
@@ -172,7 +173,7 @@ export async function adminView(ctx) {
     const link = (extra) =>
       "/admin/documents?" + new URLSearchParams({ q, page, ...extra });
     content = {
-      html: `<div class="page-heading"><p class="eyebrow">THƯ VIỆN SẢN PHẨM</p><h1>Hình ảnh & PDF</h1></div><div class="media-workspace"><aside class="media-sidebar"><form id="file-search"><label>Tìm điện thoại<input name="q" value="${e(q)}" maxlength="100" placeholder="Tên hoặc thương hiệu"></label><button class="secondary full">Tìm kiếm</button></form><p class="media-count">${data.total} sản phẩm</p><nav class="media-products" aria-label="Sản phẩm trong thư viện">${data.items.map((x) => `<a href="${e(link({ product: x.id }))}" ${String(id) === String(x.id) ? 'aria-current="page"' : ""}>${x.image_url ? `<img src="${e(x.image_url)}" alt="" width="54" height="68">` : '<span class="media-placeholder">—</span>'}<span><strong>${e(x.name)}</strong><small>#${x.id} · ${x.image_count} ảnh · ${x.pdf_count} PDF</small></span></a>`).join("") || "<p>Không có sản phẩm phù hợp.</p>"}</nav><nav class="pagination" aria-label="Trang thư viện">${page > 1 ? `<a href="${e(link({ page: page - 1 }))}">← Trước</a>` : ""}<span>${page} / ${Math.max(1, Math.ceil(data.total / 8))}</span>${page * 8 < data.total ? `<a href="${e(link({ page: page + 1 }))}">Tiếp →</a>` : ""}</nav></aside><div class="media-detail">${p ? `<div class="media-title"><div><p class="eyebrow">ĐIỆN THOẠI #${p.id}</p><h2>${e(p.name)}</h2></div><a class="text-link" href="/admin/products/${p.id}">Sửa sản phẩm ↗</a></div><p class="muted">Ảnh có thứ tự nhỏ nhất được dùng làm ảnh chính. Tải ảnh mới rồi gỡ ảnh cũ khi cần thay thế.</p>${fileManager(p)}` : '<div class="empty"><h2>Chưa chọn sản phẩm</h2><p>Thử tìm lại tên điện thoại ở bên trái.</p></div>'}</div></div>`,
+      html: `<div class="page-heading"><p class="eyebrow">THƯ VIỆN SẢN PHẨM</p><h1>Hình ảnh & tài liệu</h1></div><div class="media-workspace"><aside class="media-sidebar"><form id="file-search"><label>Tìm điện thoại<input name="q" value="${e(q)}" maxlength="100" placeholder="Tên hoặc thương hiệu"></label><button class="secondary full">Tìm kiếm</button></form><p class="media-count">${data.total} sản phẩm</p><nav class="media-products" aria-label="Sản phẩm trong thư viện">${data.items.map((x) => `<a href="${e(link({ product: x.id }))}" ${String(id) === String(x.id) ? 'aria-current="page"' : ""}>${x.image_url ? `<img loading="lazy" decoding="async" src="${e(x.image_url)}" alt="" width="54" height="68">` : '<span class="media-placeholder">—</span>'}<span><strong>${e(x.name)}</strong><small>#${x.id} · ${x.image_count} ảnh · ${x.pdf_count} PDF</small></span></a>`).join("") || "<p>Không có sản phẩm phù hợp.</p>"}</nav><nav class="pagination" aria-label="Trang thư viện">${page > 1 ? `<a href="${e(link({ page: page - 1 }))}">← Trước</a>` : ""}<span>${page} / ${Math.max(1, Math.ceil(data.total / 8))}</span>${page * 8 < data.total ? `<a href="${e(link({ page: page + 1 }))}">Tiếp →</a>` : ""}</nav></aside><div class="media-detail">${p ? `<div class="media-title"><div><p class="eyebrow">ĐIỆN THOẠI #${p.id}</p><h2>${e(p.name)}</h2></div><a class="text-link" href="/admin/products/${p.id}">Sửa sản phẩm</a></div>${fileManager(p)}` : `<div class="empty"><h2>${q ? 'Không tìm thấy sản phẩm' : 'Chưa có sản phẩm'}</h2><p>${q ? 'Thử từ khóa khác.' : 'Thêm sản phẩm trước khi tải hình ảnh hoặc tài liệu.'}</p></div>`}</div></div>`,
       bind(root) {
         root.querySelector("#file-search").onsubmit = (event) => {
           event.preventDefault();
@@ -181,7 +182,7 @@ export async function adminView(ctx) {
               new URLSearchParams(new FormData(event.target)),
           );
         };
-        if (p) bindFiles(root, p, ctx);
+        if (p) return bindFiles(root, p, ctx);
       },
     };
   } else if (path === "/admin/orders") {
@@ -248,88 +249,55 @@ export async function adminView(ctx) {
       ),
     };
   return {
-    html: `<div class="admin-layout"><aside class="admin-nav"><p class="eyebrow">MỘC / QUẢN TRỊ</p>${[
+    html: `<div class="admin-toolbar"><button type="button" id="admin-menu-toggle" class="secondary" aria-controls="admin-navigation" aria-expanded="true">Thu gọn menu</button></div><div class="admin-layout"><aside class="admin-nav" id="admin-navigation"><p class="eyebrow">MỘC / QUẢN TRỊ</p>${[
       ["/admin", "Tổng quan"],
       ["/admin/products", "Sản phẩm"],
       ["/admin/categories", "Danh mục"],
       ["/admin/orders", "Đơn hàng"],
-      ["/admin/documents", "Hình ảnh & PDF"],
+      ["/admin/documents", "Hình ảnh & tài liệu"],
       ["/admin/operations", "Trạng thái dịch vụ"],
     ]
       .map(
         ([href, label]) =>
-          `<a href="${href}" ${path === href ? 'aria-current="page"' : ""}>${label} ↗</a>`,
+          `<a href="${href}" ${(href === "/admin" ? path === href || path === "/admin/" : path === href || path.startsWith(href + "/")) ? 'aria-current="page"' : ""}>${label}</a>`,
       )
       .join(
         "",
-      )}<a href="/admin/shop">Cửa hàng ↗</a></aside><div class="admin-content">${content.html}</div></div>`,
-    bind: content.bind,
+      )}<a href="/admin/shop">Cửa hàng</a></aside><div class="admin-content">${content.html}</div></div>`,
+    bind(root) {
+      const unbindFiles = content.bind?.(root);
+      const unbindNavigation = bindNavigation(root);
+      return () => { unbindFiles?.(); unbindNavigation(); };
+    },
   };
 }
 
-function fileManager(p) {
-  return `<section class="panel file-manager"><h2>Hình ảnh & tài liệu</h2><form id="file-upload" class="form-grid"><label>Loại tệp<select name="kind"><option value="IMAGE">Hình ảnh PNG / JPEG</option><option value="PDF">Tài liệu PDF</option></select></label><label>Tệp<input name="file" type="file" accept="image/png,image/jpeg,application/pdf" required></label>${text("name", "Tên tệp", "", 'required maxlength="96" placeholder="thong-so.pdf"')}<p class="field-hint">Ảnh tối đa 512 KiB, 2400 px mỗi chiều và 4 triệu điểm ảnh. PDF mặc định tối đa 256 KiB.</p><div class="form-feedback"></div><button type="submit">Tải tệp lên</button></form><div class="file-grid">${p.files.map((f) => `<form class="file-edit" data-file="${e(f.id)}">${f.kind === "IMAGE" ? `<img src="${e(f.url)}" alt="${e(f.display_name)}" width="120" height="140">` : '<a class="pdf-preview" href="${e(f.url)}" download><span class="pdf-icon">PDF</span><span>Tải tài liệu ↓</span></a>'}${text("display_name", "Tên hiển thị", f.display_name, 'required maxlength="100"')}${text("position", "Thứ tự hiển thị (tăng dần)", f.position, 'required type="number" min="0" max="1000"')}<p class="muted">${Math.ceil(f.size_bytes / 1024)} KB · ${e(f.kind)}</p><div class="form-feedback"></div><div class="actions"><button type="submit" class="secondary">Lưu</button><button type="button" class="text-button delete-file">Xóa</button></div></form>`).join("")}</div></section>`;
-}
-function bindFiles(root, p, ctx) {
-  const { go, toast, confirm } = ctx;
-  const form = root.querySelector("#file-upload");
-  form.onsubmit = async (event) => {
-    event.preventDefault();
-    const file = form.elements.file.files[0],
-      kind = form.elements.kind.value,
-      button = form.querySelector("button");
-    if (!file) return;
-    if (file.size > 524288) {
-      feedback(form, "Tệp vượt 512 KiB.");
-      return;
-    }
-    button.disabled = true;
-    try {
-      await api("/admin/products/" + p.id + "/files?kind=" + kind, {
-        method: "POST",
-        body: file,
-        headers: {
-          "Content-Type": file.type,
-          "X-File-Name": form.elements.name.value,
-        },
-      });
-      toast("Đã thêm tệp.");
-      go(location.pathname + location.search, true);
-    } catch (err) {
-      feedback(form, err.message);
-    } finally {
-      button.disabled = false;
-    }
+function bindNavigation(root) {
+  const layout = root.querySelector(".admin-layout"), sidebar = root.querySelector(".admin-nav"), toggle = root.querySelector("#admin-menu-toggle");
+  const drawer = document.createElement("dialog"); drawer.className = "admin-menu-dialog"; drawer.setAttribute("aria-label", "Điều hướng quản trị");
+  const close = document.createElement("button");close.type="button";close.className="secondary";close.textContent="Đóng menu";drawer.append(close);root.append(drawer);
+  const mobile = matchMedia("(max-width: 800px)"), controller = new AbortController();
+  let collapsed = false;try {collapsed = sessionStorage.getItem("moc-admin-menu") === "collapsed";}catch{}
+  function apply() {
+    if(drawer.open)drawer.close();layout.prepend(sidebar);
+    sidebar.hidden = mobile.matches || collapsed;
+    layout.dataset.collapsed = String(sidebar.hidden);
+    toggle.textContent = mobile.matches ? "Mở menu" : collapsed ? "Mở rộng menu" : "Thu gọn menu";
+    toggle.setAttribute("aria-expanded",String(!sidebar.hidden));
+  }
+  toggle.onclick = () => {
+    if(mobile.matches) {sidebar.hidden=false;drawer.append(sidebar);drawer.showModal();toggle.setAttribute("aria-expanded","true");close.focus();}
+    else {collapsed=!collapsed;try{sessionStorage.setItem("moc-admin-menu",collapsed?"collapsed":"expanded");}catch{}apply();}
   };
-  root.querySelectorAll(".file-edit").forEach((f) => {
-    f.onsubmit = async (event) => {
-      event.preventDefault();
-      const button = f.querySelector("button");
-      button.disabled = true;
-      try {
-        await api("/admin/files/" + f.dataset.file, {
-          method: "PATCH",
-          body: {
-            display_name: f.elements.display_name.value,
-            position: Number(f.elements.position.value),
-          },
-        });
-        toast("Đã lưu thông tin tệp.");
-        go(location.pathname + location.search, true);
-      } catch (err) {
-        feedback(f, err.message);
-      } finally {
-        button.disabled = false;
-      }
-    };
-    f.querySelector(".delete-file").onclick = async () => {
-      if (!(await confirm("Gỡ tệp này khỏi sản phẩm?"))) return;
-      try {
-        await api("/admin/files/" + f.dataset.file, { method: "DELETE" });
-        go(location.pathname + location.search, true);
-      } catch (err) {
-        feedback(f, err.message);
-      }
-    };
+  close.onclick=()=>drawer.close();
+  drawer.addEventListener("close",()=>{layout.prepend(sidebar);sidebar.hidden=mobile.matches||collapsed;toggle.setAttribute("aria-expanded",String(!sidebar.hidden));toggle.focus();});
+  drawer.addEventListener("click",event=>{if(event.target===drawer)drawer.close();});
+  drawer.addEventListener("keydown",event=>{
+    if(event.key!=="Tab")return;
+    const items=[close,...sidebar.querySelectorAll("a[href],button:not([disabled])")],first=items[0],last=items.at(-1);
+    if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
+    else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
   });
+  mobile.addEventListener("change",apply,{signal:controller.signal});apply();
+  return () => {controller.abort();if(drawer.open)drawer.close();drawer.remove();};
 }

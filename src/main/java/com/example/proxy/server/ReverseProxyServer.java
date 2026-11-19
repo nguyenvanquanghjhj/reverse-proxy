@@ -18,6 +18,7 @@ public final class ReverseProxyServer implements AutoCloseable {
     private final Dispatcher dispatcher;
     private final HealthChecker healthChecker;
     private final ProxyHandler handler;
+    private final com.example.backend.PdfLab pdfLab;
     private final BoundedRequestExecutor executor;
     private final BoundedRequestExecutor managementExecutor;
     private HttpServer httpServer;
@@ -31,6 +32,7 @@ public final class ReverseProxyServer implements AutoCloseable {
         this.dispatcher = new Dispatcher(config);
         this.healthChecker = new HealthChecker(config, dispatcher);
         this.handler = new ProxyHandler(config, dispatcher);
+        this.pdfLab = new com.example.backend.PdfLab(config.isStreamingEnabled());
     }
     public void start() throws IOException {
         synchronized (this) {
@@ -83,6 +85,20 @@ public final class ReverseProxyServer implements AutoCloseable {
                 ProxyHandler.sendError(exchange, 403, "Monitoring is loopback-only"); return;
             }
             String path = exchange.getRequestURI().getPath();
+            if(path.equals("/__proxy/pdf-lab")){
+                if(exchange.getRequestHeaders().containsKey("X-Forwarded-For")){ProxyHandler.sendError(exchange,403,"Direct local access required");return;}
+                boolean importAction=exchange.getRequestMethod().equals("POST");
+                if(!importAction&&!exchange.getRequestMethod().equals("GET")){ProxyHandler.sendError(exchange,405,"GET or POST required");return;}
+                int response=200;
+                if(importAction){
+                    if(!OperatorAuth.authorized(exchange)||!"import-pdf".equals(exchange.getRequestHeaders().getFirst("X-Proxy-Action"))){ProxyHandler.sendError(exchange,403,"Local operator action required");return;}
+                    String length=exchange.getRequestHeaders().getFirst("Content-Length");
+                    if(exchange.getRequestHeaders().containsKey("Transfer-Encoding")||length!=null&&!length.equals("0")){ProxyHandler.sendError(exchange,400,"Import accepts no body or URL");return;}
+                    if(!pdfLab.begin(exchange.getRequestHeaders().getFirst("X-PDF-Source"))){ProxyHandler.sendError(exchange,409,"PDF lab disabled, busy or unknown source");return;}
+                    response=202;
+                }
+                byte[] bytes=pdfLab.status().getBytes(StandardCharsets.UTF_8);exchange.getResponseHeaders().set("Content-Type","application/json; charset=utf-8");exchange.sendResponseHeaders(response,bytes.length);exchange.getResponseBody().write(bytes);return;
+            }
             if ((path.equals("/__proxy/backend-drain") || path.equals("/__proxy/strategy"))
                     && !com.example.proxy.server.OperatorAuth.authorized(exchange)) {
                 ProxyHandler.sendError(exchange, 403, "Operator authentication required"); return;
@@ -118,16 +134,22 @@ public final class ReverseProxyServer implements AutoCloseable {
                     ProxyHandler.sendError(exchange, 405, "Method not allowed"); return;
                 }
                 if (path.equals("/__proxy/dashboard")) {
-                    body = MonitoringPage.HTML.replace("@@DATA_PORT@@", Integer.toString(getPort()));
+                    String dataHost=config.getBindHost();
+                    if(dataHost.equals("0.0.0.0")||dataHost.equals("::"))dataHost=exchange.getLocalAddress().getAddress().getHostAddress();
+                    String dataOrigin="http://"+(dataHost.contains(":")?"["+dataHost+"]":dataHost)+":"+getPort();
+                    body = MonitoringPage.HTML.replace("@@DATA_PORT@@", Integer.toString(getPort())).replace("@@DATA_ORIGIN@@",dataOrigin);
                 } else if (path.equals("/__proxy/metrics")) {
                     String snapshot = dispatcher.snapshotJson();
                     body = snapshot.substring(0, snapshot.length() - 1) + ",\"backendRuntime\":" + dispatcher.backendRuntimeJson()
                         + "," + handler.countersJson() + ",\"traffic\":" + handler.trafficJson() + ",\"transport\":" + handler.transportJson()
                             + ",\"connectionPool\":" + handler.connectionPoolJson()
                             + ",\"streaming\":" + handler.streamingJson()
+                            + ",\"streamingEnabled\":" + config.isStreamingEnabled()
                             + ",\"downloadBulkhead\":" + handler.downloadBulkheadJson()
                             + ",\"qos\":" + handler.qosJson()
                             + ",\"health_probe_failures\":" + healthChecker.healthFailures()
+                            + ",\"capability_probe_failures\":" + healthChecker.capabilityFailures()
+                            + ",\"capabilityRoutingEnabled\":" + config.isCapabilityRoutingEnabled()
                             + ",\"data_ingress_tasks\":" + getDataIngressTasks()
                             + ",\"management_ingress_tasks\":" + getManagementIngressTasks()
                             + ",\"telemetry_probe_failures\":" + healthChecker.telemetryFailures() + "}";
@@ -179,6 +201,7 @@ public final class ReverseProxyServer implements AutoCloseable {
         // HttpServer closes its listener first, then waits at most this grace for existing exchanges.
         if (server != null) server.stop(config.getShutdownGraceSeconds());
         handler.close();
+        pdfLab.close();
         executor.close();
         if (managementExecutor != null) managementExecutor.close();
     }

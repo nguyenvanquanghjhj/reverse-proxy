@@ -19,12 +19,23 @@ public final class FileStorage {
         root=config.filesDir().resolve("store").normalize();pdfLimit=Math.min(LIMIT,config.maxPdfBytes());
         noLinks(root);Files.createDirectories(root);verifyRoot();
     }
+    public Map<String,Object> policy() {
+        return Map.of("max_image_bytes",LIMIT,"max_pdf_bytes",pdfLimit,
+                "image_min_dimension",32,"image_max_dimension",2400,"image_max_pixels",4000000,
+                "image_mime_types",List.of("image/png","image/jpeg"),"pdf_mime_types",List.of("application/pdf"));
+    }
     private static void noLinks(Path p)throws IOException{for(;p!=null;p=p.getParent())if(Files.isSymbolicLink(p))throw new IOException("Linked storage");}
     private void verifyRoot()throws IOException {noLinks(root);if(!Files.isDirectory(root,NOFOLLOW_LINKS)||!root.toRealPath().equals(root)||!Files.isReadable(root))throw new IOException("Storage unavailable");}
     private Path path(String key)throws IOException {verifyRoot();if(key==null||!key.matches("[0-9a-f-]{36}\\.bin"))throw new IOException("Invalid key");Path p=root.resolve(key);if(Files.isSymbolicLink(p))throw new IOException("Linked file");return p;}
     public Content validate(byte[] bytes,String mime,String kind)throws IOException {
         if(bytes.length>LIMIT)throw new ShopException(413,"FILE_LIMIT","Tệp tối đa 512 KiB; PDF theo giới hạn cấu hình.");
-        if(kind.equals("PDF")){if(!"application/pdf".equals(mime))throw Input.bad("Vui lòng chọn tệp PDF.");SharedStorage.validatePdf(bytes,pdfLimit);return new Content(bytes,"application/pdf");}
+        if(kind.equals("PDF")){
+            if(!"application/pdf".equals(mime))throw Input.bad("Vui lòng chọn tệp PDF.");
+            try{SharedStorage.validatePdf(bytes,pdfLimit);}
+            catch(ShopException failure){throw new ShopException(failure.status,failure.code,failure.status==413?
+                    "PDF vượt giới hạn "+pdfLimit+" byte.":"PDF thiếu chữ ký hoặc dấu kết thúc hợp lệ.");}
+            return new Content(bytes,"application/pdf");
+        }
         if(!Set.of("image/png","image/jpeg").contains(mime))throw Input.bad("Ảnh cần ở định dạng PNG hoặc JPEG.");
         boolean png=bytes.length>8&&bytes[0]==(byte)137&&bytes[1]==80&&bytes[2]==78&&bytes[3]==71;
         boolean jpg=bytes.length>3&&bytes[0]==(byte)255&&bytes[1]==(byte)216&&bytes[2]==(byte)255;

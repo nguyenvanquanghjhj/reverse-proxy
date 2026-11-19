@@ -62,3 +62,43 @@ After PASS and JVM shutdown, exactly five reproducible generated inputs (489 MiB
 are size/SHA-verified and released. Their recipe and checksum/removal receipt stay
 in `fixture-inputs.json`; measurements and store files remain. `--retain-fixtures`
 keeps inputs, and failed runs always retain them for investigation.
+
+## PDF lab từ nguồn HTTPS
+
+Workload Console có khu vực **Thử tải tài liệu PDF**, tách khỏi tài liệu sản phẩm.
+Mặc định tắt. Chỉ bật trong môi trường QA: `PBL4_PDF_LAB_ENABLED=true`,
+`PBL4_LARGE_FILES_ROOT=<thư mục QA mới>` trên Proxy và ba backend, cùng cấu hình
+`proxy.streaming.enabled=true` và bulkhead nhỏ hơn tổng admission. Không dùng
+`SHOP_FILES_DIR` hoặc thư mục con/cha của nó làm kho PDF lab.
+
+Chọn tài liệu, bấm **Nhập PDF từ Internet**, chờ READY rồi chọn 1/2/4 lượt đồng thời
+và bấm **Thử tải qua Proxy**. Không có tải tự động khi khởi động. Thời gian nhập
+HTTPS tách khỏi thời gian từng lượt phục vụ. Mỗi lượt đọc luồng và tính SHA-256
+tăng dần, so byte count và ETag; không giữ toàn bộ PDF trong `arrayBuffer()`.
+Đơn vị tốc độ là MiB/s. Metrics tổng Proxy được đọc riêng trên Dashboard.
+
+Nguồn hiện có: [PDF kiểm thử W3C](https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf),
+theo [giấy phép tài liệu W3C](https://www.w3.org/copyright/document-license-2023/).
+Receipt đi kèm chứa nguồn, giấy phép, notice, SHA-256, dung lượng và thời gian nhập.
+PDF mẫu nhỏ này kiểm quy trình; số đo của nó không thay thế thí nghiệm 32/100/256 MiB.
+Không lấy tài liệu khách hàng vào kho streaming công khai.
+
+Importer chỉ nhận ID `w3c-dummy`, không nhận URL tùy ý. HTTPS tới đúng host/path,
+không redirect hoặc proxy từ environment; DNS phải toàn địa chỉ public và kết nối
+TLS pin IP đã kiểm tra, vẫn xác minh hostname/SNI bằng trust store JDK. Tối đa một
+lần nhập, 16 MiB, ngân sách đọc 25 giây và timeout connect/read 3 giây. Kiểm MIME,
+chữ ký PDF, EOF và Content-Length; không chuyển cookie/token ứng dụng ra Internet.
+Tệp xuất bản nguyên tử một lần, không sửa tại chỗ; nhập lại kiểm SHA của cache.
+
+`GET /__proxy/pdf-lab` và `POST /__proxy/pdf-lab` chỉ tại loopback Proxy, từ chối
+request có X-Forwarded-For. POST cần action header và control token khi được cấu
+hình; browser không vượt cơ chế operator auth. Nếu có token, operator có thể nhập
+tại máy Proxy bằng JDK 21 với cùng root QA:
+
+```powershell
+java -cp 'target/standalone/classes;lib/*' com.example.backend.PdfLab import
+```
+
+Sau nhập, bấm Nhập trong UI để đọc/xác minh cache (cần operator auth nếu có); không
+chép tệp vào Mộc Store. Importer kiểm cấu trúc đầu/cuối, không phải phần mềm quét mã
+độc PDF. Nguồn có thể tạm lỗi hoặc đổi chính sách; báo FAIL thay vì tải URL khác ngầm.

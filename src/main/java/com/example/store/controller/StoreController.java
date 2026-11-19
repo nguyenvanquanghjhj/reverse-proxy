@@ -24,7 +24,7 @@ public final class StoreController {
         if(path.equals("/categories")){method(e,"GET","HEAD");json(e,200,Map.of("items",catalog.categories(false)));return;}
         if(path.equals("/products")){method(e,"GET","HEAD");json(e,200,catalog.catalog(query(e),false));return;}
         if(path.matches("/products/[1-9][0-9]*")){method(e,"GET","HEAD");json(e,200,catalog.detail(id(path.substring(10)),false));return;}
-        if(path.equals("/policy")){method(e,"GET","HEAD");json(e,200,Map.of("shipping_vnd",OrderService.SHIPPING_VND,"payment_methods",List.of("COD"),"max_file_bytes",FileStorage.LIMIT));return;}
+        if(path.equals("/policy")){method(e,"GET","HEAD");var policy=new LinkedHashMap<String,Object>(files.policy());policy.put("shipping_vnd",OrderService.SHIPPING_VND);policy.put("payment_methods",List.of("COD"));policy.put("max_file_bytes",FileStorage.LIMIT);json(e,200,policy);return;}
         if(path.equals("/availability")){method(e,"GET","HEAD");json(e,200,operations.availability());return;}
         var user=sessions.resolve(e,false);
         if(!read)sessions.csrf(e,user);
@@ -46,6 +46,7 @@ public final class StoreController {
             if(path.equals("/admin/products")){method(e,"GET","HEAD","POST");if(read)json(e,200,catalog.catalog(query(e),true));else json(e,201,products.saveProduct(null,jsonBody(e)));return;}
             if(path.matches("/admin/products/[1-9][0-9]*")){long id=id(path.substring(16));method(e,"GET","HEAD","PUT");json(e,200,read?catalog.detail(id,true):products.saveProduct(id,jsonBody(e)));return;}
             if(path.matches("/admin/products/[1-9][0-9]*/files")){method(e,"POST");long product=id(path.split("/")[3]);json(e,201,files.upload(product,query(e).getOrDefault("kind",""),header(e,"X-File-Name"),mime(e),body(e,FileStorage.LIMIT)));return;}
+            if(path.matches("/admin/products/[1-9][0-9]*/files/order")){method(e,"POST");files.reorderImages(id(path.split("/")[3]),jsonBody(e));json(e,200,Map.of("ok",true));return;}
             if(path.startsWith("/admin/files/")){method(e,"PATCH","DELETE");files.edit(Input.uuid(path.substring(13)),verb.equals("DELETE")?Map.of():jsonBody(e),verb.equals("DELETE"));json(e,200,Map.of("ok",true));return;}
             if(path.equals("/admin/orders")){method(e,"GET","HEAD");json(e,200,Map.of("items",orders.list(user,query(e),true)));return;}
             if(path.startsWith("/admin/orders/")){method(e,"GET","HEAD","PATCH");var id=Input.uuid(path.substring(14));json(e,200,read?orders.get(id,null,user):orders.transition(id,jsonBody(e),user));return;}

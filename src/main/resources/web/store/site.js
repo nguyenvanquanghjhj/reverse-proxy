@@ -19,7 +19,7 @@ const PAGE_SIZE = 24,
   ORDER_PAGE_SIZE = 20;
 const $ = (root, selector) => root.querySelector(selector);
 const storage = (gb) => (gb >= 1024 ? gb / 1024 + " TB" : gb + " GB");
-const kib = (bytes) => Math.max(1, Math.round(bytes / 1024)) + " KB";
+const kib = (bytes) => Math.max(1, Math.round(bytes / 1024)) + " KiB";
 const length = (text) => [...text].length;
 const link = (url, label) =>
   typeof url === "string" && url.startsWith("https://")
@@ -51,7 +51,7 @@ function setError(root, name, message) {
 
 // Khung trang cửa hàng.
 function topbar(user) {
-  return `<header class="admin-top"><a class="wordmark" href="${BASE}">mộc<span aria-hidden="true">•</span></a><span class="admin-top-label">CỬA HÀNG</span><nav aria-label="Tài khoản">${user?.role === "ADMIN" ? '<a href="/admin">Quản trị ↗</a>' : ""}${user ? `<span>${e(user.name)}</span><button type="button" id="logout" class="secondary">Đăng xuất</button>` : ""}</nav></header>`;
+  return `<header class="admin-top"><a class="wordmark" href="${BASE}">mộc<span aria-hidden="true">•</span></a><span class="admin-top-label">CỬA HÀNG</span><nav aria-label="Tài khoản">${user?.role === "ADMIN" ? '<a href="/admin">Quản trị</a>' : ""}${user ? `<span>${e(user.name)}</span><button type="button" id="logout" class="secondary">Đăng xuất</button>` : ""}</nav></header>`;
 }
 function frame(user, active) {
   if (!user)
@@ -66,7 +66,7 @@ function frame(user, active) {
   if (user.role === "ADMIN") links.push(["/admin", "Quản trị", "admin"]);
   return (
     topbar(user) +
-    `<main id="main" tabindex="-1"><div class="admin-layout"><aside class="admin-nav shop-nav"><p class="eyebrow">MỘC / CỬA HÀNG</p>${links.map(([href, label, key]) => `<a href="${href}"${key === active ? ' aria-current="page"' : ""}>${label} ↗</a>`).join("")}</aside><div class="admin-content" id="view"><div class="shop-loading" role="status">Đang tải…</div></div></div></main>`
+    `<main id="main" tabindex="-1"><div class="admin-layout"><aside class="admin-nav shop-nav"><p class="eyebrow">MỘC / CỬA HÀNG</p>${links.map(([href, label, key]) => `<a href="${href}"${key === active ? ' aria-current="page"' : ""}>${label}</a>`).join("")}</aside><div class="admin-content" id="view"><div class="shop-loading" role="status">Đang tải…</div></div></div></main>`
   );
 }
 function parse(path) {

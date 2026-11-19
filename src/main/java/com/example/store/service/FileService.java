@@ -12,6 +12,26 @@ public final class FileService {
     public record Download(byte[] bytes,String mime,String name,String hash) {}
     private final Database db;private final FileStorage storage;
     public FileService(Database db,FileStorage storage){this.db=db;this.storage=storage;}
+    public Map<String,Object> policy(){return storage.policy();}
+    public void reorderImages(long product,Map<String,Object> body)throws SQLException {
+        Input.fields(body,"ids","version");
+        long version=Input.number(body,"version",1,Integer.MAX_VALUE-1);
+        var requested=Input.list(body,"ids",1,24).stream().map(x->{
+            if(!(x instanceof String s))throw Input.bad("Danh sách ảnh không hợp lệ.");
+            return Input.uuid(s);
+        }).toList();
+        if(new HashSet<>(requested).size()!=requested.size())throw Input.bad("Danh sách ảnh bị trùng.");
+        Sql.transaction(db,c->{
+            var productRow=Sql.one(c,"SELECT id,version FROM st_products WHERE id=? FOR UPDATE",product);
+            if(productRow==null)throw Input.missing();
+            if(((Number)productRow.get("version")).longValue()!=version)throw Input.conflict("Sản phẩm đã thay đổi. Vui lòng tải lại trang.");
+            var current=Sql.rows(c,"SELECT id FROM st_files WHERE product_id=? AND kind='IMAGE' AND active",product)
+                    .stream().map(x->UUID.fromString((String)x.get("id"))).collect(java.util.stream.Collectors.toSet());
+            if(!current.equals(new HashSet<>(requested)))throw Input.conflict("Danh sách ảnh đã thay đổi. Vui lòng tải lại trang.");
+            for(int i=0;i<requested.size();i++)Sql.update(c,"UPDATE st_files SET position=? WHERE id=?",i,requested.get(i));
+            Sql.update(c,"UPDATE st_products SET version=version+1 WHERE id=?",product);return null;
+        });
+    }
     public Map<String,Object> upload(long product,String kind,String name,String mime,byte[] bytes)throws SQLException,IOException {
         if(!Set.of("PDF","IMAGE").contains(kind))throw Input.bad("Loại tệp không hợp lệ.");
         if(kind.equals("PDF"))db.with(c->{OperationsService.admitUpload(c);return null;});

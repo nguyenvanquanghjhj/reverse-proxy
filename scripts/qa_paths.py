@@ -1,5 +1,4 @@
 """One location policy for local live acceptance; no QA payloads inside the checkout."""
-from datetime import datetime, timezone
 import hashlib
 import json
 import os
@@ -23,8 +22,7 @@ def new_evidence_path(label):
     parent = Path(os.environ.get('PBL4_EVIDENCE_ROOT', str(ROOT.parent / 'evidence')))
     if not parent.is_absolute():
         raise ValueError('PBL4_EVIDENCE_ROOT must be absolute')
-    stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')
-    return evidence_path(parent / (label + '-' + stamp + '-' + uuid.uuid4().hex[:8]))
+    return evidence_path(parent / (label + '-run-' + uuid.uuid4().hex[:12]))
 
 
 def release_generated_inputs(directory, artifacts, recipe):

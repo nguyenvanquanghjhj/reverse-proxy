@@ -113,7 +113,7 @@ public final class HttpTransportTest {
                 var forwarded = get(client, address);
                 check(forwarded.statusCode() == 200 && forwarded.body().contains("data-via-proxy=\"true\""), "HTML forwarded through real proxy");
                 check(forwarded.body().contains("id=\"batch-send\"") && forwarded.body().contains("/compute?cost=8"), "proxy demo exposes the mixed browser batch button");
-                check(forwarded.body().contains("refreshBackendStats()") && forwarded.body().contains("Độ trễ tác vụ nhẹ"),
+                check(forwarded.body().contains("refreshBackendStats()") && forwarded.body().contains("Trễ mô phỏng"),
                         "proxy demo loads numeric stats for every backend");
                 check(forwarded.headers().firstValue("X-Proxy-Backend").orElse("").equals("127.0.0.1:" + backend.getPort()), "page identity matches proxy header");
                 check(forwarded.headers().firstValue("Cache-Control").orElse("").equals("no-store"), "proxy preserves page cache policy");

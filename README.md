@@ -54,6 +54,9 @@ của `store.py`, chỉ chạy trên DB được chọn.
 
 ## Source và entrypoints
 
+Xem [bản đồ code và luồng request](docs/architecture/CODEBASE_MAP.md),
+[chỉ mục tài liệu](docs/README.md) và [bản đồ script](docs/development/SCRIPTS.md).
+
 | Thành phần | Vị trí / entrypoint | Trách nhiệm |
 |---|---|---|
 | Reverse proxy | `com.example.proxy.Main`, `com.example.proxy.*` | HTTP transport, routing, admission, health, metrics, dashboard |
@@ -80,7 +83,7 @@ giữ provenance hiện có; không mở rộng nghiệp vụ bán hàng.
 
 ## HTTP streaming và opt-in
 
-[HTTP streaming](docs/HTTP_STREAMING.md) tắt mặc định. Tuyến đọc
+[HTTP streaming](docs/architecture/HTTP_STREAMING.md) tắt mặc định. Tuyến đọc
 `/api/pbl4/files/<name>` hỗ trợ GET/HEAD, ETag/304 và single HTTP Range, buffer 32 KiB,
 file tối đa 1 GiB. Không upload hoặc replay giao dịch. Public files root cấu hình
 riêng và không chứa link/junction.
@@ -90,6 +93,18 @@ riêng và không chứa link/junction.
 `SHOP_DB_POOL_ENABLED`; `.env.store` hiện có được bảo toàn. Chỉ bật trong môi trường
 riêng sau regression. Proxy không tự retry POST; khi mất response sau commit,
 kiểm tra lại cùng Idempotency-Key và body.
+
+## Quản trị tài liệu và PDF thử tải
+
+Thanh quản trị có nút thu gọn; màn hình nhỏ mở menu bằng drawer. Hình ảnh và tài liệu
+tách riêng trong `/admin/documents` và trang sửa sản phẩm. Dùng Lên trước/Xuống sau
+hoặc Làm đại diện để sắp xếp ảnh; đổi tên không đổi file ID/storage key. Giới hạn
+upload lấy từ `/api/store/policy`, mặc định ảnh 512 KiB và PDF 256 KiB.
+
+Workload Console có PDF lab mặc định tắt, tách khỏi tài liệu sản phẩm. Xem
+[cấu hình và nguồn PDF](docs/architecture/HTTP_STREAMING.md#pdf-lab-từ-nguồn-https) và
+[triển khai ba máy Windows](deploy/lan/README.md). Store assets hiện không phát ETag;
+ETag/304 của tuyến streaming được kiểm riêng, không suy ra cho `/store/assets/*`.
 
 ## Kiểm thử và dữ liệu phát sinh
 
@@ -103,7 +118,7 @@ python scripts/ops/acceptance_live.py --env-file <private-test-env>
 python scripts/ops/acceptance_streaming.py --env-file <private-test-env>
 ```
 
-Đủ **30 Java test mains** chạy bằng TestSuite và xuất XML; Surefire không dùng vì
+Toàn bộ `*Test.java` chạy bằng TestSuite và xuất XML; Surefire không dùng vì
 project dùng launcher mains. CI chạy Java Linux/Windows, Python/config và Docker
 thực với order/stock/files sau restart. Log lỗi vẫn được giữ.
 
@@ -118,7 +133,7 @@ Raw CSV/JSON, log, database, backup và ảnh/PDF không thuộc danh sách xóa
 
 ## Docker, backup và tài liệu
 
-Xem [deployment](deploy/README.md), [operations](docs/OPERATIONS_UPGRADE.md).
+Xem [deployment](deploy/README.md), [operations](docs/deployment/OPERATIONS_UPGRADE.md).
 Compose có PostgreSQL, ba backend, shared volume và proxy. Management port riêng
 thao tác bằng operator qua `docker exec` với token. Kiểm syntax bằng
 `docker compose -f deploy/compose/compose.yaml config --quiet` sau khi cung cấp env.

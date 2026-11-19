@@ -3,7 +3,7 @@ import com.example.proxy.metrics.BackendMetrics;
 import java.util.Comparator;
 import java.util.List;
 
-/** One HTTP exchange per upstream socket: leases approximate busy connections. */
+/** Selects by active request leases, independently of idle/reused TCP sockets. */
 public final class LeastConnectionsLoadBalancer implements LoadBalancer {
     public BackendMetrics.Snapshot select(List<BackendMetrics.Snapshot> candidates) {
         return candidates.stream().min(Comparator.comparingInt(BackendMetrics.Snapshot::inFlight)
