@@ -41,5 +41,8 @@
   "removed_original_paths": 48004,
   "removed_original_logical_bytes": 6165442365,
   "evidence_duplicate_groups": [],
-  "checkpoint": "D:\\PBL4_BACKUP\\workspace-cleanup\\run-bc9d032e66d5"
+  "checkpoint": "D:\\PBL4_BACKUP\\workspace-cleanup\\run-bc9d032e66d5",
+  "snapshot_phase": "Cleanup snapshot before publishing and retirement of temporary external backups",
+  "checkpoint_status": "Retired at user request; obsolete rollback payloads discarded after preserving required QA data and test receipts",
+  "retirement_report": "BACKUP_REMOVAL.md"
 }

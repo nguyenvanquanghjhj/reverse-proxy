@@ -17,7 +17,7 @@ Thời gian thực hiện: 18–20/11/2026. Không commit, push, reset hoặc s�
 
 Giảm **5,226,432,068 byte logic (5.226 GB)** và **43,608 file**.
 Dung lượng NTFS cấp phát đo sau: 1,657,015,310 byte. Chưa có phép đo cấp phát cùng thời điểm trước nên không gọi số byte logic giảm là dung lượng ổ đĩa thực giải phóng.
-Baseline ban đầu có 54.835 file đọc được. Đã bổ sung 34 file từng bị từ chối truy cập sau khi đối chiếu từng SHA với object có sẵn trong checkpoint; baseline đầy đủ là 54.869 file. Không còn nhánh chưa kiểm kê. Manifest ban đầu giữ nguyên; phần bổ sung lưu riêng ở `inventory-before-supplement.json` trong checkpoint.
+Baseline ban đầu có 54.835 file đọc được. Đã bổ sung 34 file từng bị từ chối truy cập sau khi đối chiếu từng SHA với object có sẵn trong checkpoint đã xác minh trước khi bỏ; baseline đầy đủ là 54.869 file. Không còn nhánh chưa kiểm kê. Manifest ban đầu giữ nguyên; phần bổ sung được đối chiếu trong [receipt phục hồi](../../../evidence/integration/protected-qa-recovery.json).
 
 Đã xóa 48,004 đường dẫn gốc sau checkpoint và đối chiếu. Con số này gồm file đã chuyển sang vị trí chính thức, bản trùng, file thừa và file QA rời đã đóng gói phục hồi; không cộng nhầm toàn bộ thành rác bị loại bỏ.
 Loại bỏ DOCX trung gian, Word/WPS temp, cache chụp ảnh, helper dùng một lần, snapshot source/build cũ, reference checkout sạch không được main sử dụng, PostgreSQL portable trùng, Maven cache trùng và Compose executable không chạy được.
@@ -48,7 +48,7 @@ JDK/Maven giữ layout nhà cung cấp. PostgreSQL client dùng `.runtime/postgr
 | Full browser acceptance | NOT RUN đợt này; lần trước FAIL kỳ vọng URL `/shop` trong khi app chuyển `/admin/shop` |
 
 Không có lệnh setup/test ghi lên DB thật. `.shop`, `.runtime`, `shared-files`, `.env.store` giữ vị trí; cluster thật 55434 không bị dừng hay reset.
-Source Java, test Java và resource ứng dụng giữ nguyên SHA so với checkpoint trước đợt dọn này. Các lần chạy build/runtime diễn ra ngày 18/11; lần đối chiếu và chốt báo cáo ngày 20/11 xác nhận source vẫn giữ nguyên. Log kiểm tra thật: `D:\PBL4_BACKUP\workspace-cleanup\run-bc9d032e66d5\checks`.
+Source Java, test Java và resource ứng dụng giữ nguyên SHA so với checkpoint trước đợt dọn này. Các lần chạy build/runtime diễn ra ngày 18/11; lần đối chiếu và chốt báo cáo ngày 20/11 xác nhận source vẫn giữ nguyên. Log kiểm tra thật đã chuyển sang evidence; xem [nhật ký xóa backup](BACKUP_REMOVAL.md).
 [Receipt kiểm tra](../../../evidence/integration/workspace-cleanup-validation.json).
 
 Nhánh QA từng bị từ chối truy cập đã đọc được trong môi trường ngày 20/11. Toàn bộ 34 file, 4.127.530 byte trùng chính xác dataset `storage-492ec7b26a52` đã có trong gói phục hồi.
@@ -59,6 +59,7 @@ Cache `target/classes` của checkout chính được IDE tạo lại trong lúc
 Java Language Server cũ của VS Code đã tái tạo 188 output trong snapshot/reference sau khi source bị xóa. Đã dừng đúng dịch vụ JDT của workspace này, checkpoint/hash output mới rồi xóa chúng; không đóng VS Code hoặc sửa buffer.
 Mở [PBL4.code-workspace](../../../PBL4.code-workspace) để IDE chỉ import checkout chính. Không tạo thêm thư mục config ở root.
 
-Checkpoint ngoài workspace: `D:\PBL4_BACKUP\workspace-cleanup\run-bc9d032e66d5`. `checkpoint.zip` giữ object SHA và manifest của dữ liệu sắp xử lý; không snapshot vật lý DB thật đang chạy.
-Đối chiếu: [số liệu JSON](WORKSPACE_METRICS.json), [cây thư mục đầy đủ sau](WORKSPACE_TREE.txt), [bảng đường dẫn](WORKSPACE_PATHS.csv).
-Cây đầy đủ trước: `D:\PBL4_BACKUP\workspace-cleanup\run-bc9d032e66d5\tree-before.txt`. Snapshot cũ trong tài liệu bảo trì là lịch sử; báo cáo này mô tả cấu trúc hiện tại.
+Checkpoint tạm bên ngoài workspace đã được bỏ theo yêu cầu sau khi kiểm tra không có phụ thuộc runtime. Log kiểm chứng cần thiết đã giữ lại, không giữ rollback cho các file thừa đã xóa.
+[Nhật ký bỏ backup](BACKUP_REMOVAL.md), [manifest file đã bỏ](REMOVED_BACKUPS.csv).
+Đối chiếu snapshot trước khi publish: [số liệu JSON](WORKSPACE_METRICS.json), [cây trước](WORKSPACE_TREE_BEFORE.txt), [cây sau](WORKSPACE_TREE.txt), [bảng đường dẫn](WORKSPACE_PATHS.csv).
+Các row `discarded-obsolete-backup` ghi nhận file thừa đã bỏ vĩnh viễn. Dữ liệu QA cần phục hồi vẫn nằm trong gói `evidence/recovery/qa-data.zip`.
