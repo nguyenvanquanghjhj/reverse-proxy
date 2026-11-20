@@ -50,7 +50,7 @@ Build/test: `scripts/build.ps1`, `test.ps1`, `pom.xml` và
 Runtime: `scripts/run.ps1`, `store.py`, `app_runtime.py`, `prepare_runtime.py`.
 Benchmark: `lab.py`, `research.py`, `defense_live.py`, `scripts/ops/*benchmark.py`.
 Deploy: `deploy/lan/windows.ps1`, `windows_nodes.py`, `package.py` và
-`deploy/compose/{Dockerfile,compose.yaml}`. Xem [bản đồ script](../development/SCRIPTS.md).
+`deploy/compose/{Dockerfile,compose.yaml}`. Xem [bản đồ script](../deployment/OPERATIONS_UPGRADE.md).
 
 `DemoBackendServer`, `shop_demo.py`, `shop_prepare.py` là adapter tương thích;
 giữ để runner cũ còn tìm được entrypoint. RR/LC/Adaptive, API, SQL, timeout,

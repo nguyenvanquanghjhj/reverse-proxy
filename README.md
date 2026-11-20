@@ -11,6 +11,9 @@ Máy mới cần mạng ở lần tải JDBC/PostgreSQL đầu; dependency đư�
 Không cần Maven cho launcher PowerShell; Maven dùng cho build/CI thay thế.
 
 ```powershell
+# From this checkout; changes only the current terminal environment.
+$env:JAVA_HOME = (Resolve-Path "../tools/jdk21/jdk-21.0.13.0.2+1").Path
+$env:PATH = "$env:JAVA_HOME/bin;$env:PATH"
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run.ps1 start
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run.ps1 status
 ```
@@ -55,7 +58,7 @@ của `store.py`, chỉ chạy trên DB được chọn.
 ## Source và entrypoints
 
 Xem [bản đồ code và luồng request](docs/architecture/CODEBASE_MAP.md),
-[chỉ mục tài liệu](docs/README.md) và [bản đồ script](docs/development/SCRIPTS.md).
+[chỉ mục tài liệu](docs/architecture/CODEBASE_MAP.md) và [bản đồ script](docs/deployment/OPERATIONS_UPGRADE.md).
 
 | Thành phần | Vị trí / entrypoint | Trách nhiệm |
 |---|---|---|
@@ -67,7 +70,7 @@ Xem [bản đồ code và luồng request](docs/architecture/CODEBASE_MAP.md),
 | Khởi chạy | `scripts/store.py`, `scripts/run.ps1` | Setup rõ ràng, start/stop/status, bảo vệ process identity |
 | Runtime nội bộ | `scripts/app_runtime.py`, `scripts/prepare_runtime.py` | Theo dõi JVM, chuẩn bị dependency |
 | QA / nghiên cứu | `scripts/lab.py`, `verify.py`, `research.py`, `defense_live.py` | Schema/files riêng, traffic, raw evidence |
-| Vận hành / deployment | [scripts/ops](scripts/ops/README.md), [deploy](deploy/README.md) | Backup/restore, health, drain, Docker, LAN |
+| Vận hành / deployment | [scripts/ops](docs/deployment/OPERATIONS_UPGRADE.md), [deploy](docs/deployment/OPERATIONS_UPGRADE.md#docker-compose) | Backup/restore, health, drain, Docker, LAN |
 
 `DemoBackendServer`, `shop_demo.py`, `shop_prepare.py` và `/demo` là adapter tương
 thích cho runner đã lưu; không chứa implementation thứ hai. Các launcher dùng
@@ -133,7 +136,7 @@ Raw CSV/JSON, log, database, backup và ảnh/PDF không thuộc danh sách xóa
 
 ## Docker, backup và tài liệu
 
-Xem [deployment](deploy/README.md), [operations](docs/deployment/OPERATIONS_UPGRADE.md).
+Xem [deployment](docs/deployment/OPERATIONS_UPGRADE.md#docker-compose), [operations](docs/deployment/OPERATIONS_UPGRADE.md).
 Compose có PostgreSQL, ba backend, shared volume và proxy. Management port riêng
 thao tác bằng operator qua `docker exec` với token. Kiểm syntax bằng
 `docker compose -f deploy/compose/compose.yaml config --quiet` sau khi cung cấp env.
@@ -142,10 +145,8 @@ Giữ volume dữ liệu; không prune volume khi dọn cache.
 Backup đồng bộ DB/files dùng `scripts/ops/consistent_bundle.py` sau khi dừng mọi
 writer. Tool kiểm hash và chỉ restore sang database/files root **mới**.
 
-- [Kiến trúc, dependency và nghiệm thu](docs/maintenance/RESTRUCTURE_REPORT.md)
-- [Bằng chứng đã chọn](docs/evidence/)
-- [Lịch sử nâng cấp](docs/history/README.md)
-- [Audit dung lượng trước đợt tái cấu trúc](docs/maintenance/STORAGE_AUDIT.md)
+- [Evidence, frozen acceptance and source-path index](../evidence/README.md)
+- [Defense guide](../reports/DEFENSE_GUIDE.md)
 
 Chỉ gọi phép đo nhiều máy là LAN khi có host thứ hai thật. Loopback, Docker bridge
 và Windows thiếu Engine được báo riêng. Bind/auth/TLS triển khai Internet cần
