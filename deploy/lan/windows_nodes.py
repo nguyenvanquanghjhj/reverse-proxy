@@ -114,7 +114,7 @@ def configure(args):
     config = {'role':args.role, 'hosts':hosts, 'storage_id':storage_id, 'pg_data':str(args.pg_data.resolve()) if args.pg_data else None,
               'strategy':'ADAPTIVE', 'scope':'Prepared three physical Windows nodes; NOT physical acceptance evidence'}
     (out/'node.json').write_text(json.dumps(config, indent=2), encoding='utf-8')
-    print(f'Đã tạo cấu hình {args.role}: {out}. Không thay .env.store, firewall, pg_hba hoặc quyền SMB.')
+    print(f'Created configuration {args.role}: {out}. Existing .env.store, firewall, pg_hba and SMB permissions are unchanged.')
 
 
 def load(path):

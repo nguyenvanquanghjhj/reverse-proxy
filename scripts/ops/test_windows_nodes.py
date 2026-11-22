@@ -1,5 +1,6 @@
 """LAN configuration and process safety without opening real firewall/SMB/DB services."""
 import importlib.util
+import io
 import json
 import os
 from pathlib import Path
@@ -7,6 +8,7 @@ import tempfile
 import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
+from contextlib import redirect_stdout
 
 PATH=Path(__file__).resolve().parents[2]/'deploy/lan/windows_nodes.py'
 spec=importlib.util.spec_from_file_location('windows_nodes',PATH);lan=importlib.util.module_from_spec(spec);spec.loader.exec_module(lan)
@@ -24,7 +26,12 @@ class WindowsNodesTest(unittest.TestCase):
             base=Path(tmp);storage=base/'files';storage.mkdir();env=base/'private.env'
             env.write_text('SHOP_DB_URL=jdbc:postgresql://10.1.1.1:5432/qa\nSHOP_DB_USER=qa\nSHOP_DB_PASSWORD=private-fixture-password\nPBL4_PROBE_TOKEN='+'a'*64+'\n')
             args=SimpleNamespace(hosts=['10.1.1.1','10.1.1.2','10.1.1.3'],directory=base/'node',env_file=env,db_url=None,db_user=None,files=str(storage),role='MAIN',probe_token_file=None,pg_data=None)
-            with patch.dict(os.environ,{},clear=True):lan.configure(args)
+            # Exercise the Windows CI console encoding even when this test runs on Linux.
+            output=io.BytesIO()
+            console=io.TextIOWrapper(output,encoding='cp1252',errors='strict')
+            with patch.dict(os.environ,{},clear=True),redirect_stdout(console):lan.configure(args)
+            console.flush()
+            self.assertIn(b'Created configuration MAIN:',output.getvalue())
             properties=(base/'node/proxy.properties').read_text()
             self.assertIn('backend.servers=10.1.1.1:9001:8,10.1.1.2:9002:8,10.1.1.3:9003:8',properties)
             self.assertNotIn('private-fixture-password',properties)
