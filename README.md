@@ -57,8 +57,8 @@ của `store.py`, chỉ chạy trên DB được chọn.
 
 ## Source và entrypoints
 
-Xem [bản đồ code và luồng request](docs/architecture/CODEBASE_MAP.md),
-[chỉ mục tài liệu](docs/architecture/CODEBASE_MAP.md) và [bản đồ script](docs/deployment/OPERATIONS_UPGRADE.md).
+Xem [mục lục tài liệu chung](docs/README.md),
+[bản đồ code và luồng request](docs/architecture/CODEBASE_MAP.md) và [bản đồ script](docs/deployment/OPERATIONS_UPGRADE.md).
 
 | Thành phần | Vị trí / entrypoint | Trách nhiệm |
 |---|---|---|
@@ -106,33 +106,20 @@ upload lấy từ `/api/store/policy`, mặc định ảnh 512 KiB và PDF 256 K
 
 Workload Console có PDF lab mặc định tắt, tách khỏi tài liệu sản phẩm. Xem
 [cấu hình và nguồn PDF](docs/architecture/HTTP_STREAMING.md#pdf-lab-từ-nguồn-https) và
-[triển khai ba máy Windows](deploy/lan/README.md). Store assets hiện không phát ETag;
-ETag/304 của tuyến streaming được kiểm riêng, không suy ra cho `/store/assets/*`.
+[triển khai ba máy Windows](deploy/lan/README.md). Store assets không phát ETag;
+GET/HEAD asset tồn tại với `If-None-Match: *` trả 304. ETag/Range của tuyến
+streaming được kiểm riêng, không suy thành entity-tag validation cho Store assets.
 
 ## Kiểm thử và dữ liệu phát sinh
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test.ps1
-mvn -B --no-transfer-progress -Pshop test
-python -m unittest discover -s scripts/ops -p "test_*.py" -v
-python scripts/test_defense_live.py
-python scripts/verify.py --env-file <private-test-env>
-python scripts/ops/acceptance_live.py --env-file <private-test-env>
-python scripts/ops/acceptance_streaming.py --env-file <private-test-env>
-```
+Lệnh build Java 21, Python regression, live QA và cách theo dõi CI nằm trong
+[quy trình kiểm thử](docs/testing/VALIDATION.md). TestSuite chạy mọi `*Test.java`
+và xuất XML; CI kiểm Linux/Windows, tools/config và Docker live.
 
-Toàn bộ `*Test.java` chạy bằng TestSuite và xuất XML; Surefire không dùng vì
-project dùng launcher mains. CI chạy Java Linux/Windows, Python/config và Docker
-thực với order/stock/files sau restart. Log lỗi vẫn được giữ.
-
-Live QA mặc định ghi vào `evidence/` cạnh checkout, mỗi run có tên riêng; đặt
-`PBL4_EVIDENCE_ROOT` bằng đường dẫn tuyệt đối để đổi vùng lưu. `--out` vẫn hỗ trợ
-nhưng bị từ chối nếu ở trong checkout/runtime/shared storage. QA cần private env
-rõ ràng, không mặc định dùng `.env.store` thật. Streaming acceptance tạo file
-32/100/256 MiB và resume 100 MiB: cần khoảng 489 MiB cho input. Sau PASS và dừng
-JVM, script kiểm SHA rồi xóa đúng năm input vừa tạo, giữ recipe/checksum trong
-`fixture-inputs.json`. `--retain-fixtures` giữ input; FAIL luôn giữ để điều tra.
-Raw CSV/JSON, log, database, backup và ảnh/PDF không thuộc danh sách xóa.
+QA dùng env/cổng/output riêng ở `D:\PBL4\evidence\`; không stress database thật.
+[Báo cáo nghiệm thu](docs/reports/PBL4_FINAL_VALIDATION.md) ghi rõ số đo, fingerprint,
+giới hạn và kết quả CI theo từng snapshot. Không dùng kết quả lịch sử thay cho
+kiểm thử HEAD hiện tại.
 
 ## Docker, backup và tài liệu
 
@@ -145,8 +132,8 @@ Giữ volume dữ liệu; không prune volume khi dọn cache.
 Backup đồng bộ DB/files dùng `scripts/ops/consistent_bundle.py` sau khi dừng mọi
 writer. Tool kiểm hash và chỉ restore sang database/files root **mới**.
 
-- [Evidence, frozen acceptance and source-path index](../evidence/README.md)
-- [Defense guide](../reports/DEFENSE_GUIDE.md)
+- [Evidence hiện hành, lịch sử và fingerprint](docs/README.md#benchmark-và-nguồn-gốc-bằng-chứng)
+- [Cách tìm dữ liệu khi bảo vệ](docs/README.md#tìm-bằng-chứng-khi-bảo-vệ)
 
 Chỉ gọi phép đo nhiều máy là LAN khi có host thứ hai thật. Loopback, Docker bridge
 và Windows thiếu Engine được báo riêng. Bind/auth/TLS triển khai Internet cần

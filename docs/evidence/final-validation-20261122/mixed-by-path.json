@@ -1,0 +1,308 @@
+[
+  {
+    "strategy": "ROUND_ROBIN",
+    "path": "/work?cost=1",
+    "trials": [
+      {
+        "total": 180,
+        "http_errors": 0,
+        "mean_ms": 92.18688888888889,
+        "p95_ms": 76.86
+      },
+      {
+        "total": 180,
+        "http_errors": 0,
+        "mean_ms": 123.78564444444444,
+        "p95_ms": 170.5
+      },
+      {
+        "total": 180,
+        "http_errors": 0,
+        "mean_ms": 93.85622222222221,
+        "p95_ms": 118.09
+      }
+    ],
+    "total": 540,
+    "http_errors": 0,
+    "mean_ms": {
+      "mean": 103.27625185185185,
+      "sd": 17.7812557720838
+    },
+    "p95_ms": {
+      "mean": 121.81666666666666,
+      "sd": 46.931103048333874
+    }
+  },
+  {
+    "strategy": "ROUND_ROBIN",
+    "path": "/slow",
+    "trials": [
+      {
+        "total": 30,
+        "http_errors": 2,
+        "mean_ms": 2090.9964333333332,
+        "p95_ms": 3006.41
+      },
+      {
+        "total": 30,
+        "http_errors": 2,
+        "mean_ms": 2092.2987333333335,
+        "p95_ms": 3011.24
+      },
+      {
+        "total": 30,
+        "http_errors": 1,
+        "mean_ms": 2053.0509333333334,
+        "p95_ms": 2055.95
+      }
+    ],
+    "total": 90,
+    "http_errors": 5,
+    "mean_ms": {
+      "mean": 2078.7820333333334,
+      "sd": 22.293297798441554
+    },
+    "p95_ms": {
+      "mean": 2691.2,
+      "sd": 550.1479383765788
+    }
+  },
+  {
+    "strategy": "ROUND_ROBIN",
+    "path": "/products",
+    "trials": [
+      {
+        "total": 30,
+        "http_errors": 0,
+        "mean_ms": 107.2584,
+        "p95_ms": 326.87
+      },
+      {
+        "total": 30,
+        "http_errors": 0,
+        "mean_ms": 151.5568,
+        "p95_ms": 1743.94
+      },
+      {
+        "total": 30,
+        "http_errors": 0,
+        "mean_ms": 88.40566666666666,
+        "p95_ms": 168.56
+      }
+    ],
+    "total": 90,
+    "http_errors": 0,
+    "mean_ms": {
+      "mean": 115.74028888888888,
+      "sd": 32.41871742780248
+    },
+    "p95_ms": {
+      "mean": 746.4566666666667,
+      "sd": 867.4648489900518
+    }
+  },
+  {
+    "strategy": "LEAST_CONNECTIONS",
+    "path": "/work?cost=1",
+    "trials": [
+      {
+        "total": 180,
+        "http_errors": 0,
+        "mean_ms": 28.68035,
+        "p95_ms": 53.84
+      },
+      {
+        "total": 180,
+        "http_errors": 0,
+        "mean_ms": 26.8114,
+        "p95_ms": 51.51
+      },
+      {
+        "total": 180,
+        "http_errors": 0,
+        "mean_ms": 28.47115,
+        "p95_ms": 49.07
+      }
+    ],
+    "total": 540,
+    "http_errors": 0,
+    "mean_ms": {
+      "mean": 27.987633333333335,
+      "sd": 1.0240042972728853
+    },
+    "p95_ms": {
+      "mean": 51.473333333333336,
+      "sd": 2.385211381268616
+    }
+  },
+  {
+    "strategy": "LEAST_CONNECTIONS",
+    "path": "/slow",
+    "trials": [
+      {
+        "total": 30,
+        "http_errors": 0,
+        "mean_ms": 2019.5331666666666,
+        "p95_ms": 2046.83
+      },
+      {
+        "total": 30,
+        "http_errors": 0,
+        "mean_ms": 2012.5702666666666,
+        "p95_ms": 2025.91
+      },
+      {
+        "total": 30,
+        "http_errors": 0,
+        "mean_ms": 2020.4797333333333,
+        "p95_ms": 2040.65
+      }
+    ],
+    "total": 90,
+    "http_errors": 0,
+    "mean_ms": {
+      "mean": 2017.527722222222,
+      "sd": 4.319290601776264
+    },
+    "p95_ms": {
+      "mean": 2037.7966666666666,
+      "sd": 10.747917627770134
+    }
+  },
+  {
+    "strategy": "LEAST_CONNECTIONS",
+    "path": "/products",
+    "trials": [
+      {
+        "total": 30,
+        "http_errors": 0,
+        "mean_ms": 25.5433,
+        "p95_ms": 35.33
+      },
+      {
+        "total": 30,
+        "http_errors": 0,
+        "mean_ms": 26.76996666666667,
+        "p95_ms": 45.95
+      },
+      {
+        "total": 30,
+        "http_errors": 0,
+        "mean_ms": 30.674666666666667,
+        "p95_ms": 56.84
+      }
+    ],
+    "total": 90,
+    "http_errors": 0,
+    "mean_ms": {
+      "mean": 27.662644444444446,
+      "sd": 2.6796242606283722
+    },
+    "p95_ms": {
+      "mean": 46.04,
+      "sd": 10.755282423070073
+    }
+  },
+  {
+    "strategy": "ADAPTIVE",
+    "path": "/work?cost=1",
+    "trials": [
+      {
+        "total": 180,
+        "http_errors": 1,
+        "mean_ms": 90.23619444444445,
+        "p95_ms": 288.05
+      },
+      {
+        "total": 180,
+        "http_errors": 0,
+        "mean_ms": 46.77756111111111,
+        "p95_ms": 69.08
+      },
+      {
+        "total": 180,
+        "http_errors": 0,
+        "mean_ms": 52.49336666666667,
+        "p95_ms": 59.79
+      }
+    ],
+    "total": 540,
+    "http_errors": 1,
+    "mean_ms": {
+      "mean": 63.16904074074074,
+      "sd": 23.614417534679337
+    },
+    "p95_ms": {
+      "mean": 138.97333333333333,
+      "sd": 129.18771394112264
+    }
+  },
+  {
+    "strategy": "ADAPTIVE",
+    "path": "/slow",
+    "trials": [
+      {
+        "total": 30,
+        "http_errors": 7,
+        "mean_ms": 2294.4012333333335,
+        "p95_ms": 3027.11
+      },
+      {
+        "total": 30,
+        "http_errors": 0,
+        "mean_ms": 2022.1436,
+        "p95_ms": 2046.42
+      },
+      {
+        "total": 30,
+        "http_errors": 0,
+        "mean_ms": 2019.6697333333334,
+        "p95_ms": 2049.38
+      }
+    ],
+    "total": 90,
+    "http_errors": 7,
+    "mean_ms": {
+      "mean": 2112.0715222222225,
+      "sd": 157.90700639764864
+    },
+    "p95_ms": {
+      "mean": 2374.3033333333333,
+      "sd": 565.3490943066358
+    }
+  },
+  {
+    "strategy": "ADAPTIVE",
+    "path": "/products",
+    "trials": [
+      {
+        "total": 30,
+        "http_errors": 0,
+        "mean_ms": 144.55363333333332,
+        "p95_ms": 909.46
+      },
+      {
+        "total": 30,
+        "http_errors": 0,
+        "mean_ms": 29.887566666666668,
+        "p95_ms": 74.27
+      },
+      {
+        "total": 30,
+        "http_errors": 0,
+        "mean_ms": 35.948933333333336,
+        "p95_ms": 64.54
+      }
+    ],
+    "total": 90,
+    "http_errors": 0,
+    "mean_ms": {
+      "mean": 70.13004444444444,
+      "sd": 64.52393337974448
+    },
+    "p95_ms": {
+      "mean": 349.42333333333335,
+      "sd": 485.0303797014506
+    }
+  }
+]

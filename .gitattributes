@@ -13,3 +13,6 @@
 /docs/history/unified/unified-installer-fixes.patch -text whitespace=-blank-at-eol,-blank-at-eof,cr-at-eol
 /docs/evidence/unified/** -text whitespace=-blank-at-eol,-blank-at-eof,cr-at-eol
 /docs/evidence/core-streaming/** -text
+
+# Frozen public evidence keeps original bytes, including generated SVG whitespace.
+/docs/evidence/final-validation-20261122/** -text whitespace=-blank-at-eol,-blank-at-eof,cr-at-eol

@@ -78,4 +78,5 @@ Required conditions, not claims that a test has passed. Run the complete current
 | G7 — Operator plane | Remote bị từ chối; loopback action cần đúng token khi flag bật; sai/missing token 403, không log secret. | Negative tests, auth logs chỉ chứa status/code |
 | G8 — Upstream keep-alive | GET trả đúng bytes qua socket tái sử dụng; POST không reuse/retry; malformed/chunk/EOF/timeout/client disconnect không rò connection; TTL đóng idle; disabled mode giữ hành vi cũ. | `UpstreamPoolingTest`, `HttpTransportTest`, `HttpIntermediaryTest`, load/failure sweep |
 
-See [HTTP streaming](../architecture/HTTP_STREAMING.md), [LAN](../../deploy/lan/README.md) and [frozen evidence](../../../evidence/README.md).
+See [HTTP streaming](../architecture/HTTP_STREAMING.md), [LAN](../../deploy/lan/README.md),
+[test/QA procedure](../testing/VALIDATION.md) and the [shared documentation/evidence index](../README.md).

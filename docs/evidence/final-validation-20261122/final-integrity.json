@@ -1,0 +1,16 @@
+{
+  "all_checks_passed": true,
+  "benchmark_trials": 63,
+  "java_test_mains": 33,
+  "changed_existing_java_or_resource_files": [
+    "src\\main\\java\\com\\example\\store\\StoreApplication.java"
+  ],
+  "audit_unchanged": true,
+  "protected_env_unchanged": true,
+  "benchmark_owned_processes_stopped": true,
+  "postgres_qa_owned_processes_stopped": true,
+  "known_qa_db_passwords_absent_from_logs": true,
+  "benchmark_manifest_files": 841,
+  "validation_manifest_files": 278,
+  "final_report_sha256": "17cc09f2047a39ad5ad861fb1e8d05ce43a0c0f3e99b65638395a3f353e10571"
+}

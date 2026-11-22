@@ -1,0 +1,52 @@
+{
+  "run_id": 44999996936,
+  "head_sha": "52d6ea79f5e7627e2d06939691f2b061e9b148ab",
+  "url": "https://github.com/nguyenvanquanghjhj/reverse-proxy/actions/runs/44999996936",
+  "conclusion": "success",
+  "event": "push",
+  "jobs": [
+    {
+      "name": "tools-and-config",
+      "conclusion": "success",
+      "url": "https://github.com/nguyenvanquanghjhj/reverse-proxy/actions/runs/44999996936/job/137139219624"
+    },
+    {
+      "name": "core-java-linux",
+      "conclusion": "success",
+      "url": "https://github.com/nguyenvanquanghjhj/reverse-proxy/actions/runs/44999996936/job/137139219776"
+    },
+    {
+      "name": "core-java-windows",
+      "conclusion": "success",
+      "url": "https://github.com/nguyenvanquanghjhj/reverse-proxy/actions/runs/44999996936/job/137139219821"
+    },
+    {
+      "name": "docker-live",
+      "conclusion": "success",
+      "url": "https://github.com/nguyenvanquanghjhj/reverse-proxy/actions/runs/44999996936/job/137139219877"
+    }
+  ],
+  "java_artifacts": {
+    "java-regression-linux": {
+      "test_mains": 33,
+      "failed": 0,
+      "new_conditional_regression": "PASS"
+    },
+    "java-regression-windows": {
+      "test_mains": 33,
+      "failed": 0,
+      "new_conditional_regression": "PASS"
+    }
+  },
+  "python_operations": {
+    "linux_total": 41,
+    "windows_total": 41,
+    "result": "PASS per workflow logs"
+  },
+  "docker": {
+    "checkpoints": 68,
+    "passed": 68,
+    "volumes_deleted": false
+  },
+  "scope": "CI of recorded source commit; not a benchmark rerun and not evidence for a different HEAD workflow."
+}

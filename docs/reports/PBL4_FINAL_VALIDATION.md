@@ -1,11 +1,15 @@
 # PBL4 — NGHIỆM THU SAU SỬA LỖI VÀ BENCHMARK
 
+**Trạng thái hiện hành:** xem [mục 13 — chốt main, CI và vệ sinh repository](#13-chốt-main-ci-và-vệ-sinh-repository).
+Các mục 1–12 bên dưới giữ bối cảnh snapshot đo trước commit; việc đưa vào main
+và CI sau đó không có nghĩa benchmark đã được đo lại.
+
 Ngày thực hiện: **22/11/2026**, Asia/Bangkok.  
 Repository: reverse-proxy; nhánh **fix/pbl4-final-validation-20261122**.  
 Commit nền: **32cbd9f879770269783ea69a2687d054636fd861**.  
 Bản được kiểm tra là **working tree sau sửa**, chưa commit/push. Không gọi commit nền là một commit mới đã chứa các sửa đổi.
 
-Báo cáo gốc được giữ nguyên: [PBL4_PROJECT_AUDIT_20261122.md](PBL4_PROJECT_AUDIT_20261122.md). Bằng chứng mới nằm ở [khu vực QA riêng](../../../evidence/final-validation-20261122/). Không cập nhật tự động tài liệu Word.
+Báo cáo gốc được giữ nguyên: [PBL4_PROJECT_AUDIT_20261122.md](PBL4_PROJECT_AUDIT_20261122.md). Bằng chứng mới nằm ở `D:\PBL4\evidence\final-validation-20261122`. Không cập nhật tự động tài liệu Word.
 
 ## 1. Commit và môi trường thử
 
@@ -28,7 +32,7 @@ Git SHA chưa đủ nhận diện code chưa commit. Benchmark lưu toàn bộ s
 
 Digest source runtime sau sửa: `5c40e0bfb81310db4613be9b763b01aecbcaa41a63c1df5d6e72798f2502852c`. File Java regression mới chưa tracked được giữ cả ở checkout và bản sao test source trong after/src/test/java.
 
-Bằng chứng trước sửa: [before.json](../../../evidence/final-validation-20261122/before.json), [baseline](../../../evidence/final-validation-20261122/baseline/). Đã lưu hash báo cáo kiểm toán và .env.store để đối chiếu bảo toàn; không ghi nội dung .env.store hoặc mật khẩu thật vào log.
+Bằng chứng trước sửa: `D:\PBL4\evidence\final-validation-20261122\before.json`, `D:\PBL4\evidence\final-validation-20261122\baseline`. Đã lưu hash báo cáo kiểm toán và .env.store để đối chiếu bảo toàn; không ghi nội dung .env.store hoặc mật khẩu thật vào log.
 
 ## 2. Các lỗi đã sửa, chưa sửa và lý do
 
@@ -117,7 +121,7 @@ Lần này không tự commit/push. Vì vậy **chưa thể xác nhận CI mới
 
 ## 4. Thiết kế benchmark
 
-Benchmark chạy tuần tự bằng [benchmark_runner.py](../../../evidence/final-validation-20261122/benchmark_runner.py), tái sử dụng hàm HTTP/request/percentile trong `scripts/defense_live.py`. Không dùng runner Lab mặc định để stress DB demo. Đo workload tổng hợp độc lập, Store/Shop tắt; nghiệm thu Store/SQL đã chạy riêng và dừng trước benchmark.
+Benchmark chạy tuần tự bằng [benchmark_runner.py](../evidence/final-validation-20261122/benchmark_runner.py), tái sử dụng hàm HTTP/request/percentile trong `scripts/defense_live.py`. Không dùng runner Lab mặc định để stress DB demo. Đo workload tổng hợp độc lập, Store/Shop tắt; nghiệm thu Store/SQL đã chạy riêng và dừng trước benchmark.
 
 Mỗi lượt tạo **ba backend JVM mới và một proxy JVM mới**; cổng loopback cấp riêng. Không chạy hai benchmark đồng thời.
 
@@ -272,11 +276,11 @@ Tổng request và phân phối trong bảng cộng từ ba trial. Throughput b�
 
 ## 6. Biểu đồ
 
-![Latency p95, mean và sample SD ba trial](../../../evidence/final-validation-20261122/benchmark/latency-p95.png)
+![Latency p95, mean và sample SD ba trial](../evidence/final-validation-20261122/latency-p95.png)
 
-![Throughput thành công, mean và sample SD ba trial](../../../evidence/final-validation-20261122/benchmark/throughput.png)
+![Throughput thành công, mean và sample SD ba trial](../evidence/final-validation-20261122/throughput.png)
 
-![Tỷ lệ lỗi HTTP, mean và sample SD ba trial](../../../evidence/final-validation-20261122/benchmark/http-error-rate.png)
+![Tỷ lệ lỗi HTTP, mean và sample SD ba trial](../evidence/final-validation-20261122/http-error-rate.png)
 
 Có bản vector SVG cùng tên trong thư mục benchmark để đưa vào Word. Trục tỷ lệ lỗi bắt đầu tại 0, nên phần error bar SD xuống dưới 0 không hiển thị; SD không phải khoảng tin cậy hoặc một tỷ lệ lỗi âm.
 
@@ -438,7 +442,7 @@ Các ảnh cũ có thể được giữ làm lịch sử nếu ghi rõ snapshot.
 
 ### 12.3. Lệnh tái hiện và bảo toàn
 
-Bằng chứng giữ nguyên gồm baseline, test log/XML, source regression, cluster QA, SQL xác minh, raw.csv, warmup.csv, metrics-before/after, samples.jsonl, events, config và log từng trial. [aggregate.json](../../../evidence/final-validation-20261122/benchmark/aggregate.json) giữ mean/SD/min/max và từng p95; [aggregate.csv](../../../evidence/final-validation-20261122/benchmark/aggregate.csv) thuận tiện nhập bảng tính. Manifest SHA-256 cho benchmark và validation dùng để phát hiện file bị thay đổi, không phải chữ ký xác thực.
+Bằng chứng giữ nguyên gồm baseline, test log/XML, source regression, cluster QA, SQL xác minh, raw.csv, warmup.csv, metrics-before/after, samples.jsonl, events, config và log từng trial. [aggregate.json](../evidence/final-validation-20261122/aggregate.json) giữ mean/SD/min/max và từng p95; [aggregate.csv](../evidence/final-validation-20261122/aggregate.csv) thuận tiện nhập bảng tính. Manifest SHA-256 cho benchmark và validation dùng để phát hiện file bị thay đổi, không phải chữ ký xác thực.
 
 Lệnh đã dùng cho benchmark đầy đủ (thư mục output phải chưa tồn tại):
 
@@ -482,7 +486,179 @@ python -B scripts/test_defense_live.py
 
 PostgreSQL QA đã chạy bằng integration_jdbc_runner.py rồi cross_jvm_runner.py (giữ nguyên source lệnh Popen, JDBC, HTTP, SQL và cấu hình trong evidence). Không chạy lại nguyên bản vào thư mục cũ: guard mkdir sẽ dừng để bảo toàn evidence. Muốn tái lập tích hợp phải dùng root QA mới cho runner đầu, cập nhật dbroot/output của runner bổ sung sang cluster QA mới đó, giữ nguyên dữ liệu seed/ca kiểm và để runner cấp port mới. Không trỏ sang .env.store hoặc cluster demo. File pg-password.txt là input runtime QA riêng, không đưa vào manifest/chia sẻ bằng chứng; không có mật khẩu DB trong log.
 
-[final-integrity.json](../../../evidence/final-validation-20261122/final-integrity.json) ghi kết quả kiểm source fingerprint, test XML, process ownership, hash audit/.env.store, manifest và các link của báo cáo sau khi tổng hợp xong.
+[final-integrity.json](../evidence/final-validation-20261122/final-integrity.json) ghi kết quả kiểm source fingerprint, test XML, process ownership, hash audit/.env.store, manifest và các link của báo cáo sau khi tổng hợp xong.
 
 Không commit/push, không đổi thuật toán, không sửa UI hay Word. .shop, .runtime, .env.store, shared-files và PostgreSQL thật không được dùng làm target ghi/reset/seed/stop. Các dữ liệu QA đã tạo được giữ lại; chỉ tiến trình thuộc runner QA được dừng.
+
+## 13. Chốt main, CI và vệ sinh repository
+
+### 13.1. Phạm vi và bảo toàn
+
+Mục này bổ sung lần chốt theo yêu cầu mới; không thay số liệu hoặc kết luận thí
+nghiệm trong mục 1–12. Hai báo cáo chính vẫn là báo cáo này và audit ban đầu.
+Không tạo PBL4_FINAL_CLEANUP.md hoặc một hệ thống mục lục thứ hai.
+
+Lúc bắt đầu, main, origin/main và nhánh fix cùng ở 32cbd9f. Có bốn file tracked
+đã sửa và ba file chưa tracked: hai báo cáo cùng regression Java mới. Đã kiểm
+diff, chụp inventory/patch và sao lưu file chưa tracked bên ngoài checkout.
+Sau fetch không có commit remote mới. Chuyển working tree nguyên trạng sang
+main rồi commit trực tiếp là đủ; không cần tạo branch, PR hay merge commit giả.
+
+Commit sửa lỗi/báo cáo: **52d6ea79f5e7627e2d06939691f2b061e9b148ab**, đã push
+origin/main không force. Đây là commit đưa snapshot sau sửa vào lịch sử Git;
+không đổi nhãn benchmark thành một lần đo mới. Commit dọn tài liệu/bỏ tracking
+artifact được tách riêng, vẫn trên main; trước mỗi push đều fetch và đối chiếu remote.
+
+Các mục 1–12 chứa câu “chưa commit/push/CI chưa chạy” mô tả snapshot trước lần
+chốt này. Trạng thái mới nằm trong mục 13 và receipt CI theo SHA, không sửa lại
+lịch sử thành “đã PASS từ đầu”.
+
+Audit giữ nguyên SHA-256:
+`46c759b6468f0e0dd605d583a03a0a40d609737a7adca6491f0e5f45f348eaec`.
+.env.store giữ nguyên hash đã chụp; không đọc/ghi/reset/migrate/seed DB thật,
+không dừng JVM/demo thật hoặc sửa shared storage. Chỉ thao tác index Git đối
+với hai artifact dưới đây, không xóa chúng trên đĩa.
+
+### 13.2. Kiểm kê và quyết định dọn
+
+Kiểm kê metadata bằng git ls-files cho tracked/untracked/ignored, không quét nội
+dung private DB. CSV chi tiết nằm trong `D:\PBL4\evidence\closeout-20261122`;
+không đưa danh sách file runtime có thể nhạy cảm lên GitHub. Không tính .git
+objects hoặc dữ liệu ngoài checkout vào số file/dung lượng checkout.
+
+| Nhóm | Phụ thuộc đã xác minh | Hành động và rủi ro |
+|---|---|---|
+| Java proxy/backend/Store và resources | Entrypoint, route, reflection/test/resource loading trong CODEBASE_MAP; full clean TestSuite | Giữ source và giao diện, không refactor/import cleanup theo phỏng đoán |
+| DemoBackendServer, shop_demo.py, shop_prepare.py | HttpTransportTest dùng adapter backend; test_qa_paths kiểm module alias/identity | Giữ; xóa sẽ làm hỏng compatibility/test đã lưu |
+| LegacyShopApi, ShopHandler | Backend bật qua ShopConfig.enabled; schema/API compatibility | Giữ; không suy “legacy” là code chết |
+| AssetCache | AssetCacheTest dùng helper; route Store assets không dùng helper | Giữ hợp đồng helper/test, không thêm method conditional hoặc bật ETag mới |
+| scripts/ops và deploy | Python regression, CI, Docker/LAN packaging, startup/backup | Giữ path; không đổi file dùng bởi script/test |
+| lib/postgresql-42.7.14.jar, 1.221.004 byte | Dependency JDBC offline, runtime/package; SHA được pin trong prepare_runtime.py | Giữ dependency, không xóa vì là binary |
+| .runtime/postgres-binaries.jar, 22.971.080 byte | Cache tải chính thức, hash ce225f9a…; prepare_runtime.download tái tạo theo URL/version/checksum | Bỏ **tracking** bằng git rm --cached, giữ file local và backup đã kiểm SHA; ignore đã có |
+| target/reverse-proxy.jar, 4.272.618 byte | Build output; scripts/build.ps1/Maven/Docker tạo từ source | Bỏ **tracking**, giữ artifact local và backup; clean build không dùng JAR cũ đã PASS |
+| target/classes và cache ignored | 236 file .class trong inventory đầu; có thể thuộc IDE/session hiện có | Không xóa; build kiểm trong root QA mới, không thay output đang dùng |
+| WORKSPACE_PATHS.csv, 10.562.451 byte | Ánh xạ provenance/path/archive/SHA được evidence index và Word lịch sử dùng | Giữ nguyên dù lớn; chưa có cơ sở loại mapping độc lập |
+| docs/history, evidence/core-streaming, evidence/unified | Receipt/manifest độc lập khác commit/môi trường | Giữ nguyên; không gộp số liệu hoặc xóa kết quả FAIL/NOT RUN |
+| Catalog JSON/sources JSON | Dữ liệu resource và nguồn ảnh của Store | Giữ tại src/main/resources, không di chuyển theo đuôi .json |
+| .shop/.runtime DB, .env.store, shared-files, raw QA | Dữ liệu/config thật hoặc bằng chứng | Không dọn, không đưa lên Git |
+
+Không xóa class/method/import vì chỉ nghi ngờ; không tuyên bố mọi code chết đã
+được chứng minh. .gitignore đã có rule đúng cho runtime/target/cache/private env;
+vấn đề là hai file đã tracked từ trước nên ignore không tự bỏ tracking.
+Không cần thêm rule rộng che source hoặc evidence.
+
+.gitattributes giữ toàn bộ rule cũ và bổ sung `-text` cùng ngoại lệ whitespace
+cho bộ evidence công khai ngày 22/11, để Git giữ JSON/CSV/recipe và SVG sinh tự
+động nguyên byte/checksum khi clone khác OS. Không áp EOL mới cho source hoặc
+thay cấu hình runtime.
+
+Hai artifact có bản sao độc lập trong `closeout-20261122\preserved-artifacts`,
+đã so SHA trước khi bỏ tracking. **0 file vật lý bị xóa; 0 byte thực sự được
+giải phóng.** Tracked tree mới không còn 27.243.698 byte artifact sinh ra đó;
+có thêm bộ evidence công khai nhỏ và tài liệu. Không gọi đây là giảm dung lượng
+.git: lịch sử cũ vẫn giữ các blob, không rewrite/force-push.
+
+| Thống kê checkout (không .git) | Trước chốt | Sau dọn/chốt |
+|---|---:|---:|
+| Tổng file vật lý | 5,889 | 5,908 |
+| Tổng byte vật lý | 382,214,781 | 382,763,376 |
+| File tracked | 256 | 276 sau commit |
+| File chưa tracked hợp lệ | 3 | 0 sau commit |
+| File ignored giữ local | 5,630 | 5,632 |
+| File vật lý bị xóa / byte giải phóng | — | 0 / 0 |
+
+Tăng 19 file là mục lục, quy trình testing và 17 bản evidence công khai; không
+tạo thêm báo cáo. Hai JAR chuyển từ tracked sang ignored, không đổi số file vật
+lý. Kích thước tổng tăng do thêm tài liệu/evidence; không gọi việc bỏ tracking
+hoặc tạo backup là giải phóng dung lượng.
+
+### 13.3. Tổ chức tài liệu và đường dẫn
+
+[docs/README.md](../README.md) là điểm vào chung, được README gốc dẫn trực tiếp:
+architecture, deployment, testing, reports, evidence, history và maintenance.
+Tài liệu LAN tiếp tục nằm cạnh launcher tại deploy/lan; không chuyển vì không có
+lợi ích rõ hơn và còn packaging/reference. Không chuyển hoặc xóa tài liệu cũ.
+
+Lệnh kiểm thử/live QA và lưu output từ README gốc được gom vào
+[testing/VALIDATION.md](../testing/VALIDATION.md), README giữ đường dẫn ngắn.
+Audit gốc bất biến; nội dung cleanup được tích hợp ngay trong mục này. Không có
+báo cáo cleanup cũ mới tạo để phải hợp nhất. REVIEW.md/DEFENSE_GUIDE.md và Word
+ngoài checkout giữ nguyên, được mục lục phân biệt là lịch sử workspace.
+
+Các link biểu đồ/aggregate/runner trong báo cáo hiện hành đã chuyển sang bản sao
+công khai nguyên byte dưới docs/evidence/final-validation-20261122. Link đến
+private QA đổi thành path local rõ ràng, tránh tạo đường dẫn GitHub ra ngoài repo.
+README/operations không còn dùng đường dẫn ngoài checkout làm điểm vào tài liệu.
+Không đổi đường dẫn script, source, resources hoặc CI để làm thư mục đẹp hơn.
+
+Đã kiểm **64 link Markdown nội bộ/anchor**, không có target thiếu, anchor sai hoặc link chủ động ra ngoài checkout. 17 URL HTTP/HTTPS chỉ được phân loại/kiểm cú pháp trong bước link check; không tuyên bố mọi dịch vụ localhost hoặc website ngoài đang online. Path được đóng gói trong script/CI không bị di chuyển; clean build và CI kiểm các dependency/resource tương ứng. Path lịch sử trong CSV/audit là provenance, không bị sửa cho giống layout mới.
+
+### 13.4. Evidence và kiểm thử sau dọn
+
+Đã kiểm lại **841 entry của benchmark manifest** và **278 entry của validation
+manifest** trong bộ gốc trước khi dọn. Source fingerprint runtime giữ nguyên:
+`5c40e0bfb81310db4613be9b763b01aecbcaa41a63c1df5d6e72798f2502852c`.
+Các thuật toán, scorer/EstimatedWork, timeout/admission, API/Store và resources
+không bị thay đổi trong cleanup; không chạy lại benchmark.
+
+Git giữ 17 file công khai, tổng **525.600 byte**, gồm environment/execution,
+aggregate JSON/CSV, PNG/SVG, runner và postprocessing recipe, mixed-by-path,
+manifest gốc, final-integrity cũ và receipt CI mới. Đây là **subset** có chủ đích;
+raw CSV, warm-up, config/metrics/events/log, DB/storage QA và test artifacts vẫn
+đủ trong `D:\PBL4\evidence\final-validation-20261122`. Không đưa private password
+file hoặc log vào Git. Bản final-integrity.json công khai là receipt của snapshot
+báo cáo trước append/chuẩn hóa line ending Git, không phải hash của trang hiện tại.
+Bản báo cáo trước chốt được giữ ở commit 52d6ea7 và backup before-untracked.
+
+Muốn lưu lâu dài, sao lưu bộ raw ngoài checkout cùng manifest; kiểm SHA từng file
+trên bản sao. Gói công khai chỉ dùng allowlist 17 file này; không zip toàn bộ QA
+vì có credential/runtime riêng. Không tạo thêm manifest trùng bộ đã có.
+
+Build/test local được chạy lại trong **bản sao source QA sạch**, không có hai
+JAR sinh ra nói trên, không .env.store hoặc DB thật:
+
+| Kiểm tra | Kết quả | Nguồn |
+|---|---|---|
+| Java 21 clean build, JAR mới và full TestSuite | **33/33 main PASS** | closeout-20261122/java-clean-build-suite.log và XML trong clean-checkout |
+| Python operations/config | **41/41 PASS** | closeout-20261122/python-ops.log |
+| HTTP tooling mock | **PASS** | closeout-20261122/python-http.log |
+| Conditional GET/HEAD và console cp1252 | **PASS** trong Java/Python suite và CI | Test mới nằm trong XML Linux/Windows; stdout strict cp1252 được ép trong test |
+| Startup/config và resources | Build/JAR/resource/config fixture đã kiểm | Không start/migrate/reset demo thật để “dọn” |
+| PostgreSQL/idempotency local trước đó | Giữ nguyên **19 checkpoint + 2 ca đa JVM** | Không gọi là đã chạy lại trong cleanup |
+
+CI push của source commit
+[52d6ea7](https://github.com/nguyenvanquanghjhj/reverse-proxy/commit/52d6ea79f5e7627e2d06939691f2b061e9b148ab)
+đã thực thi; [run 44999996936](https://github.com/nguyenvanquanghjhj/reverse-proxy/actions/runs/44999996936)
+**PASS 4/4 job**, không dùng workflow cũ của commit nền làm bằng chứng:
+
+| Job | Kết quả thực thi |
+|---|---|
+| core-java-linux | SUCCESS; 33 XML test main, StoreConditionalHttpTest có trong artifact |
+| core-java-windows | SUCCESS; 33 XML test main; Python operations 41 test và HTTP tooling |
+| tools-and-config | SUCCESS; Python operations 41 test, HTTP tooling và Compose config |
+| docker-live | SUCCESS; **68/68 checkpoint**, giữ volume; stack QA riêng |
+
+[ci-main.json](../evidence/final-validation-20261122/ci-main.json) ghi head SHA/run,
+job và số artifact đã đối chiếu; log đầy đủ nằm ngoài Git. Sau commit cleanup,
+workflow của **HEAD mới** phải được theo dõi riêng bằng gh, không suy SUCCESS chỉ
+từ receipt source commit. Trạng thái live theo SHA nằm trên
+[Actions main](https://github.com/nguyenvanquanghjhj/reverse-proxy/actions/workflows/pbl4-ci.yml?query=branch%3Amain);
+phản hồi chốt trong chat chỉ được ghi PASS khi mọi job của commit cuối đã SUCCESS.
+
+### 13.5. Kết luận và cập nhật Word
+
+Cấu trúc dễ tìm hơn, source/dependency cần thiết và mọi evidence quan trọng được
+giữ. Không có refactor, nâng cấp UI/nghiệp vụ, đổi thuật toán hoặc xóa dữ liệu.
+Giới hạn mixed timeout, physical LAN/SMB, browser E2E/soak vẫn như mục 7–10;
+CI Linux/Windows/Docker sau sửa đã có bằng chứng source commit mới ở trên.
+
+Word cần cập nhật thêm **Bảng 66/Hình 30** bằng đúng SHA/run và số **68 checkpoint
+Docker**, không caption 69; Bảng 67–73/kết luận chương 6 cần tách CI PASS với
+physical LAN chưa nghiệm thu. Hình 20 và mục nguồn evidence cần dùng mục lục mới,
+phân biệt subset trong Git với raw ngoài checkout. Giữ các cập nhật benchmark/
+conditional/SQL đã nêu ở mục 12.2; không sửa số liệu cũ hoặc tự chỉnh file Word.
+
+Từ nay dùng **main** cho công việc thường, không tự tạo branch/PR; trước push
+fetch và tích hợp commit người khác. Trước tài liệu mới, kiểm mục đích trùng,
+ưu tiên cập nhật, xác định giá trị lâu dài/vị trí chuẩn và cập nhật mục lục.
 
